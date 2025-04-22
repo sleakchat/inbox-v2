@@ -1,0 +1,84 @@
+.emptystate {
+  display: flex;
+}
+
+/* apple checkboxes */
+.checkbox-default-small:checked + .toggle-label-small {
+  background-color: #7a50ed !important;
+}
+.checkbox-default-small:checked + .toggle-label-small .checkbox-toggle-dot {
+  left: calc(50%);
+}
+
+/* toggles */
+
+label {
+  cursor: pointer !important;
+}
+
+.toggle-label:after {
+  content: '';
+  position: absolute;
+  top: auto;
+  bottom: auto;
+  left: 6px;
+  width: calc(50% - 12px);
+  height: calc(100% - 10px);
+  background: #fff;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+
+.checkbox-default:checked + .toggle-label:after {
+  left: calc(100% - 6px);
+  transform: translateX(-100%);
+}
+
+.checkbox-default + .toggle-label .false {
+  color: #333;
+}
+
+.checkbox-default:checked + .toggle-label .false {
+  color: #000;
+}
+
+.checkbox-default:checked + .toggle-label .true {
+  color: #25d366;
+}
+
+/* v2 */
+.toggle-label.v2:after {
+  left: 3px;
+  /* width: calc(50% - 6px) !important; */
+  height: calc(100% - 6px);
+  border-radius: 4px;
+  transition: 0.3s;
+}
+
+.checkbox-default:checked + .toggle-label.v2:after {
+  left: calc(100% - 3px);
+  transform: translateX(-100%);
+}
+
+/* secondary navbar nav items */
+
+.list-item.selected {
+  background-color: #f7f7ff;
+  border-color: #f3f3ff;
+}
+.list-item.selected .list-item-icon-container {
+  background-color: #7e79f0;
+  border-color: #a19dff !important;
+}
+.list-item.selected .list-item-icon-container > img {
+  filter: invert(100%);
+}
+
+.secondary-header-container .list-item:hover .list-item-icon-container {
+  transform: scale(1.06);
+}
+
+/* quick actions toolbar */
+.toolbar-btn:hover .toolbar-btn-inner {
+  background-color: #f7f7f7;
+}

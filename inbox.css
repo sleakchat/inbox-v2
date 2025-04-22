@@ -1,0 +1,125 @@
+/* navbar tooltips */
+.menu-item-container:hover .navbar-tooltip-wrap {
+  opacity: 1;
+}
+.secondary-button:hover .navbar-tooltip-wrap {
+  opacity: 1;
+}
+
+/* messages */
+.message-wrap.bot .messagebody {
+  /* background-color: #333333; */
+  color: #fff;
+  margin: none;
+  /* margin-left: 20px; */
+  margin-right: 0px;
+}
+
+.message-wrap.bot .default-message-wrap {
+  background-color: #333;
+}
+
+/* .message-wrap.agent .messagebody {
+  background-color: #fff;
+  color: #000 !important;
+  margin: none;
+  border: solid 2px #7e79f0;
+  margin-left: 20px;
+  margin-right: 0px;
+} */
+
+.message-wrap.agent {
+  margin-bottom: 10px;
+}
+
+/* .message-wrap a {
+  color: #333 !important;
+} */
+.message-wrap.agent a {
+  color: #7e79f0 !important;
+}
+.message-wrap.agent a:hover {
+  color: #000 !important;
+}
+.message-wrap.bot a {
+  color: #fff !important;
+}
+.message-wrap.bot a:hover {
+  color: #000 !important;
+}
+
+.message-preview {
+  text-overflow: ellipsis;
+}
+
+.messagebody {
+  margin: none !important;
+  margin-bottom: none !important;
+}
+
+.tool-output-logs-indicator-button {
+  right: -8px !important;
+}
+
+.default-message-wrap .tool-output-logs-indicator-button {
+  display: none;
+  visibility: hidden;
+}
+
+.default-message-wrap:hover .tool-output-logs-indicator-button {
+  display: flex;
+  visibility: visible;
+}
+
+/* loading elements */
+.loader-wrap {
+  display: flex !important;
+}
+
+.inbox-empty-state {
+  display: flex !important;
+}
+
+[w-el='skeleton-inbox-initial'] {
+  display: flex;
+}
+
+.empty-state-filtering {
+  display: flex;
+}
+
+p {
+  margin-bottom: 0px;
+}
+
+.chat-list-item .active .div-block-49 .chatbot-image {
+  background-color: #fff !important;
+  border: 1px solid #00000010 !important;
+}
+
+.activityfeedlistitem-wrap.sample-element {
+  display: none !important;
+}
+
+.tool-output-logs-list-body.preview {
+  -webkit-line-clamp: 1;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical;
+}
+
+[inbox-tab-count] {
+  display: none;
+}
+
+.chatinput:focus {
+  outline: none !important;
+}
+.chatinput:focus-within > .textarea-wrap {
+  outline: #000 2px solid !important;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.08) !important;
+}
+
+.chatinput > .textarea-wrap {
+  box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.08) !important;
+  transition: box-shadow 0.2s ease;
+}
