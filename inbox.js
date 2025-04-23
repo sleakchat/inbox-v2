@@ -1,5 +1,7 @@
-window.Wized = window.Wized || [];
-window.Wized.push(async Wized => {
+(async function initInbox() {
+  // window.Wized = window.Wized || [];
+  // window.Wized.push(async Wized => {
+
   const v = Wized.data.v;
   const r = Wized.data.r;
   const i = Wized.data.i;
@@ -556,4 +558,5 @@ window.Wized.push(async Wized => {
     };
   })();
   //
-});
+  // });
+})();
