@@ -1,5 +1,6 @@
-window.Wized = window.Wized || [];
-window.Wized.push(async Wized => {
+(async function initInbox() {
+  // window.Wized = window.Wized || [];
+  // window.Wized.push(async Wized => {
   if (localStorage.getItem('sleakTrialExpired') == 'true') return;
 
   const v = Wized.data.v;
@@ -330,4 +331,5 @@ window.Wized.push(async Wized => {
   }
 
   realtimeInit();
-});
+  // });
+})();

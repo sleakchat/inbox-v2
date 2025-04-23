@@ -22,6 +22,69 @@
   console.log('✅ currentOrganization = ', currentOrganization);
   console.log('✅ currentMember = ', currentMember);
 
+  // Function to update inbox tab counts
+  async function updateInboxCounts() {
+    try {
+      // Get count for "Nieuw" tab (new/unread chats excluding those where user is an operator)
+      // Use LEFT JOIN (not inner join) to include chats without operators
+      const { count: newCount, error: newError } = await supabase
+        .from('chats')
+        .select(
+          `
+            id, 
+            operators(user_id, status)
+          `,
+          { count: 'exact', head: true }
+        )
+        .eq('organization_id', currentOrganization.id)
+        .eq('open', true)
+        .eq('has_unread', true)
+        .is('operators.id', null);
+
+      if (newError) {
+        console.error('Error getting new count:', newError);
+        return;
+      }
+
+      // Get count for "Voor jou" tab (chats where user is a member)
+      const { count: assignedCount, error: assignedError } = await supabase
+        .from('chats')
+        .select('*, operators!inner(*)', { count: 'exact', head: true })
+        .eq('organization_id', currentOrganization.id)
+        .eq('open', true)
+        .eq('operators.user_id', currentUser)
+        .eq('operators.status', 'active');
+
+      if (assignedError) {
+        console.error('Error getting assigned count:', assignedError);
+        return;
+      }
+
+      // Update UI with counts
+      const newTabCounter = document.querySelector('[inbox-tab-count="nieuw"]');
+      const assignedTabCounter = document.querySelector('[inbox-tab-count="voorjou"]');
+
+      // Only show counts if they are greater than 0
+      if (newCount > 0) {
+        newTabCounter.textContent = newCount;
+        newTabCounter.style.display = 'flex';
+      } else {
+        newTabCounter.style.display = 'none';
+      }
+
+      if (assignedCount > 0) {
+        assignedTabCounter.textContent = assignedCount;
+        assignedTabCounter.style.display = 'flex';
+      } else {
+        assignedTabCounter.style.display = 'none';
+      }
+
+      console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
+    } catch (error) {
+      console.error('Error updating inbox counts:', error);
+    }
+  }
+
   (function initFilters() {
     function updateUrlParams() {
       const qp = {
@@ -40,69 +103,6 @@
         url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
       });
       window.history.replaceState(null, '', url.toString());
-    }
-
-    // Function to update inbox tab counts
-    async function updateInboxCounts() {
-      try {
-        // Get count for "Nieuw" tab (new/unread chats excluding those where user is an operator)
-        // Use LEFT JOIN (not inner join) to include chats without operators
-        const { count: newCount, error: newError } = await supabase
-          .from('chats')
-          .select(
-            `
-            id, 
-            operators(user_id, status)
-          `,
-            { count: 'exact', head: true }
-          )
-          .eq('organization_id', currentOrganization.id)
-          .eq('open', true)
-          .eq('has_unread', true)
-          .is('operators.id', null);
-
-        if (newError) {
-          console.error('Error getting new count:', newError);
-          return;
-        }
-
-        // Get count for "Voor jou" tab (chats where user is a member)
-        const { count: assignedCount, error: assignedError } = await supabase
-          .from('chats')
-          .select('*, operators!inner(*)', { count: 'exact', head: true })
-          .eq('organization_id', currentOrganization.id)
-          .eq('open', true)
-          .eq('operators.user_id', currentUser)
-          .eq('operators.status', 'active');
-
-        if (assignedError) {
-          console.error('Error getting assigned count:', assignedError);
-          return;
-        }
-
-        // Update UI with counts
-        const newTabCounter = document.querySelector('[inbox-tab-count="nieuw"]');
-        const assignedTabCounter = document.querySelector('[inbox-tab-count="voorjou"]');
-
-        // Only show counts if they are greater than 0
-        if (newCount > 0) {
-          newTabCounter.textContent = newCount;
-          newTabCounter.style.display = 'flex';
-        } else {
-          newTabCounter.style.display = 'none';
-        }
-
-        if (assignedCount > 0) {
-          assignedTabCounter.textContent = assignedCount;
-          assignedTabCounter.style.display = 'flex';
-        } else {
-          assignedTabCounter.style.display = 'none';
-        }
-
-        console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
-      } catch (error) {
-        console.error('Error updating inbox counts:', error);
-      }
     }
 
     // Call the count update function initially
