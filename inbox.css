@@ -123,3 +123,8 @@ p {
   box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.08) !important;
   transition: box-shadow 0.2s ease;
 }
+
+/* quick actions toolbar */
+.toolbar-btn:hover .toolbar-btn-inner {
+  background-color: #f7f7f7;
+}
