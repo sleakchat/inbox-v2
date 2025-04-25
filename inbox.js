@@ -341,7 +341,8 @@
       author_type: 'system',
       message_type: message_type,
       message_type_data: message_type_data,
-      chatbot_id: v.chats.find(chat => chat.id === chat_id)?.chatbot_id
+      chatbot_id: v.chats.find(chat => chat.id === chat_id)?.chatbot_id,
+      author_member_id: currentMember.id
     });
   }
   // Compare operators and livechat status in real-time vs database state
@@ -387,7 +388,7 @@
         await supabase.from('operators').insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active' }]);
       }
 
-      await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'joined', id: user_id });
+      await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'joined' });
 
       v.livechatstatus == true;
       document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
@@ -401,7 +402,7 @@
         await supabase.from('chats').update({ livechat: false }).eq('id', chatState.id);
       }
       await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
-      await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left', id: user_id });
+      await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left' });
 
       document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
       let leaveLivechatEvent = new CustomEvent('leaveLivechat', { detail: { message: 'Joining live chat' } });

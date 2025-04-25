@@ -90,7 +90,7 @@
                   if (payload.id == v.active_chat) {
                     // 📥 add to active chat object
                     v.active_chat_object.push(payload);
-                    console.log('active chat object updated:', v.active_chat_object);
+                    // console.log('active chat object updated:', v.active_chat_object);
                   }
                 }
 
@@ -149,12 +149,13 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
-            // console.log('Updated chat payload:', payload);
+            console.log('🚀🚀🚀 Updated chat realtime payload:', payload);
             if (payload.new.placement !== 'admin') {
               const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
               if (updatedChat) {
                 Object.assign(updatedChat, payload.new);
                 console.log('Chat updated:', updatedChat);
+                // console.log('Chat updated:', JSON.stringify(updatedChat.operators, null, 2));
 
                 if (!v.chats.find(item => item.id == v.active_chat)) {
                   // is this first condition not redundant?
@@ -203,6 +204,7 @@
           }
         });
 
+      console.log('after RT init');
       ////
 
       adminUiChannel.subscribe((status, err) => {
@@ -333,3 +335,5 @@
   realtimeInit();
   // });
 })();
+
+console.log('a;ds;asd;adf;adfs');
