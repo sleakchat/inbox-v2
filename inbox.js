@@ -24,65 +24,59 @@
 
   // Function to update inbox tab counts
   async function updateInboxCounts() {
-    try {
-      // Get count for "Nieuw" tab (new/unread chats excluding those where user is an operator)
-      // Use LEFT JOIN (not inner join) to include chats without operators
-      const { count: newCount, error: newError } = await supabase
-        .from('chats')
-        .select(
-          `
-            id, 
-            operators(user_id, status)
-          `,
-          { count: 'exact', head: true }
-        )
-        .eq('organization_id', currentOrganization.id)
-        .eq('open', true)
-        .eq('has_unread', true)
-        .is('operators.id', null);
-
-      if (newError) {
-        console.error('Error getting new count:', newError);
-        return;
-      }
-
-      // Get count for "Voor jou" tab (chats where user is a member)
-      const { count: assignedCount, error: assignedError } = await supabase
-        .from('chats')
-        .select('*, operators!inner(*)', { count: 'exact', head: true })
-        .eq('organization_id', currentOrganization.id)
-        .eq('open', true)
-        .eq('operators.user_id', currentUser)
-        .eq('operators.status', 'active');
-
-      if (assignedError) {
-        console.error('Error getting assigned count:', assignedError);
-        return;
-      }
-
-      // Update UI with counts
-      const newTabCounter = document.querySelector('[inbox-tab-count="nieuw"]');
-      const assignedTabCounter = document.querySelector('[inbox-tab-count="voorjou"]');
-
-      // Only show counts if they are greater than 0
-      if (newCount > 0) {
-        newTabCounter.textContent = newCount;
-        newTabCounter.style.display = 'flex';
-      } else {
-        newTabCounter.style.display = 'none';
-      }
-
-      if (assignedCount > 0) {
-        assignedTabCounter.textContent = assignedCount;
-        assignedTabCounter.style.display = 'flex';
-      } else {
-        assignedTabCounter.style.display = 'none';
-      }
-
-      console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
-    } catch (error) {
-      console.error('Error updating inbox counts:', error);
-    }
+    // try {
+    //   // Get count for "Nieuw" tab (new/unread chats excluding those where user is an operator)
+    //   // Use LEFT JOIN (not inner join) to include chats without operators
+    //   const { count: newCount, error: newError } = await supabase
+    //     .from('chats')
+    //     .select(
+    //       `
+    //         id,
+    //         operators(member_id, status)
+    //       `,
+    //       { count: 'exact', head: true }
+    //     )
+    //     .eq('operators.member_id', currentMember)
+    //     .eq('organization_id', currentOrganization.id)
+    //     .eq('open', true)
+    //     .eq('has_unread', true)
+    //     .is('operators.id', null);
+    //   if (newError) {
+    //     console.error('Error getting new count:', newError);
+    //     return;
+    //   }
+    //   // Get count for "Voor jou" tab (chats where user is a member)
+    //   const { count: assignedCount, error: assignedError } = await supabase
+    //     .from('chats')
+    //     .select('*, operators!inner(*)', { count: 'exact', head: true })
+    //     .eq('organization_id', currentOrganization.id)
+    //     .eq('open', true)
+    //     .eq('operators.member_id', currentMember)
+    //     .eq('operators.status', 'active');
+    //   if (assignedError) {
+    //     console.error('Error getting assigned count:', assignedError);
+    //     return;
+    //   }
+    //   // Update UI with counts
+    //   const newTabCounter = document.querySelector('[inbox-tab-count="nieuw"]');
+    //   const assignedTabCounter = document.querySelector('[inbox-tab-count="voorjou"]');
+    //   // Only show counts if they are greater than 0
+    //   if (newCount > 0) {
+    //     newTabCounter.textContent = newCount;
+    //     newTabCounter.style.display = 'flex';
+    //   } else {
+    //     newTabCounter.style.display = 'none';
+    //   }
+    //   if (assignedCount > 0) {
+    //     assignedTabCounter.textContent = assignedCount;
+    //     assignedTabCounter.style.display = 'flex';
+    //   } else {
+    //     assignedTabCounter.style.display = 'none';
+    //   }
+    //   console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
+    // } catch (error) {
+    //   console.error('Error updating inbox counts:', error);
+    // }
   }
 
   (function initFilters() {
@@ -90,6 +84,7 @@
       const qp = {
         chat: v.active_chat,
         closed: i.toggle_inboxfilters_closed,
+        new: i.toggle_inboxfilters_new,
         tab: v.active_inbox_tab
       };
 
@@ -291,11 +286,12 @@
 
   (async function setActiveChat() {
     await Wized.requests.waitFor('get_chats');
-    if (v.chats.length > 0) {
-      // Check if chat ID exists in URL query parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const chatIdFromUrl = urlParams.get('chat');
 
+    // Check if chat ID exists in URL query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatIdFromUrl = urlParams.get('chat');
+
+    if (v.chats.length > 0) {
       if (chatIdFromUrl && v.chats.some(chat => chat.id === chatIdFromUrl)) {
         // Use chat ID from URL if it exists in the chats list
         window.switchActiveChat(chatIdFromUrl);
@@ -308,6 +304,8 @@
       // if (v.chats.find(chat => chat.id === v.active_chat).livechat == false) {
       //   document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
       // }
+    } else {
+      v.active_chat = null;
     }
 
     // let skeletonElement = document.querySelector("[w-el='skeleton-inbox-initial']");
@@ -315,6 +313,17 @@
     //   skeletonElement.style.display = 'none';
     // }
   })();
+
+  window.changeSidebarTabs = async function () {
+    console.log('changeSidebarTabs');
+    Wized.requests.execute('get_chats');
+    await Wized.requests.waitFor('get_chats');
+    if (v.chats.length > 0) {
+      window.switchActiveChat(v.chats[0].id);
+    } else {
+      v.active_chat = null;
+    }
+  };
 
   async function fetchChat(chat_id) {
     const { data } = await supabase
@@ -372,10 +381,10 @@
 
       if (chatState.operators.some(op => op.user_id === user_id)) {
         // Update status if operator already exists
-        await supabase.from('operators').update({ status: 'active' }).eq('chat_id', chatState.id).eq('user_id', user_id);
+        await supabase.from('operators').update({ status: 'active' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       } else {
         // insert new operator if not already in the chat
-        await supabase.from('operators').insert([{ chat_id: chatState.id, user_id: user_id, status: 'active' }]);
+        await supabase.from('operators').insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active' }]);
       }
 
       await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'joined', id: user_id });
@@ -391,7 +400,7 @@
       if (remainingOperators.length === 0) {
         await supabase.from('chats').update({ livechat: false }).eq('id', chatState.id);
       }
-      await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id).eq('user_id', user_id);
+      await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left', id: user_id });
 
       document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
@@ -429,8 +438,8 @@
   //
 
   (async function livechatAssignment() {
-    async function inviteOperator(chat_id, user_id) {
-      await supabase.from('operators').insert([{ chat_id, user_id, status: 'invited' }]);
+    async function inviteOperator(chat_id, user_id, member_id) {
+      await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited' }]);
       console.log(`Operator ${user_id} invited to chat ${chat_id}`);
     }
 
@@ -519,25 +528,28 @@
         return;
       }
 
+      // ⚠️ remove this?
       const objectInChatsList = v.allchats.some(chat => chat.id == chatState.id);
 
+      // ⚠️ this needs to be reconsidered for the new "nieuw/alles" toggle
       if (v.active_inbox_tab == 'nieuw') {
-        console.log('✅ NIEUW');
+        console.log('NIEUW');
         if (chatState.open == true) {
           chatListRemoveChat(chatState);
         } else {
           chatListAddChat(chatState);
         }
       } else if (v.active_inbox_tab !== 'nieuw') {
+        // ⚠️ compare with chat state instead of input state
         if (i.toggle_inboxfilters_closed == true) {
-          console.log('✅ closed is true');
+          console.log('closed is true');
           if (chatState.open == true) {
             chatListAddChat(chatState);
           } else {
             chatListRemoveChat(chatState);
           }
         } else {
-          console.log('✅ closed is false');
+          console.log('closed is false');
           if (chatState.open == true) {
             chatListRemoveChat(chatState);
           } else {

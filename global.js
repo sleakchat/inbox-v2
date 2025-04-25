@@ -1,5 +1,3 @@
-console.log('inserting global js');
-
 (function initDropdownModals() {
   const dropdownTriggers = document.querySelectorAll('[dropdown-trigger]');
   const closeTriggers = document.querySelectorAll('[dropdown-close]');
