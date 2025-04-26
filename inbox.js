@@ -24,81 +24,115 @@
 
   // Function to update inbox tab counts
   async function updateInboxCounts() {
-    // try {
-    //   // Get count for "Nieuw" tab (new/unread chats excluding those where user is an operator)
-    //   // Use LEFT JOIN (not inner join) to include chats without operators
-    //   const { count: newCount, error: newError } = await supabase
-    //     .from('chats')
-    //     .select(
-    //       `
-    //         id,
-    //         operators(member_id, status)
-    //       `,
-    //       { count: 'exact', head: true }
-    //     )
-    //     .eq('operators.member_id', currentMember)
-    //     .eq('organization_id', currentOrganization.id)
-    //     .eq('open', true)
-    //     .eq('has_unread', true)
-    //     .is('operators.id', null);
-    //   if (newError) {
-    //     console.error('Error getting new count:', newError);
-    //     return;
-    //   }
-    //   // Get count for "Voor jou" tab (chats where user is a member)
-    //   const { count: assignedCount, error: assignedError } = await supabase
-    //     .from('chats')
-    //     .select('*, operators!inner(*)', { count: 'exact', head: true })
-    //     .eq('organization_id', currentOrganization.id)
-    //     .eq('open', true)
-    //     .eq('operators.member_id', currentMember)
-    //     .eq('operators.status', 'active');
-    //   if (assignedError) {
-    //     console.error('Error getting assigned count:', assignedError);
-    //     return;
-    //   }
-    //   // Update UI with counts
-    //   const newTabCounter = document.querySelector('[inbox-tab-count="nieuw"]');
-    //   const assignedTabCounter = document.querySelector('[inbox-tab-count="voorjou"]');
-    //   // Only show counts if they are greater than 0
-    //   if (newCount > 0) {
-    //     newTabCounter.textContent = newCount;
-    //     newTabCounter.style.display = 'flex';
-    //   } else {
-    //     newTabCounter.style.display = 'none';
-    //   }
-    //   if (assignedCount > 0) {
-    //     assignedTabCounter.textContent = assignedCount;
-    //     assignedTabCounter.style.display = 'flex';
-    //   } else {
-    //     assignedTabCounter.style.display = 'none';
-    //   }
-    //   console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
-    // } catch (error) {
-    //   console.error('Error updating inbox counts:', error);
-    // }
+    try {
+      // Get count for "Nieuw" tab (new/unread chats excluding those where user is an operator)
+      // Use LEFT JOIN (not inner join) to include chats without operators
+      const { count: newCount, error: newError } = await supabase
+        .from('chats')
+        .select(
+          `
+            id,
+            operators(member_id, status)
+          `,
+          { count: 'exact', head: true }
+        )
+        .eq('operators.member_id', currentMember)
+        .eq('organization_id', currentOrganization.id)
+        .eq('open', true)
+        .eq('has_unread', true)
+        .is('operators.id', null);
+      if (newError) {
+        console.error('Error getting new count:', newError);
+      }
+      // Get count for "Voor jou" tab (chats where user is a member)
+      const { count: assignedCount, error: assignedError } = await supabase
+        .from('chats')
+        .select('*, operators!inner(*)', { count: 'exact', head: true })
+        .eq('organization_id', currentOrganization.id)
+        .eq('open', true)
+        .eq('operators.member_id', currentMember)
+        .eq('operators.status', 'active');
+      if (assignedError) {
+        console.error('Error getting assigned count:', assignedError);
+        return;
+      }
+      // Update UI with counts
+      const newTabCounter = document.querySelector('[inbox-tab-count="nieuw"]');
+      const assignedTabCounter = document.querySelector('[inbox-tab-count="voorjou"]');
+      // Only show counts if they are greater than 0
+      if (newCount > 0) {
+        newTabCounter.textContent = newCount;
+        newTabCounter.style.display = 'flex';
+      } else {
+        newTabCounter.style.display = 'none';
+      }
+      if (assignedCount > 0) {
+        assignedTabCounter.textContent = assignedCount;
+        assignedTabCounter.style.display = 'flex';
+      } else {
+        assignedTabCounter.style.display = 'none';
+      }
+      console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
+    } catch (error) {
+      console.error('Error updating inbox counts:', error);
+    }
   }
 
   (function initFilters() {
-    function updateUrlParams() {
-      const qp = {
-        chat: v.active_chat,
-        closed: i.toggle_inboxfilters_closed,
-        new: i.toggle_inboxfilters_new,
-        tab: v.active_inbox_tab
-      };
-
-      // Only add filters to URL if inboxFilters is not empty
-      if (v.inboxFilters && Object.keys(v.inboxFilters).length > 0) {
-        qp.filters = v.inboxFilters;
+    const filtersDefaultState = {
+      livechat: {
+        enabled: false,
+        value: false
+      },
+      assigned: {
+        enabled: false,
+        value: false
+      },
+      read: {
+        enabled: false,
+        value: false
+      },
+      chatbots: {
+        enabled: false,
+        value: []
+      },
+      containstext: {
+        enabled: false,
+        value: ''
       }
+    };
 
-      const url = new URL(window.location);
-      Object.entries(qp).forEach(([k, v]) => {
-        url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
-      });
-      window.history.replaceState(null, '', url.toString());
-    }
+    window.updateFilterProperty = function (filterName, property, value) {
+      // create completely new object with new nested objects
+      v.inboxFilters = {
+        ...JSON.parse(JSON.stringify(v.inboxFilters)),
+        [filterName]: {
+          ...JSON.parse(JSON.stringify(v.inboxFilters[filterName])),
+          [property]: value
+        }
+      };
+      console.log(`Updated filter ${filterName}.${property} to:`, value);
+    };
+
+    // function updateUrlParams() {
+    //   const qp = {
+    //     chat: v.active_chat,
+    //     closed: i.toggle_inboxfilters_closed,
+    //     new: i.toggle_inboxfilters_new,
+    //     tab: v.active_inbox_tab
+    //   };
+
+    //   // Only add filters to URL if inboxFilters is not empty
+    //   if (v.inboxFilters && Object.keys(v.inboxFilters).length > 0) {
+    //     qp.filters = v.inboxFilters;
+    //   }
+
+    //   const url = new URL(window.location);
+    //   Object.entries(qp).forEach(([k, v]) => {
+    //     url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
+    //   });
+    //   window.history.replaceState(null, '', url.toString());
+    // }
 
     // Call the count update function initially
     updateInboxCounts();
@@ -115,10 +149,15 @@
       filterObject.chatbots.value = filterObject.chatbots.value.filter(chatbot => getChatbots.includes(chatbot));
       v.inboxFilters = filterObject;
 
+      // make deep copy
+      v.realTimeFilters = JSON.parse(JSON.stringify(filterObject));
+
       i.inboxfilter_livechat_enabled = filterObject.livechat.value;
       i.inboxfilter_assigned_enabled = filterObject.assigned.value;
       i.inboxfilter_isread = filterObject.read.value;
       if (filterObject.containstext.value) i['inboxfilters-containstext'] = filterObject.containstext.value;
+
+      window.updateFilterProperty('chatbots', 'value', filterObject.chatbots.value);
     }
 
     // Check if there are filters in the URL query parameters
@@ -126,14 +165,14 @@
     const urlFilters = urlParams.get('filters');
     let queryParamFilters = null;
 
-    if (urlFilters) {
-      try {
-        queryParamFilters = JSON.parse(urlFilters);
-        console.log('✅ filters from URL', queryParamFilters);
-      } catch (e) {
-        console.error('Error parsing filters from URL', e);
-      }
-    }
+    // if (urlFilters) {
+    //   try {
+    //     queryParamFilters = JSON.parse(urlFilters);
+    //     console.log('✅ filters from URL', queryParamFilters);
+    //   } catch (e) {
+    //     console.error('Error parsing filters from URL', e);
+    //   }
+    // }
 
     if (queryParamFilters) {
       // Prioritize URL filters over database filters
@@ -145,74 +184,57 @@
       console.log('✅ v.inboxFilterChatbots = ', v.inboxFilters);
     } else {
       console.log('✅ setting new default filters');
-      applyFilters({
-        livechat: {
-          enabled: false,
-          value: false
-        },
-        assigned: {
-          enabled: false,
-          value: false
-        },
-        read: {
-          enabled: false,
-          value: false
-        },
-        chatbots: {
-          enabled: false,
-          value: getChatbots
-        },
-        containstext: {
-          enabled: false,
-          value: ''
-        }
-      });
+      applyFilters(filtersDefaultState);
 
       console.log('❌ no filters ');
     }
 
-    window.changeFilterVariable = function () {
-      // const filterStatus = v.inboxFilterStatus;
-      // const filterLabel = v.inboxFilterLabel;
-      // const filterChatbots = Array.isArray(v.inboxFilterChatbots) ? [...v.inboxFilterChatbots] : [];
+    // commented this out as we do it in applylFilters)()
 
-      // v.realTimeFilters = {
-      //   status: filterStatus,
-      //   label: filterLabel,
-      //   chatbots: filterChatbots
-      // };
-      v.realtimeFilters = v.inboxFilters;
-    };
-    changeFilterVariable();
+    // window.changeFilterVariable = function () {
+    //   // const filterStatus = v.inboxFilterStatus;
+    //   // const filterLabel = v.inboxFilterLabel;
+    //   // const filterChatbots = Array.isArray(v.inboxFilterChatbots) ? [...v.inboxFilterChatbots] : [];
 
-    window.setFilters = async function () {
+    //   // v.realTimeFilters = {
+    //   //   status: filterStatus,
+    //   //   label: filterLabel,
+    //   //   chatbots: filterChatbots
+    //   // };
+    //   v.realtimeFilters = v.inboxFilters;
+    // };
+    // changeFilterVariable();
+
+    window.manuallyApplyFilters = async function () {
       v.usedFilters = true;
-      v.realTimeFilters = v.inboxFilters;
-      console.log('v.realTimeFilters = ', v.realTimeFilters);
 
       const dropdownModals = document.querySelectorAll('[w-el="filters-dropdown"]');
       dropdownModals.forEach(function (modal) {
         modal.style.display = 'none';
       });
 
-      changeFilterVariable();
+      // v.realTimeFilters = v.inboxFilters;
+      // console.log('v.realTimeFilters = ', v.realTimeFilters);
+
+      // changeFilterVariable();
+      v.realTimeFilters = JSON.parse(JSON.stringify(v.inboxFilters));
 
       // add filters to queryparams in url
-      updateUrlParams();
+      // updateUrlParams();
 
       v.loadmorechats = [];
       v.newchats = [];
 
       Wized.requests.execute('get_chats');
 
-      const filterbar = document.querySelector("[w-el='inbox-subheader-activefilters']");
-      if (v.inboxFilterLabel == 'archived') {
-        filterbar.style.display = 'flex';
-      } else if (v.inboxFilterStatus == 'escalated' || v.inboxFilterStatus == 'livechat') {
-        filterbar.style.display = 'flex';
-      } else if (v.inboxFilterLabel == 'open' && v.inboxFilterStatus == 'all') {
-        filterbar.style.display = 'none';
-      }
+      // const filterbar = document.querySelector("[w-el='inbox-subheader-activefilters']");
+      // if (v.inboxFilterLabel == 'archived') {
+      //   filterbar.style.display = 'flex';
+      // } else if (v.inboxFilterStatus == 'escalated' || v.inboxFilterStatus == 'livechat') {
+      //   filterbar.style.display = 'flex';
+      // } else if (v.inboxFilterLabel == 'open' && v.inboxFilterStatus == 'all') {
+      //   filterbar.style.display = 'none';
+      // }
     };
 
     window.saveFilters = async function () {
@@ -231,9 +253,16 @@
       v.inboxFilters[filter].enabled = false;
       console.log('v.inboxFilters = ', v.inboxFilters);
     };
+    window.resetFilters = function () {
+      v.usedFilters = true;
+      applyFilters(filtersDefaultState);
+      Wized.requests.execute('get_chats');
+    };
 
     //
   })();
+
+  // end initfilters
 
   if (localStorage.getItem('sleakTrialExpired') !== 'true') {
     Wized.requests.execute('get_chats');
