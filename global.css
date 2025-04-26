@@ -1,3 +1,22 @@
+body {
+  user-select: none;
+}
+
+input,
+textarea,
+[data-selectable] * {
+  user-select: text;
+}
+
+[not-selectable] * {
+  user-select: none !important;
+}
+
+::selection {
+  background: #f9f5ff;
+  color: inherit;
+}
+
 .emptystate {
   display: flex;
 }

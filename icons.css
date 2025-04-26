@@ -1,0 +1,35 @@
+[icon-color='black'] {
+  color: #000;
+}
+
+[icon-color='white'] {
+  color: #fff;
+}
+
+[icon-color='primary'] {
+  color: #542cc1;
+}
+
+[icon-size='small'] {
+  size: 14px;
+}
+
+[icon-size='regular'] {
+  font-size: 16px;
+}
+
+[icon-size='large'] {
+  font-size: 18px;
+}
+
+[icon-size='xlarge'] {
+  font-size: 22px;
+}
+
+[icon-flip='horizontal'] {
+  transform: scaleX(-1);
+}
+
+[icon-flip='vertical'] {
+  transform: scaleY(-1);
+}

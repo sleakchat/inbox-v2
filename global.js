@@ -9,11 +9,12 @@
     dropdownModals.forEach(modal => {
       if (modal !== exceptModal) {
         const origin = modal.getAttribute('transform-origin');
+        const isReverse = modal.hasAttribute('open-top');
         if (origin) {
           modal.style.transformOrigin = origin;
-          modal.style.transform = `translateY(-20px) scale(0.9)`;
+          modal.style.transform = isReverse ? `translateY(20px) scale(0.9)` : `translateY(-20px) scale(0.9)`;
         } else {
-          modal.style.transform = 'translateY(-20px)';
+          modal.style.transform = isReverse ? 'translateY(20px)' : 'translateY(-20px)';
         }
         modal.style.opacity = '0';
         setTimeout(() => {
@@ -28,6 +29,7 @@
       event.stopPropagation();
       const modal = trigger.querySelector('[dropdown-modal]');
       const isMultiStep = trigger.hasAttribute('multi-step');
+      const isReverse = modal.hasAttribute('open-top');
 
       if (modal.style.display === 'flex' && !isMultiStep) {
         closeAllModals();
@@ -36,9 +38,9 @@
         const origin = modal.getAttribute('transform-origin');
         if (origin) {
           modal.style.transformOrigin = origin;
-          modal.style.transform = `translateY(-20px) scale(0.9)`;
+          modal.style.transform = isReverse ? `translateY(20px) scale(0.9)` : `translateY(-20px) scale(0.9)`;
         } else {
-          modal.style.transform = 'translateY(-20px)';
+          modal.style.transform = isReverse ? 'translateY(20px)' : 'translateY(-20px)';
         }
         modal.style.display = 'flex';
         setTimeout(() => {

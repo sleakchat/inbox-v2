@@ -86,13 +86,6 @@
 
               async function pushMessage(payload) {
                 chat.messages.push(payload);
-                if (payload.id == v.active_chat) {
-                  if (payload.id == v.active_chat) {
-                    // 📥 add to active chat object
-                    v.active_chat_object.push(payload);
-                    // console.log('active chat object updated:', v.active_chat_object);
-                  }
-                }
 
                 const activeChat = v.allchats.find(chat => chat.id === v.active_chat);
                 if (activeChat == payload.id) {
@@ -112,6 +105,12 @@
             } else {
               // console.log('No chat found for message with visitor_id:', payload.new.visitor_id);
             }
+
+            // 📥 add to active chat object
+            if (payload.new.visitor_id == v.active_chat_object.id) {
+              v.active_chat_object.messages.push(payload.new);
+              console.log('💬💬💬 active chat object updated:', v.active_chat_object);
+            }
           }
         )
 
@@ -128,7 +127,6 @@
             // console.log('New chat:', payload);
 
             if (v.allchats.length == 0) {
-              // v.active_chat = payload.new.id;
               v.active_chat = payload.new.id;
               window.switchActiveChat(payload.new.id);
             }
@@ -149,29 +147,22 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
-            console.log('🚀🚀🚀 Updated chat realtime payload:', payload);
             if (payload.new.placement !== 'admin') {
               const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
               if (updatedChat) {
                 Object.assign(updatedChat, payload.new);
                 console.log('Chat updated:', updatedChat);
-                // console.log('Chat updated:', JSON.stringify(updatedChat.operators, null, 2));
 
                 if (!v.chats.find(item => item.id == v.active_chat)) {
                   // is this first condition not redundant?
                   if (v.chats.length > 0) v.active_chat = v.chats[0].id;
-                } else {
-                  // console.log("active chat esists")
                 }
+              }
 
-                if (payload.new.id == v.active_chat) {
-                  // 📥 add to active chat object
-                  // v.active_chat_object = payloadload.new;
-                  Object.assign(v.active_chat_object, payload.new);
-                  console.log('active chat object updated:', v.active_chat_object);
-                }
-              } else {
-                // console.log('No chat found for chat with visitor_id:', payload.new.visitor_id);
+              if (payload.new.id == v.active_chat_object.id) {
+                // make deep copy and update active chat object
+                v.active_chat_object = JSON.parse(JSON.stringify(updatedChat));
+                console.log('active chat object updated (reference):', v.active_chat_object);
               }
             }
           }
@@ -179,7 +170,6 @@
 
         // operators table
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'operators' }, payload => {
-          console.log('Operator added:', payload.new);
           const chat = v.allchats.find(chat => chat.id === payload.new.chat_id);
           if (chat) {
             if (!chat.operators) chat.operators = [];
@@ -187,7 +177,6 @@
           }
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'operators' }, payload => {
-          console.log('Operator updated:', payload.new);
           const chat = v.allchats.find(chat => chat.id === payload.new.chat_id);
           if (chat) {
             const index = chat.operators.findIndex(op => op.user_id === payload.new.user_id);
@@ -197,7 +186,6 @@
           }
         })
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'operators' }, payload => {
-          console.log('Operator removed:', payload.old);
           const chat = v.allchats.find(chat => chat.id === payload.old.chat_id);
           if (chat) {
             chat.operators = chat.operators.filter(op => op.user_id !== payload.old.user_id);

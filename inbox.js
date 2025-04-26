@@ -25,37 +25,18 @@
   // Function to update inbox tab counts
   async function updateInboxCounts() {
     try {
-      // Get count for "Nieuw" tab (new/unread chats excluding those where user is an operator)
-      // Use LEFT JOIN (not inner join) to include chats without operators
-      const { count: newCount, error: newError } = await supabase
-        .from('chats')
-        .select(
-          `
-            id,
-            operators(member_id, status)
-          `,
-          { count: 'exact', head: true }
-        )
-        .eq('operators.member_id', currentMember)
-        .eq('organization_id', currentOrganization.id)
-        .eq('open', true)
-        .eq('has_unread', true)
-        .is('operators.id', null);
-      if (newError) {
-        console.error('Error getting new count:', newError);
-      }
-      // Get count for "Voor jou" tab (chats where user is a member)
-      const { count: assignedCount, error: assignedError } = await supabase
-        .from('chats')
-        .select('*, operators!inner(*)', { count: 'exact', head: true })
-        .eq('organization_id', currentOrganization.id)
-        .eq('open', true)
-        .eq('operators.member_id', currentMember)
-        .eq('operators.status', 'active');
-      if (assignedError) {
-        console.error('Error getting assigned count:', assignedError);
+      const { data, error } = await supabase.rpc('get_inbox_counts', {
+        p_member_id: currentMember.id,
+        p_organization_id: currentOrganization.id
+      });
+
+      if (error) {
+        console.error('Error getting inbox counts:', error);
         return;
       }
+
+      const newCount = data.nieuw_count;
+      const assignedCount = data.voorjou_count;
       // Update UI with counts
       const newTabCounter = document.querySelector('[inbox-tab-count="nieuw"]');
       const assignedTabCounter = document.querySelector('[inbox-tab-count="voorjou"]');
@@ -77,6 +58,10 @@
       console.error('Error updating inbox counts:', error);
     }
   }
+
+  // Call the count update function initially
+  updateInboxCounts();
+  setInterval(updateInboxCounts, 30000);
 
   (function initFilters() {
     const filtersDefaultState = {
@@ -114,29 +99,25 @@
       console.log(`Updated filter ${filterName}.${property} to:`, value);
     };
 
-    // function updateUrlParams() {
-    //   const qp = {
-    //     chat: v.active_chat,
-    //     closed: i.toggle_inboxfilters_closed,
-    //     new: i.toggle_inboxfilters_new,
-    //     tab: v.active_inbox_tab
-    //   };
+    function updateUrlParams() {
+      const qp = {
+        chat: v.active_chat,
+        closed: i.toggle_inboxfilters_closed,
+        new: i.toggle_inboxfilters_new,
+        tab: v.active_inbox_tab
+      };
 
-    //   // Only add filters to URL if inboxFilters is not empty
-    //   if (v.inboxFilters && Object.keys(v.inboxFilters).length > 0) {
-    //     qp.filters = v.inboxFilters;
-    //   }
+      // Only add filters to URL if inboxFilters is not empty
+      if (v.inboxFilters && Object.keys(v.inboxFilters).length > 0) {
+        qp.filters = v.inboxFilters;
+      }
 
-    //   const url = new URL(window.location);
-    //   Object.entries(qp).forEach(([k, v]) => {
-    //     url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
-    //   });
-    //   window.history.replaceState(null, '', url.toString());
-    // }
-
-    // Call the count update function initially
-    updateInboxCounts();
-    setInterval(updateInboxCounts, 30000);
+      const url = new URL(window.location);
+      Object.entries(qp).forEach(([k, v]) => {
+        url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
+      });
+      window.history.replaceState(null, '', url.toString());
+    }
 
     const filters = currentMember.inbox_filters;
     console.log('✅ filters = ', filters);
@@ -165,14 +146,14 @@
     const urlFilters = urlParams.get('filters');
     let queryParamFilters = null;
 
-    // if (urlFilters) {
-    //   try {
-    //     queryParamFilters = JSON.parse(urlFilters);
-    //     console.log('✅ filters from URL', queryParamFilters);
-    //   } catch (e) {
-    //     console.error('Error parsing filters from URL', e);
-    //   }
-    // }
+    if (urlFilters) {
+      try {
+        queryParamFilters = JSON.parse(urlFilters);
+        console.log('✅ filters from URL', queryParamFilters);
+      } catch (e) {
+        console.error('Error parsing filters from URL', e);
+      }
+    }
 
     if (queryParamFilters) {
       // Prioritize URL filters over database filters
@@ -271,7 +252,7 @@
   window.switchActiveChat = async function (newChatId) {
     v.active_chat = newChatId;
     // deep copy from chats array
-    v.active_chat_object = v.chats.find(chat => chat.id == newChatId);
+    v.active_chat_object = JSON.parse(JSON.stringify(v.chats.find(chat => chat.id == newChatId)));
     // has to be a request later on to prevent chat not being in chats array
     console.log('📥 new chat =', v.active_chat_object);
 
@@ -298,9 +279,9 @@
     // should we merge it into allchats ? ❌
     // will this go correctly with paginated chats?
 
-    v.livechatstatus = v.chats.find(chat => chat.id == newChatId).livechat;
+    v.livechatstatus = v.active_chat_object.livechat;
 
-    if (v.chats.find(chat => chat.id === newChatId).livechat == false) {
+    if (v.active_chat_object.livechat == false) {
       document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
     } else {
       document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
@@ -370,7 +351,7 @@
       author_type: 'system',
       message_type: message_type,
       message_type_data: message_type_data,
-      chatbot_id: v.chats.find(chat => chat.id === chat_id)?.chatbot_id,
+      chatbot_id: v.active_chat_object.chatbot_id,
       author_member_id: currentMember.id
     });
   }
