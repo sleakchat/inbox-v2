@@ -24,6 +24,26 @@
     });
   }
 
+  function closeAllNestedModals() {
+    const nestedModals = document.querySelectorAll('[nested-modal]');
+    nestedModals.forEach(modal => {
+      if (modal.style.display === 'flex') {
+        const origin = modal.getAttribute('transform-origin');
+        const isReverse = modal.hasAttribute('open-top');
+
+        if (origin) {
+          modal.style.transformOrigin = origin;
+        }
+        modal.style.opacity = '0';
+        const translateY = isReverse ? '20px' : '-20px';
+        modal.style.transform = `translateY(${translateY}) scale(0.9)`;
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 200);
+      }
+    });
+  }
+
   dropdownTriggers.forEach(trigger => {
     trigger.addEventListener('click', function (event) {
       event.stopPropagation();
@@ -59,21 +79,44 @@
 
       // find direct child dropdown modal
       const modal = trigger.querySelector('[nested-modal]');
+      const origin = modal.getAttribute('transform-origin');
+      const isReverse = modal.hasAttribute('open-top');
 
       // close when open, open when close
       if (modal.style.display === 'flex') {
+        if (origin) {
+          modal.style.transformOrigin = origin;
+        }
         modal.style.opacity = '0';
-        modal.style.transform = 'translateY(10px)';
+        // Apply translate and scale together
+        const translateY = isReverse ? '20px' : '-20px';
+        modal.style.transform = `translateY(${translateY}) scale(0.9)`;
         setTimeout(() => {
           modal.style.display = 'none';
         }, 200);
       } else {
-        modal.style.transform = 'translateY(10px)';
+        if (origin) {
+          modal.style.transformOrigin = origin;
+        }
+        // Apply translate and scale together
+        const translateY = isReverse ? '20px' : '-20px';
+        modal.style.transform = `translateY(${translateY}) scale(0.9)`;
         modal.style.display = 'flex';
         setTimeout(() => {
           modal.style.opacity = '1';
-          modal.style.transform = 'translateY(0px)';
+          modal.style.transform = 'translateY(0px) scale(1)';
         }, 10);
+      }
+    });
+  });
+
+  // Close nested modals when clicking inside parent modals
+  document.querySelectorAll('[dropdown-modal]').forEach(parentModal => {
+    parentModal.addEventListener('click', function (event) {
+      // Only process if click is directly on the modal or its children (not nested modal triggers)
+      if (!event.target.closest('[nested-modal-trigger]')) {
+        closeAllNestedModals();
+        event.stopPropagation(); // Prevent closing the parent modal
       }
     });
   });

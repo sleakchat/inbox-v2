@@ -17,6 +17,11 @@ textarea,
   color: inherit;
 }
 
+[darkselect] ::selection {
+  background: #fff !important;
+  color: #111 !important;
+}
+
 .emptystate {
   display: flex;
 }
