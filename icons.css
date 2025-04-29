@@ -6,6 +6,10 @@
   color: #fff;
 }
 
+[icon-color='warning'] {
+  color: #e7b549;
+}
+
 [icon-color='primary'] {
   color: #542cc1;
 }

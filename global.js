@@ -246,6 +246,17 @@
   });
 })();
 
+(function initTooltipOffsets() {
+  document.querySelectorAll('[tooltiptrigger]').forEach(tooltip => {
+    const offset = tooltip.getAttribute('tooltip-offset');
+    if (offset) {
+      const direction = tooltip.getAttribute('tooltip-direction') || 'bottom';
+      const offsetPx = `${offset}px`;
+      tooltip.style.setProperty('--tooltip-offset', direction === 'top' || direction === 'right' ? `-${offsetPx}` : offsetPx);
+    }
+  });
+})();
+
 (function wizedDebug() {
   window.Wized = window.Wized || [];
   window.Wized.push(Wized => {

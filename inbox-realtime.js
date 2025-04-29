@@ -52,6 +52,7 @@
       // console.log('Initializing main channel, attempt:', retryCount + 1);
 
       adminUiChannel = supaClient.channel('adminUi_' + userId);
+      console.log('adminUiChannel', adminUiChannel);
 
       adminUiChannel
         .on(

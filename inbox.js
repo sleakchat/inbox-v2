@@ -17,7 +17,7 @@
   await Wized.requests.waitFor('get_chatbots');
 
   await Wized.requests.waitFor('get_members');
-  const currentOrganization = r.get_user_data.data[0].organizations[0];
+  const currentOrganization = r.get_user_data.data[0].organizations.find(o => o.id == v.activeOrganization);
   const currentMember = r.get_members.data.find(item => item.user_id == currentUser);
   console.log('✅ currentOrganization = ', currentOrganization);
   console.log('✅ currentMember = ', currentMember);
