@@ -6,7 +6,8 @@
   const i = Wized.data.i;
 
   await Wized.requests.waitFor('get_chatbots');
-  Wized.requests.execute('get_chats_rpc');
+
+  // Wized.requests.execute('get_chats_rpc');
 
   let chime = new Audio('https://sygpwnluwwetrkmwilea.supabase.co/storage/v1/object/public/app/assets/sleak-chime.mp3');
 

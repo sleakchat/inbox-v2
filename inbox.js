@@ -255,10 +255,16 @@
     // deep copy from chats array
 
     // v.active_chat_object = JSON.parse(JSON.stringify(v.chats.find(chat => chat.id == newChatId)));
-    v.active_chat_object = await fetchChat(newChatId);
+    const newChat = await fetchChat(newChatId);
+    console.log('📥 newChat =', newChat);
+    console.log('📥 newChat messages count =', newChat.messages?.length);
+    console.log('📥 current v.active_chat_object messages count =', v.active_chat_object?.messages?.length);
+    v.active_chat_object = newChat;
+    // v.active_chat_object = {};
 
     // has to be a request later on to prevent chat not being in chats array
     console.log('📥 new active chat =', v.active_chat_object);
+    console.log('📥 new active chat messages count =', v.active_chat_object?.messages?.length);
 
     // then update with realtime if visitor_id == v.active_chat ✅
 
@@ -342,7 +348,7 @@
   async function fetchChat(chat_id) {
     const { data } = await supabase
       .from('chats')
-      .select('*, operators(*)') // Join with operators/users
+      .select('*, operators(*), messages(*)') // Join with operators/users
       .eq('id', chat_id)
       .single();
     return data;
