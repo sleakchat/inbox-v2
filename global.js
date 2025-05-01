@@ -1,3 +1,32 @@
+// (function initSkeletonLoaders() {
+//   const skeletonElements = document.querySelectorAll('[skeleton]');
+//   console.log('skeletonElements', skeletonElements);
+
+//   skeletonElements.forEach(element => {
+//     // Create a skeleton div
+//     const skeletonDiv = document.createElement('div');
+//     skeletonDiv.classList.add('skeleton-loader');
+
+//     // Add the skeleton div to the current element
+//     element.style.position = 'relative';
+//     element.appendChild(skeletonDiv);
+
+//     // Get delay from the attribute
+//     let delay = element.getAttribute('skeleton');
+
+//     // If attribute value is not a number, set default delay as 2000ms
+//     if (isNaN(delay)) {
+//       delay = 2000;
+//     }
+
+//     setTimeout(() => {
+//       // Remove the skeleton loader div after delay
+//       const skeletonDiv = element.querySelector('.skeleton-loader');
+//       element.removeChild(skeletonDiv);
+//     }, delay);
+//   });
+// })();
+
 (function initDropdownModals() {
   const dropdownTriggers = document.querySelectorAll('[dropdown-trigger]');
   const closeTriggers = document.querySelectorAll('[dropdown-close]');
@@ -202,36 +231,6 @@
     if (event.key === 'Escape') {
       window.closeAllPopupModals();
     }
-  });
-})();
-
-(function initSkeletonLoaders() {
-  window.addEventListener('DOMContentLoaded', event => {
-    const skeletonElements = document.querySelectorAll('[skeleton]');
-
-    skeletonElements.forEach(element => {
-      // Create a skeleton div
-      const skeletonDiv = document.createElement('div');
-      skeletonDiv.classList.add('skeleton-loader');
-
-      // Add the skeleton div to the current element
-      element.style.position = 'relative';
-      element.appendChild(skeletonDiv);
-
-      // Get delay from the attribute
-      let delay = element.getAttribute('skeleton');
-
-      // If attribute value is not a number, set default delay as 2000ms
-      if (isNaN(delay)) {
-        delay = 2000;
-      }
-
-      setTimeout(() => {
-        // Remove the skeleton loader div after delay
-        const skeletonDiv = element.querySelector('.skeleton-loader');
-        element.removeChild(skeletonDiv);
-      }, delay);
-    });
   });
 })();
 

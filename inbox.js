@@ -12,15 +12,15 @@
 
   await Wized.requests.waitFor('get_user');
   const currentUser = r.get_user.data.user.id;
-  console.log('currentUser = ', currentUser);
+  // console.log('currentUser = ', currentUser);
 
   await Wized.requests.waitFor('get_chatbots');
 
   await Wized.requests.waitFor('get_members');
   const currentOrganization = r.get_user_data.data[0].organizations.find(o => o.id == v.activeOrganization);
   const currentMember = r.get_members.data.find(item => item.user_id == currentUser);
-  console.log('✅ currentOrganization = ', currentOrganization);
-  console.log('✅ currentMember = ', currentMember);
+  // console.log('✅ currentOrganization = ', currentOrganization);
+  // console.log('✅ currentMember = ', currentMember);
 
   // Function to update inbox tab counts
   async function updateInboxCounts() {
@@ -219,20 +219,16 @@
     };
 
     window.saveFilters = async function () {
-      console.log('saveFilters');
       // v.usedFilters = true;
       const { error } = await supabase.from('members').update({ inbox_filters: v.realTimeFilters }).eq('id', currentMember.id);
       if (!error) window.showToastNotification('Filters opgeslagen', 'success');
     };
 
     window.addFilter = function (filter) {
-      console.log('addFilter', filter);
       v.inboxFilters[filter].enabled = true;
-      console.log('v.inboxFilters = ', v.inboxFilters);
     };
     window.removeFilter = function (filter) {
       v.inboxFilters[filter].enabled = false;
-      console.log('v.inboxFilters = ', v.inboxFilters);
     };
     window.resetFilters = function () {
       window.hideAllTooltips();
@@ -250,39 +246,30 @@
     Wized.requests.execute('get_chats');
   }
 
+  (async function hidekeleton() {
+    await Wized.requests.waitFor('get_chats');
+    let skeletonElement = document.querySelector("[w-el='skeleton-inbox-initial']");
+    if (skeletonElement.style.display !== 'none') {
+      skeletonElement.style.display = 'none';
+    }
+  })();
+
   window.switchActiveChat = async function (newChatId) {
+    // ⚠️ speeds gonna be a problem here
     v.active_chat = newChatId;
-    // deep copy from chats array
 
     // v.active_chat_object = JSON.parse(JSON.stringify(v.chats.find(chat => chat.id == newChatId)));
     const newChat = await fetchChat(newChatId);
-    console.log('📥 fetchChat response =', newChat);
-    console.log('📥 fetchChat response messages count =', newChat.messages?.length);
+    // console.log('📥 fetchChat response =', newChat);
+    // console.log('📥 fetchChat response messages count =', newChat.messages?.length);
 
     v.active_chat_object = JSON.parse(JSON.stringify(newChat));
-    // v.active_chat_object = {};
 
     // has to be a request later on to prevent chat not being in chats array
-    console.log('📥 new active chat =', v.active_chat_object);
-    console.log('📥 new active chat AMOUNT =', v.active_chat_object?.messages?.length);
-
-    // then update with realtime if visitor_id == v.active_chat ✅
-
-    // update reactive v.messages variable to use chat object deep copy
-
-    //
-
-    // whenever chat changes or new message
-    // update object in chat array first
-    // then update chat object variable§
+    // console.log('📥 new active chat =', v.active_chat_object);
+    // console.log('📥 new active chat AMOUNT =', v.active_chat_object?.messages?.length);
 
     // also search related chats to render in header modal
-
-    // when not in chat list but in active chat object
-    // update active chat object
-
-    // should we merge it into allchats ? ❌
-    // will this go correctly with paginated chats?
 
     v.livechatstatus = v.active_chat_object.livechat;
 
@@ -327,11 +314,6 @@
     } else {
       v.active_chat = null;
     }
-
-    // let skeletonElement = document.querySelector("[w-el='skeleton-inbox-initial']");
-    // if (skeletonElement.style.display !== 'none') {
-    //   skeletonElement.style.display = 'none';
-    // }
   })();
 
   window.changeSidebarTabs = async function () {
@@ -341,7 +323,7 @@
     if (v.chats.length > 0) {
       window.switchActiveChat(v.chats[0].id);
     } else {
-      v.active_chat = null;
+      v.active_chat_object = null;
     }
   };
 
@@ -366,6 +348,7 @@
       author_member_id: currentMember.id
     });
   }
+
   // Compare operators and livechat status in real-time vs database state
   function matchObjects(realtimeState, dbState) {
     if (realtimeState.livechat !== dbState.livechat || realtimeState.agent_requested !== dbState.agent_requested || realtimeState.open !== dbState.open) {
@@ -441,6 +424,7 @@
 
       if (!matchObjects(realtimeState, chatState)) {
         console.log('states do not match');
+        window.showToastNotification('States do not match', 'warning');
         return;
       }
 
@@ -497,7 +481,6 @@
   //
 
   function chatListRemoveChat(chatState) {
-    console.log('removechat');
     const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
     if (!chatListItem) return;
 

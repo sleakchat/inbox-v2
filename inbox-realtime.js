@@ -46,19 +46,20 @@
     async function showMessage(toastElement) {
       toastElement.style.display = 'flex';
       toastElement.style.opacity = 0;
+      // add scale
+      toastElement.style.transform = 'scale(0.6)';
       toastElement.style.transform = 'translateY(20px)';
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           toastElement.style.opacity = 1;
           toastElement.style.transform = 'translateY(0)';
+          toastElement.style.transform = 'scale(1)';
         });
       });
     }
 
     async function pushMessage(payload) {
       v.active_chat_object.messages.push(payload.new);
-      // setTimeout(() => {}, 2000);
-
       const toastElement = document.querySelector(`[message_list_id='${payload.new.id}']`);
       showMessage(toastElement);
     }
@@ -84,13 +85,11 @@
           },
           payload => {
             console.log('💬💬💬 New message payload:', payload.new);
-            console.log('💬💬💬 New message visitor_id:', payload.new.visitor_id);
-            console.log('💬💬💬 v.active_chat_object.visitor_id:', v.active_chat_object.id);
-            console.log('💬💬💬 v.active_chat:', v.active_chat);
+            // console.log('💬💬💬 v.active_chat_object.visitor_id:', v.active_chat_object.id);
 
             const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
             if (chat) {
-              console.log('💬💬💬 Chat exists in v.allchats:', chat);
+              // console.log('💬💬💬 Chat exists in v.allchats:', chat);
               if (!chat.messages) {
                 chat.messages = [];
               }
@@ -103,7 +102,7 @@
                 }
               }
             } else {
-              console.log('💬💬💬 No chat found for message with visitor_id:', payload.new.visitor_id);
+              // console.log('💬💬💬 No chat found for message with visitor_id:', payload.new.visitor_id);
             }
 
             // 📥 add to active chat object
@@ -112,7 +111,9 @@
 
               pushMessage(payload);
 
-              console.log('💬💬💬 active chat object updated:', v.active_chat_object);
+              console.log('💬💬💬 MESSAGE INSERT active chat object updated:', v.active_chat_object);
+            } else {
+              console.log('💬💬💬 MESSAGE INSERT active chat is not new chat id:', v.active_chat_object);
             }
           }
         )
@@ -129,13 +130,18 @@
           payload => {
             // console.log('New chat:', payload);
 
-            if (v.allchats.length == 0) {
-              v.active_chat = payload.new.id;
-              window.switchActiveChat(payload.new.id);
+            if (payload.new.placement !== 'admin') {
+              return;
             }
 
-            if (payload.new.placement !== 'admin') {
-              v.newchats.unshift(payload.new);
+            v.newchats.unshift(payload.new);
+
+            if (v.allchats.length == 0) {
+              // check if it exists in chats list
+              if (!v.chats.find(item => item.id == payload.new.id)) {
+                v.active_chat_object = payload.new;
+                window.switchActiveChat(payload.new.id);
+              }
             }
           }
         )
@@ -156,15 +162,17 @@
                 Object.assign(updatedChat, payload.new);
                 // console.log('Chat updated:', updatedChat);
 
-                if (!v.chats.find(item => item.id == v.active_chat)) {
-                  // is this first condition not redundant? edit: dont think so
-                  if (v.chats.length > 0) v.active_chat = v.chats[0].id;
-                }
+                // if it updates and it now does belong in v.chats, update it so it can be rendered in list
+                // ⚠️ add this still
+
+                // ⚠️ I don't know why this exists
+                // if (!v.chats.find(item => item.id == v.active_chat)) {
+                //   // is this first condition not redundant? edit: dont think so
+                //   if (v.chats.length > 0) v.active_chat = v.chats[0].id;
+                // }
               }
 
               if (payload.new.id == v.active_chat_object.id) {
-                // make deep copy and update active chat object
-                // v.active_chat_object = JSON.parse(JSON.stringify(updatedChat));
                 Object.assign(v.active_chat_object, payload.new);
                 // console.log('active chat object updated (reference):', v.active_chat_object);
               }
@@ -178,14 +186,29 @@
           if (chat) {
             if (!chat.operators) chat.operators = [];
             chat.operators.push(payload.new);
+
+            // Update active chat object if this is the current chat
+            if (v.active_chat_object?.id === payload.new.chat_id) {
+              if (!v.active_chat_object.operators) v.active_chat_object.operators = [];
+              v.active_chat_object.operators.push(payload.new);
+            }
           }
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'operators' }, payload => {
           const chat = v.allchats.find(chat => chat.id === payload.new.chat_id);
           if (chat) {
-            const index = chat.operators.findIndex(op => op.user_id === payload.new.user_id);
-            if (index !== -1) {
-              chat.operators[index] = payload.new;
+            // Update operator in allchats
+            const operator = chat.operators?.find(op => op.user_id === payload.new.user_id);
+            if (operator) {
+              Object.assign(operator, payload.new);
+            }
+
+            // Update operator in active chat object if this is the current chat
+            if (v.active_chat_object?.id === payload.new.chat_id) {
+              const activeOperator = v.active_chat_object.operators?.find(op => op.user_id === payload.new.user_id);
+              if (activeOperator) {
+                Object.assign(activeOperator, payload.new);
+              }
             }
           }
         })
@@ -193,6 +216,11 @@
           const chat = v.allchats.find(chat => chat.id === payload.old.chat_id);
           if (chat) {
             chat.operators = chat.operators.filter(op => op.user_id !== payload.old.user_id);
+
+            // Update active chat object if this is the current chat
+            if (v.active_chat_object?.id === payload.old.chat_id) {
+              v.active_chat_object.operators = v.active_chat_object.operators.filter(op => op.user_id !== payload.old.user_id);
+            }
           }
         });
 
@@ -260,7 +288,8 @@
 
     let isTypingChannel;
     await new Promise(res => setTimeout(res, 1000));
-    let currentChat = v.active_chat;
+    // ⚠️ maybe just add an await for a request or global variable here
+    let currentChat = v.active_chat_object.id;
     let inputEventListener = false;
 
     function initializeLiveChatChannel(supaClient) {
