@@ -43,6 +43,26 @@
 
     let retryCount = 0;
 
+    async function showMessage(toastElement) {
+      toastElement.style.display = 'flex';
+      toastElement.style.opacity = 0;
+      toastElement.style.transform = 'translateY(20px)';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          toastElement.style.opacity = 1;
+          toastElement.style.transform = 'translateY(0)';
+        });
+      });
+    }
+
+    async function pushMessage(payload) {
+      v.active_chat_object.messages.push(payload.new);
+      // setTimeout(() => {}, 2000);
+
+      const toastElement = document.querySelector(`[message_list_id='${payload.new.id}']`);
+      showMessage(toastElement);
+    }
+
     function initializeMainChannel() {
       reconnecting = true;
 
@@ -63,6 +83,7 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
+            console.log('💬💬💬 New message payload:', payload.new);
             console.log('💬💬💬 New message visitor_id:', payload.new.visitor_id);
             console.log('💬💬💬 v.active_chat_object.visitor_id:', v.active_chat_object.id);
             console.log('💬💬💬 v.active_chat:', v.active_chat);
@@ -73,31 +94,7 @@
               if (!chat.messages) {
                 chat.messages = [];
               }
-
-              // message entrance animations
-              async function showMessage(toastElement) {
-                toastElement.style.display = 'flex';
-                toastElement.style.opacity = 0;
-                toastElement.style.transform = 'translateY(20px)';
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    toastElement.style.opacity = 1;
-                    toastElement.style.transform = 'translateY(0)';
-                  });
-                });
-              }
-
-              async function pushMessage(payload) {
-                chat.messages.push(payload);
-
-                const activeChat = v.allchats.find(chat => chat.id === v.active_chat);
-                if (activeChat == payload.new.visitor_id) {
-                  const toastElement = document.querySelector(`[message_list_id='${payload.new.id}']`);
-                  showMessage(toastElement);
-                }
-              }
-
-              pushMessage(payload.new);
+              chat.messages.push(payload);
 
               // chime
               if (payload.new.message_type === 'default_user') {
@@ -111,7 +108,10 @@
 
             // 📥 add to active chat object
             if (payload.new.visitor_id == v.active_chat_object.id) {
-              v.active_chat_object.messages.push(payload.new);
+              // message entrance animations
+
+              pushMessage(payload);
+
               console.log('💬💬💬 active chat object updated:', v.active_chat_object);
             }
           }

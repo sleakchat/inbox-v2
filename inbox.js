@@ -348,8 +348,9 @@
   async function fetchChat(chat_id) {
     const { data } = await supabase
       .from('chats')
-      .select('*, operators(*), messages(*)') // Join with operators/users
+      .select('*, operators(*), messages!inner(*)') // join
       .eq('id', chat_id)
+      .order('created_at', { foreignTable: 'messages', ascending: true })
       .single();
     return data;
   }
@@ -550,7 +551,7 @@
       }
 
       // ⚠️ remove this?
-      const objectInChatsList = v.allchats.some(chat => chat.id == chatState.id);
+      // const objectInChatsList = v.allchats.some(chat => chat.id == chatState.id);
 
       // ⚠️ this needs to be reconsidered for the new "nieuw/alles" toggle
       if (v.active_inbox_tab == 'nieuw') {
