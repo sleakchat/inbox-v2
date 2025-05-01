@@ -164,7 +164,8 @@
 
               if (payload.new.id == v.active_chat_object.id) {
                 // make deep copy and update active chat object
-                v.active_chat_object = JSON.parse(JSON.stringify(updatedChat));
+                // v.active_chat_object = JSON.parse(JSON.stringify(updatedChat));
+                Object.assign(v.active_chat_object, payload.new);
                 // console.log('active chat object updated (reference):', v.active_chat_object);
               }
             }

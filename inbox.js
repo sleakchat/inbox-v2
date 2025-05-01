@@ -53,7 +53,7 @@
       } else {
         assignedTabCounter.style.display = 'none';
       }
-      console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
+      // console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
     } catch (error) {
       console.error('Error updating inbox counts:', error);
     }
@@ -96,7 +96,7 @@
           [property]: value
         }
       };
-      console.log(`Updated filter ${filterName}.${property} to:`, value);
+      // console.log(`Updated filter ${filterName}.${property} to:`, value);
     };
 
     function updateUrlParams() {
@@ -120,7 +120,7 @@
     }
 
     const filters = currentMember.inbox_filters;
-    console.log('✅ filters = ', filters);
+    // console.log('✅ filters = ', filters);
 
     const getChatbots = r.get_chatbots.data.map(chatbot => chatbot.id);
 
@@ -160,9 +160,9 @@
       console.log('✅ using filters from URL');
       applyFilters(queryParamFilters);
     } else if (filters) {
-      console.log('✅ using filters from DB');
+      // console.log('✅ using filters from DB');
       applyFilters(filters);
-      console.log('✅ v.inboxFilterChatbots = ', v.inboxFilters);
+      // console.log('✅ v.inboxFilterChatbots = ', v.inboxFilters);
     } else {
       console.log('✅ setting new default filters');
       applyFilters(filtersDefaultState);
@@ -256,15 +256,15 @@
 
     // v.active_chat_object = JSON.parse(JSON.stringify(v.chats.find(chat => chat.id == newChatId)));
     const newChat = await fetchChat(newChatId);
-    console.log('📥 newChat =', newChat);
-    console.log('📥 newChat messages count =', newChat.messages?.length);
-    console.log('📥 current v.active_chat_object messages count =', v.active_chat_object?.messages?.length);
-    v.active_chat_object = newChat;
+    console.log('📥 fetchChat response =', newChat);
+    console.log('📥 fetchChat response messages count =', newChat.messages?.length);
+
+    v.active_chat_object = JSON.parse(JSON.stringify(newChat));
     // v.active_chat_object = {};
 
     // has to be a request later on to prevent chat not being in chats array
     console.log('📥 new active chat =', v.active_chat_object);
-    console.log('📥 new active chat messages count =', v.active_chat_object?.messages?.length);
+    console.log('📥 new active chat AMOUNT =', v.active_chat_object?.messages?.length);
 
     // then update with realtime if visitor_id == v.active_chat ✅
 
