@@ -246,15 +246,202 @@
   });
 })();
 
-(function initTooltipOffsets() {
-  document.querySelectorAll('[tooltiptrigger]').forEach(tooltip => {
-    const offset = tooltip.getAttribute('tooltip-offset');
-    if (offset) {
-      const direction = tooltip.getAttribute('tooltip-direction') || 'bottom';
-      const offsetPx = `${offset}px`;
-      tooltip.style.setProperty('--tooltip-offset', direction === 'top' || direction === 'right' ? `-${offsetPx}` : offsetPx);
+// Create tooltip container
+(function createTooltipContainer() {
+  const container = document.createElement('div');
+  container.id = 'tooltip-container';
+  container.style.cssText = `
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2147483647;
+  `;
+  document.body.appendChild(container);
+})();
+
+(function initTooltips() {
+  const tooltipMap = new WeakMap(); // Store tooltip elements by their triggers
+  let currentHoveredTrigger = null;
+
+  function createTooltipElement(trigger) {
+    const content = trigger.getAttribute('tooltiptrigger');
+    const direction = trigger.getAttribute('tooltip-direction') || 'bottom';
+    const theme = trigger.getAttribute('tooltip-theme');
+
+    const tooltip = document.createElement('div');
+    tooltip.className = `tooltip-element ${theme ? 'theme-' + theme : ''} direction-${direction}`;
+    tooltip.textContent = content;
+    tooltip.style.cssText = `
+      position: fixed;
+      opacity: 0;
+      padding: 7px 9px;
+      background: #333;
+      color: white;
+      border: 1px solid #545454;
+      border-radius: 6px;
+      font-family: system-ui;
+      font-size: 10px;
+      line-height: 1;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.2);
+      transition: opacity 0.2s, transform 0.2s;
+      transition-delay: var(--tooltip-delay, 0.1s);
+    `;
+
+    if (theme === 'light') {
+      tooltip.style.background = 'white';
+      tooltip.style.color = '#333';
+      tooltip.style.borderColor = '#e5e5e5';
+      tooltip.style.boxShadow = '0 0 3px 0 rgba(0, 0, 0, 0.1)';
     }
+
+    // Set initial transform based on direction
+    if (direction === 'top') {
+      tooltip.style.transform = 'translate(-50%, calc(-100% + 3px))';
+    } else if (direction === 'bottom') {
+      tooltip.style.transform = 'translate(-50%, -3px)';
+    } else if (direction === 'left') {
+      tooltip.style.transform = 'translate(calc(-100% + 3px), -50%)';
+    } else if (direction === 'right') {
+      tooltip.style.transform = 'translate(-3px, -50%)';
+    }
+
+    return tooltip;
+  }
+
+  // Check if element or any of its parents are hidden
+  const isElementVisible = element => {
+    if (!document.body.contains(element)) return false;
+
+    let current = element;
+    while (current && current !== document.body) {
+      // Check if element or parent is display:none directly through style
+      if (current.style.display === 'none') return false;
+
+      // Check computed style for all visibility properties
+      const style = window.getComputedStyle(current);
+      if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0' || style.visibility === 'collapse' || parseFloat(style.opacity) === 0) {
+        return false;
+      }
+
+      // Check if parent exists and is connected to document
+      current = current.parentElement;
+      if (!current || !current.isConnected) return false;
+    }
+    return true;
+  };
+
+  function hideTooltip(trigger, tooltip) {
+    tooltip.style.opacity = '0';
+    const direction = trigger.getAttribute('tooltip-direction') || 'bottom';
+
+    if (direction === 'top') {
+      tooltip.style.transform = 'translate(-50%, calc(-100% + 3px))';
+    } else if (direction === 'bottom') {
+      tooltip.style.transform = 'translate(-50%, -3px)';
+    } else if (direction === 'left') {
+      tooltip.style.transform = 'translate(calc(-100% + 3px), -50%)';
+    } else if (direction === 'right') {
+      tooltip.style.transform = 'translate(-3px, -50%)';
+    }
+  }
+
+  function updateTooltipPosition(trigger, tooltip) {
+    if (!isElementVisible(trigger)) {
+      hideTooltip(trigger, tooltip);
+      return;
+    }
+
+    const rect = trigger.getBoundingClientRect();
+    const direction = trigger.getAttribute('tooltip-direction') || 'bottom';
+    const offset = parseInt(trigger.getAttribute('tooltip-offset') || '0', 10);
+
+    const x = rect.left + rect.width / 2;
+    const y = direction === 'top' ? rect.top - offset : direction === 'bottom' ? rect.bottom + offset : rect.top + rect.height / 2;
+
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
+
+    requestAnimationFrame(() => {
+      tooltip.style.opacity = '1';
+      if (direction === 'top') {
+        tooltip.style.transform = 'translate(-50%, -100%)';
+      } else if (direction === 'bottom') {
+        tooltip.style.transform = 'translate(-50%, 0)';
+      } else if (direction === 'left') {
+        tooltip.style.transform = 'translate(-100%, -50%)';
+      } else if (direction === 'right') {
+        tooltip.style.transform = 'translate(0, -50%)';
+      }
+    });
+  }
+
+  // Handle scroll events
+  window.addEventListener(
+    'scroll',
+    () => {
+      // If no hover or hovered trigger is not visible anymore, hide all tooltips
+      if (!currentHoveredTrigger || !isElementVisible(currentHoveredTrigger)) {
+        currentHoveredTrigger = null; // Reset since element might be gone
+        document.querySelectorAll('[tooltiptrigger]').forEach(trigger => {
+          const tooltip = tooltipMap.get(trigger);
+          if (tooltip) {
+            hideTooltip(trigger, tooltip);
+          }
+        });
+      }
+    },
+    { passive: true }
+  );
+
+  // Create all tooltips once
+  document.querySelectorAll('[tooltiptrigger]').forEach(trigger => {
+    const tooltip = createTooltipElement(trigger);
+    const container = document.getElementById('tooltip-container');
+    container.appendChild(tooltip);
+    tooltipMap.set(trigger, tooltip);
+
+    // Update position on hover
+    trigger.addEventListener('mouseenter', () => {
+      currentHoveredTrigger = trigger;
+      if (isElementVisible(trigger)) {
+        updateTooltipPosition(trigger, tooltip);
+      }
+    });
+
+    // Hide tooltip on mouse leave
+    trigger.addEventListener('mouseleave', () => {
+      currentHoveredTrigger = null;
+      hideTooltip(trigger, tooltip);
+    });
   });
+
+  window.hideAllTooltips = function () {
+    document.querySelectorAll('.tooltip-element').forEach(tooltip => {
+      tooltip.style.opacity = '0';
+      const direction = tooltip.classList.contains('direction-top')
+        ? 'top'
+        : tooltip.classList.contains('direction-left')
+        ? 'left'
+        : tooltip.classList.contains('direction-right')
+        ? 'right'
+        : 'bottom';
+
+      if (direction === 'top') {
+        tooltip.style.transform = 'translate(-50%, calc(-100% - 3px))';
+      } else if (direction === 'bottom') {
+        tooltip.style.transform = 'translate(-50%, 3px)';
+      } else if (direction === 'left') {
+        tooltip.style.transform = 'translate(calc(-100% - 3px), -50%)';
+      } else {
+        tooltip.style.transform = 'translate(3px, -50%)';
+      }
+    });
+  };
 })();
 
 (function wizedDebug() {

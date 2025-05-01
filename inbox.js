@@ -235,6 +235,7 @@
       console.log('v.inboxFilters = ', v.inboxFilters);
     };
     window.resetFilters = function () {
+      window.hideAllTooltips();
       v.usedFilters = true;
       applyFilters(filtersDefaultState);
       Wized.requests.execute('get_chats');
@@ -252,14 +253,12 @@
   window.switchActiveChat = async function (newChatId) {
     v.active_chat = newChatId;
     // deep copy from chats array
-    v.active_chat_object = JSON.parse(JSON.stringify(v.chats.find(chat => chat.id == newChatId)));
-    // has to be a request later on to prevent chat not being in chats array
-    console.log('📥 new chat =', v.active_chat_object);
 
-    // Update URL with chat ID
-    const url = new URL(window.location);
-    url.searchParams.set('chat', newChatId);
-    window.history.replaceState(null, '', url.toString());
+    // v.active_chat_object = JSON.parse(JSON.stringify(v.chats.find(chat => chat.id == newChatId)));
+    v.active_chat_object = await fetchChat(newChatId);
+
+    // has to be a request later on to prevent chat not being in chats array
+    console.log('📥 new active chat =', v.active_chat_object);
 
     // then update with realtime if visitor_id == v.active_chat ✅
 
@@ -269,7 +268,7 @@
 
     // whenever chat changes or new message
     // update object in chat array first
-    // then update chat object variable
+    // then update chat object variable§
 
     // also search related chats to render in header modal
 
@@ -280,6 +279,11 @@
     // will this go correctly with paginated chats?
 
     v.livechatstatus = v.active_chat_object.livechat;
+
+    // Update URL with chat ID
+    const url = new URL(window.location);
+    url.searchParams.set('chat', newChatId);
+    window.history.replaceState(null, '', url.toString());
 
     if (v.active_chat_object.livechat == false) {
       document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);

@@ -1,6 +1,4 @@
 (async function initInbox() {
-  // window.Wized = window.Wized || [];
-  // window.Wized.push(async Wized => {
   if (localStorage.getItem('sleakTrialExpired') == 'true') return;
 
   const v = Wized.data.v;
@@ -12,7 +10,7 @@
 
   let chime = new Audio('https://sygpwnluwwetrkmwilea.supabase.co/storage/v1/object/public/app/assets/sleak-chime.mp3');
 
-  async function realtimeInit() {
+  (async function realtimeInit() {
     // init supa client
     let supaClient;
     const { version, client } = await Wized.requests.getClient('supabase');
@@ -52,7 +50,7 @@
       // console.log('Initializing main channel, attempt:', retryCount + 1);
 
       adminUiChannel = supaClient.channel('adminUi_' + userId);
-      console.log('adminUiChannel', adminUiChannel);
+      // console.log('adminUiChannel', adminUiChannel);
 
       adminUiChannel
         .on(
@@ -64,10 +62,13 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
-            // console.log('New message:', payload);
+            console.log('💬💬💬 New message visitor_id:', payload.new.visitor_id);
+            console.log('💬💬💬 v.active_chat_object.visitor_id:', v.active_chat_object.id);
+            console.log('💬💬💬 v.active_chat:', v.active_chat);
 
             const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
             if (chat) {
+              console.log('💬💬💬 Chat exists in v.allchats:', chat);
               if (!chat.messages) {
                 chat.messages = [];
               }
@@ -89,8 +90,8 @@
                 chat.messages.push(payload);
 
                 const activeChat = v.allchats.find(chat => chat.id === v.active_chat);
-                if (activeChat == payload.id) {
-                  const toastElement = document.querySelector(`[message_list_id='${payload.id}']`);
+                if (activeChat == payload.new.visitor_id) {
+                  const toastElement = document.querySelector(`[message_list_id='${payload.new.id}']`);
                   showMessage(toastElement);
                 }
               }
@@ -104,7 +105,7 @@
                 }
               }
             } else {
-              // console.log('No chat found for message with visitor_id:', payload.new.visitor_id);
+              console.log('💬💬💬 No chat found for message with visitor_id:', payload.new.visitor_id);
             }
 
             // 📥 add to active chat object
@@ -152,10 +153,10 @@
               const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
               if (updatedChat) {
                 Object.assign(updatedChat, payload.new);
-                console.log('Chat updated:', updatedChat);
+                // console.log('Chat updated:', updatedChat);
 
                 if (!v.chats.find(item => item.id == v.active_chat)) {
-                  // is this first condition not redundant?
+                  // is this first condition not redundant? edit: dont think so
                   if (v.chats.length > 0) v.active_chat = v.chats[0].id;
                 }
               }
@@ -163,7 +164,7 @@
               if (payload.new.id == v.active_chat_object.id) {
                 // make deep copy and update active chat object
                 v.active_chat_object = JSON.parse(JSON.stringify(updatedChat));
-                console.log('active chat object updated (reference):', v.active_chat_object);
+                // console.log('active chat object updated (reference):', v.active_chat_object);
               }
             }
           }
@@ -193,7 +194,6 @@
           }
         });
 
-      console.log('after RT init');
       ////
 
       adminUiChannel.subscribe((status, err) => {
@@ -319,10 +319,5 @@
     if (v.active_chat?.livechat == true) {
       initializeLiveChatChannel(supaClient);
     }
-  }
-
-  realtimeInit();
-  // });
+  })();
 })();
-
-console.log('a;ds;asd;adf;adfs');
