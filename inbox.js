@@ -260,11 +260,15 @@
     v.active_chat = newChatId;
 
     // v.active_chat_object = JSON.parse(JSON.stringify(v.chats.find(chat => chat.id == newChatId)));
-    const newChat = await fetchChat(newChatId);
-    // console.log('📥 fetchChat response =', newChat);
-    // console.log('📥 fetchChat response messages count =', newChat.messages?.length);
+    if (newChatId) {
+      const newChat = await fetchChat(newChatId);
+      // console.log('📥 fetchChat response =', newChat);
+      // console.log('📥 fetchChat response messages count =', newChat.messages?.length);
 
-    v.active_chat_object = JSON.parse(JSON.stringify(newChat));
+      v.active_chat_object = JSON.parse(JSON.stringify(newChat));
+    } else {
+      v.active_chat_object = null;
+    }
 
     if (!skeletonShown) {
       console.log('hiding skeleton');
@@ -318,7 +322,7 @@
       //   document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
       // }
     } else {
-      v.active_chat = null;
+      window.switchActiveChat(null);
     }
   })();
 
