@@ -89,11 +89,11 @@
 
             const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
             if (chat) {
-              // console.log('💬💬💬 Chat exists in v.allchats:', chat);
+              console.log('🥶🥶🥶 Chat exists in v.allchats:', chat);
               if (!chat.messages) {
                 chat.messages = [];
               }
-              chat.messages.push(payload);
+              chat.messages.push(payload.new);
 
               // chime
               if (payload.new.message_type === 'default_user') {
@@ -102,7 +102,7 @@
                 }
               }
             } else {
-              // console.log('💬💬💬 No chat found for message with visitor_id:', payload.new.visitor_id);
+              console.log('🥶🥶🥶 No chat found for message with visitor_id:', payload.new.visitor_id);
             }
 
             // 📥 add to active chat object
@@ -128,9 +128,9 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
-            // console.log('New chat:', payload);
+            console.log('New chat:', payload);
 
-            if (payload.new.placement !== 'admin') {
+            if (payload.new.placement == 'admin') {
               return;
             }
 
