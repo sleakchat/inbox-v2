@@ -22,6 +22,15 @@
   // console.log('✅ currentOrganization = ', currentOrganization);
   // console.log('✅ currentMember = ', currentMember);
 
+  let skeletonShown = false;
+
+  async function hidekeleton() {
+    // await Wized.requests.waitFor('get_chats');
+    console.log('hiding skeleton');
+    document.querySelector("[w-el='skeleton-inbox-initial']").style.display = 'none';
+    skeletonShown = true;
+  }
+
   // Function to update inbox tab counts
   async function updateInboxCounts() {
     try {
@@ -246,14 +255,6 @@
     Wized.requests.execute('get_chats');
   }
 
-  (async function hidekeleton() {
-    await Wized.requests.waitFor('get_chats');
-    let skeletonElement = document.querySelector("[w-el='skeleton-inbox-initial']");
-    if (skeletonElement.style.display !== 'none') {
-      skeletonElement.style.display = 'none';
-    }
-  })();
-
   window.switchActiveChat = async function (newChatId) {
     // ⚠️ speeds gonna be a problem here
     v.active_chat = newChatId;
@@ -264,6 +265,11 @@
     // console.log('📥 fetchChat response messages count =', newChat.messages?.length);
 
     v.active_chat_object = JSON.parse(JSON.stringify(newChat));
+
+    if (!skeletonShown) {
+      console.log('hiding skeleton');
+      hidekeleton();
+    }
 
     // has to be a request later on to prevent chat not being in chats array
     // console.log('📥 new active chat =', v.active_chat_object);
