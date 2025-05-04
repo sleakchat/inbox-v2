@@ -1,3 +1,7 @@
+[showonpageload] {
+  display: flex !important;
+}
+
 body {
   user-select: none;
 }

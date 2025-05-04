@@ -159,6 +159,7 @@
             if (payload.new.placement !== 'admin') {
               const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
               if (updatedChat) {
+                console.log('💩💩💩 Chat in array updated:', updatedChat);
                 Object.assign(updatedChat, payload.new);
                 // console.log('Chat updated:', updatedChat);
 
@@ -173,6 +174,7 @@
               }
 
               if (payload.new.id == v.active_chat_object.id) {
+                console.log('💩💩💩 Chat in active chat object updated:', payload.new);
                 Object.assign(v.active_chat_object, payload.new);
                 // console.log('active chat object updated (reference):', v.active_chat_object);
               }

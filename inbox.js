@@ -327,7 +327,6 @@
   })();
 
   window.changeSidebarTabs = async function () {
-    console.log('changeSidebarTabs');
     Wized.requests.execute('get_chats');
     await Wized.requests.waitFor('get_chats');
     if (v.chats.length > 0) {
@@ -388,10 +387,37 @@
 
   (async function liveChatPresence() {
     async function joinChat(user_id, chatState) {
+      const updates = {};
+
+      // if chat is closed, open it
+      if (chatState.open == false) {
+        updates.open = true;
+        await sendSystemMessage(chatState.id, 'chat_opened', {});
+      }
+
+      // if agent_requested is true, set it to false
+      if (chatState.agent_requested == true) {
+        updates.agent_requested = false;
+      }
+
+      // if livechat is false, set it to true
+      if (chatState.livechat == false) {
+        updates.livechat = true;
+      }
+
       const remainingOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
       if (remainingOperators.length === 0) {
-        await supabase.from('chats').update({ livechat: true, agent_requested: false }).eq('id', chatState.id);
-        // deprecate static active_agent later on
+        // updates.livechat = true;
+        // updates.agent_requested = false;
+      } else {
+        // remove any existing operators
+        await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id);
+        await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left' });
+      }
+
+      // update chat if required
+      if (Object.keys(updates).length > 0) {
+        await supabase.from('chats').update(updates).eq('id', chatState.id);
       }
 
       if (chatState.operators.some(op => op.user_id === user_id)) {
@@ -411,12 +437,27 @@
     }
 
     async function leaveChat(user_id, chatState) {
-      const remainingOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
-      if (remainingOperators.length === 0) {
-        await supabase.from('chats').update({ livechat: false }).eq('id', chatState.id);
+      const updates = {};
+
+      // if livechat is true, set it to false
+      if (chatState.livechat == true) {
+        updates.livechat = false;
       }
+
+      // const remainingOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
+      // // if (remainingOperators.length === 0) {
+      // //   updates.livechat = false;
+      // // }
+
+      // now close the chat
+      updates.open = false;
+
       await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left' });
+
+      // Update chat with all changes
+      await supabase.from('chats').update(updates).eq('id', chatState.id);
+      await sendSystemMessage(chatState.id, 'chat_closed', {});
 
       document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
       let leaveLivechatEvent = new CustomEvent('leaveLivechat', { detail: { message: 'Joining live chat' } });
@@ -453,18 +494,40 @@
 
   //
 
-  (async function livechatAssignment() {
+  (async function defineLivechatAssignment() {
+    // Remove all active operators except the one being invited
+    async function removeActiveOperators(chat_id, except_user_id = null) {
+      // Fetch current operators for the chat
+      const { data: operators } = await supabase.from('operators').select('*').eq('chat_id', chat_id).in('status', ['active', 'invited']);
+
+      if (operators && operators.length > 0) {
+        for (const op of operators) {
+          if (op.user_id !== except_user_id) {
+            await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', op.user_id);
+            await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', user_id: op.user_id });
+          }
+        }
+      }
+    }
+
+    // Invite or update operator
     async function inviteOperator(chat_id, user_id, member_id) {
-      await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited' }]);
-      console.log(`Operator ${user_id} invited to chat ${chat_id}`);
+      // Check if operator already exists
+      const { data: existing } = await supabase.from('operators').select('*').eq('chat_id', chat_id).eq('user_id', user_id).maybeSingle();
+
+      if (existing) {
+        // Update status to invited
+        await supabase.from('operators').update({ status: 'invited' }).eq('chat_id', chat_id).eq('user_id', user_id);
+        console.log(`Operator ${user_id} status updated to invited for chat ${chat_id}`);
+      } else {
+        console.log('💩💩💩 doesnt exist, inserting new operator');
+        // Insert new operator
+        await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited' }]);
+        console.log(`Operator ${user_id} invited to chat ${chat_id}`);
+      }
     }
 
-    async function updateChatAgentRequested(chat_id) {
-      await supabase.from('chats').update({ agent_requested: true }).eq('id', chat_id);
-      console.log(`chat.agent_requested set to true for chat ${chat_id}`);
-    }
-
-    window.assignLivechat = async function (realtimeState, user_id) {
+    window.assignLivechat = async function (realtimeState, user_id, member_id) {
       const chat_id = realtimeState.id;
 
       const chatState = await fetchChat(chat_id);
@@ -478,15 +541,47 @@
 
       window.closeAllPopupModals();
 
-      // Invite the operator (always)
-      await inviteOperator(chat_id, user_id);
+      // Remove all active operators except the one being invited
+      await removeActiveOperators(chat_id, user_id);
+
+      // Invite or update the operator
+      await inviteOperator(chat_id, user_id, member_id);
+
       await sendSystemMessage(chat_id, 'agent_requested', { type: 'assign_manually', assigned_to: user_id, assigned_by: currentUser });
 
-      if (!chatState.livechat && !chatState.agent_requested) {
-        await updateChatAgentRequested(chat_id);
+      const updates = {};
+
+      if (chatState.livechat) {
+        updates.livechat = false;
+      }
+      if (chatState.agent_requested == false) {
+        updates.agent_requested = true;
+      }
+
+      // Update chat if required
+      if (Object.keys(updates).length > 0) {
+        await supabase.from('chats').update(updates).eq('id', chat_id);
       }
     };
   })();
+
+  // (async function defineAgressiveTakeOver() {
+
+  //   async function removeOperatorFromChat(chat_id, user_id) {
+  //     await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', user_id);
+  //     console.log(`Operator ${user_id} removed from chat ${chat_id}`);
+  //   }
+
+  //   async function takeOverChat(chat_id) {
+  //     await supabase.from('chats').update({ livechat: true }).eq('id', chat_id);
+  //     console.log(`Chat ${chat_id} taken over by agressive take over`);
+  //   }
+
+  //   // here we want to take over a chat if the operator is not responding. Throw the other operator out of the chat and take over the chat.
+
+  //   // get all chats where livechat is true
+
+  // })();
 
   //
 
