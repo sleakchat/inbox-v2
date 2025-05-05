@@ -53,11 +53,8 @@ window.setSchedule = async function () {
       }
     };
   } else {
-    // const v = Wized.data.v;
-    // const r = Wized.data.r;
-    // const i = Wized.data.i;
     defineWizedVariables();
-    console.log('⏱️ v.useraAvailabilitySchedule', v.useraAvailabilitySchedule);
+    // console.log('⏱️ v.useraAvailabilitySchedule', v.useraAvailabilitySchedule);
   }
   // Initialize directly without DOMContentLoaded event
   const days = [
@@ -78,7 +75,6 @@ window.setSchedule = async function () {
   };
 
   days.forEach(day => {
-    console.log('⏱️ day.key = ', day.key);
     const cb = document.getElementById(day.key);
     if (!cb) {
       console.warn(`Element with ID "${day.key}" not found`);
