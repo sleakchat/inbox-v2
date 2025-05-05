@@ -450,7 +450,9 @@
       // // }
 
       // now close the chat
-      updates.open = false;
+      if (chatState.open == true) {
+        updates.open = false;
+      }
 
       await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left' });
