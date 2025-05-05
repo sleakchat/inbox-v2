@@ -97,7 +97,6 @@ window.setSchedule = async function () {
     }
 
     const dayConfig = v.useraAvailabilitySchedule.days[day.key] || { enabled: false, from: '', to: '' };
-    console.log(`Setting up ${day.key}:`, dayConfig);
 
     // Set checkbox state based on day's enabled property
     cb.checked = dayConfig.enabled;
