@@ -1,0 +1,136 @@
+#dropdowns-container {
+  padding-left: 16px;
+  width: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.schedule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  min-height: 40px; /* Fixed height to prevent jumping */
+}
+.day-container {
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+}
+.time-inputs-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  transition: opacity 0.2s ease;
+  position: absolute; /* Position absolutely to prevent layout shifting */
+  right: 0;
+  gap: 10px; /* Add consistent gap */
+}
+.schedule-row {
+  position: relative; /* For absolute positioning of time-inputs-container */
+}
+.schedule-row label {
+  width: auto;
+  margin-left: 10px;
+  font-weight: 500;
+  color: #333;
+}
+.schedule-row input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+.schedule-row input[type='checkbox']:checked {
+  background-color: #7b68ee;
+  border-color: #7b68ee;
+}
+.schedule-row input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://cdn.prod.website-files.com/65911e9735540c235757642f/65b68de2db61e26c5f566f67_check%20(1).svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 14px;
+}
+.time-wrapper {
+  position: relative;
+  /* width: 140px; */
+}
+.time-label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  font-size: 12px;
+  color: #777;
+  pointer-events: none;
+  transform: translateY(-50%);
+  font-family: inherit;
+}
+.time-input {
+  /* width: 100%; */
+  padding: 8px 12px 8px 45px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fcfcfc;
+  color: #333;
+  font-family: inherit;
+  /* Force time inputs to always use 2 digits */
+  -webkit-datetime-edit-hour-field: 2-digit;
+  -webkit-datetime-edit-minute-field: 2-digit;
+}
+/* Change focus/active state border to black */
+.time-input:focus,
+.time-input:active {
+  outline: none;
+  border-color: #000;
+  outline: 1px solid #000;
+}
+
+/* Style the time input inner elements */
+.time-input::-webkit-datetime-edit {
+  font-family: inherit;
+}
+.time-input::-webkit-datetime-edit-fields-wrapper {
+  font-family: inherit;
+}
+.time-input::-webkit-datetime-edit-text {
+  font-family: inherit;
+}
+.time-input::-webkit-datetime-edit-hour-field {
+  font-family: inherit;
+}
+.time-input::-webkit-datetime-edit-minute-field {
+  font-family: inherit;
+}
+.time-input::-webkit-datetime-edit-ampm-field {
+  font-family: inherit;
+}
+.time-input::-webkit-calendar-picker-indicator {
+  font-family: inherit;
+}
+
+/* Hide the spinner buttons */
+.time-input::-webkit-inner-spin-button,
+.time-input::-webkit-calendar-picker-indicator {
+  display: none;
+}
+.tot-text {
+  margin: 0 10px;
+  color: #999;
+  font-size: 12px;
+  font-family: inherit;
+}

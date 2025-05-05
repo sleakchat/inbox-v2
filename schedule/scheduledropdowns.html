@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weekly Schedule</title>
+    <link rel="stylesheet" href="http://localhost:7070/schedule/styles.css" />
+  </head>
+  <body>
+    <div id="dropdowns-container">
+      <div class="schedule-row" id="monday-row">
+        <div class="day-container">
+          <input type="checkbox" id="monday" />
+          <label for="monday">Maandag</label>
+        </div>
+        <div class="time-inputs-container">
+          <div class="time-wrapper">
+            <span class="time-label">Van</span>
+            <input type="time" class="time-input" id="monday-from" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+          <div class="time-wrapper">
+            <span class="time-label">Tot</span>
+            <input type="time" class="time-input" id="monday-to" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-row" id="tuesday-row">
+        <div class="day-container">
+          <input type="checkbox" id="tuesday" />
+          <label for="tuesday">Dinsdag</label>
+        </div>
+        <div class="time-inputs-container">
+          <div class="time-wrapper">
+            <span class="time-label">Van</span>
+            <input type="time" class="time-input" id="tuesday-from" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+          <div class="time-wrapper">
+            <span class="time-label">Tot</span>
+            <input type="time" class="time-input" id="tuesday-to" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-row" id="wednesday-row">
+        <div class="day-container">
+          <input type="checkbox" id="wednesday" />
+          <label for="wednesday">Woensdag</label>
+        </div>
+        <div class="time-inputs-container">
+          <div class="time-wrapper">
+            <span class="time-label">Van</span>
+            <input type="time" class="time-input" id="wednesday-from" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+          <div class="time-wrapper">
+            <span class="time-label">Tot</span>
+            <input type="time" class="time-input" id="wednesday-to" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-row" id="thursday-row">
+        <div class="day-container">
+          <input type="checkbox" id="thursday" />
+          <label for="thursday">Donderdag</label>
+        </div>
+        <div class="time-inputs-container">
+          <div class="time-wrapper">
+            <span class="time-label">Van</span>
+            <input type="time" class="time-input" id="thursday-from" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+          <div class="time-wrapper">
+            <span class="time-label">Tot</span>
+            <input type="time" class="time-input" id="thursday-to" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-row" id="friday-row">
+        <div class="day-container">
+          <input type="checkbox" id="friday" />
+          <label for="friday">Vrijdag</label>
+        </div>
+        <div class="time-inputs-container">
+          <div class="time-wrapper">
+            <span class="time-label">Van</span>
+            <input type="time" class="time-input" id="friday-from" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+          <div class="time-wrapper">
+            <span class="time-label">Tot</span>
+            <input type="time" class="time-input" id="friday-to" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-row" id="saturday-row">
+        <div class="day-container">
+          <input type="checkbox" id="saturday" />
+          <label for="saturday">Zaterdag</label>
+        </div>
+        <div class="time-inputs-container">
+          <div class="time-wrapper">
+            <span class="time-label">Van</span>
+            <input type="time" class="time-input" id="saturday-from" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+          <div class="time-wrapper">
+            <span class="time-label">Tot</span>
+            <input type="time" class="time-input" id="saturday-to" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-row" id="sunday-row">
+        <div class="day-container">
+          <input type="checkbox" id="sunday" />
+          <label for="sunday">Zondag</label>
+        </div>
+        <div class="time-inputs-container">
+          <div class="time-wrapper">
+            <span class="time-label">Van</span>
+            <input type="time" class="time-input" id="sunday-from" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+          <div class="time-wrapper">
+            <span class="time-label">Tot</span>
+            <input type="time" class="time-input" id="sunday-to" step="1800" pattern="[0-9]{2}:[0-9]{2}" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="http://localhost:7070/schedule/script.js"></script>
+  </body>
+</html>
