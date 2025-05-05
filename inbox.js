@@ -543,6 +543,12 @@
 
       window.closeAllPopupModals();
 
+      // if chat is closed, open it
+      if (chatState.open == false) {
+        updates.open = true;
+        await sendSystemMessage(chatState.id, 'chat_opened', {});
+      }
+
       // Remove all active operators except the one being invited
       await removeActiveOperators(chat_id, user_id);
 
