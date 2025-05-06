@@ -359,6 +359,9 @@
 
   // Compare operators and livechat status in real-time vs database state
   function matchObjects(realtimeState, dbState) {
+    console.log('dbState', dbState);
+    console.log('realtimeState', realtimeState);
+
     if (realtimeState.livechat !== dbState.livechat || realtimeState.agent_requested !== dbState.agent_requested || realtimeState.open !== dbState.open) {
       console.log('chat state does not match');
       return false;
@@ -471,8 +474,6 @@
       const user_id = currentUser;
 
       const chatState = await fetchChat(chat_id);
-      console.log('dbState', chatState);
-      console.log('realtimeState', realtimeState);
 
       if (!matchObjects(realtimeState, chatState)) {
         console.log('states do not match');
@@ -530,10 +531,7 @@
 
     window.assignLivechat = async function (realtimeState, user_id, member_id) {
       const chat_id = realtimeState.id;
-
       const chatState = await fetchChat(chat_id);
-      console.log('dbState', chatState);
-      console.log('realtimeState', realtimeState);
 
       if (!matchObjects(realtimeState, chatState)) {
         console.log('states do not match');
@@ -541,6 +539,8 @@
       }
 
       window.closeAllPopupModals();
+
+      const updates = {};
 
       // if chat is closed, open it
       if (chatState.open == false) {
@@ -555,8 +555,7 @@
       await inviteOperator(chat_id, user_id, member_id);
 
       await sendSystemMessage(chat_id, 'agent_requested', { type: 'assign_manually', assigned_to: user_id, assigned_by: currentUser });
-
-      const updates = {};
+      console.log('payload ', { type: 'assign_manually', assigned_to: user_id, assigned_by: currentUser });
 
       if (chatState.livechat) {
         updates.livechat = false;
@@ -637,8 +636,6 @@
       const chat_id = realtimeState.id;
 
       const chatState = await fetchChat(chat_id);
-      console.log('dbState', chatState);
-      console.log('realtimeState', realtimeState);
 
       if (!matchObjects(realtimeState, chatState)) {
         console.log('states do not match');

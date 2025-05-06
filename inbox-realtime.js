@@ -7,8 +7,6 @@
 
   await Wized.requests.waitFor('get_chatbots');
 
-  // Wized.requests.execute('get_chats_rpc');
-
   let chime = new Audio('https://sygpwnluwwetrkmwilea.supabase.co/storage/v1/object/public/app/assets/sleak-chime.mp3');
 
   (async function realtimeInit() {
@@ -89,7 +87,7 @@
 
             const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
             if (chat) {
-              console.log('🥶🥶🥶 Chat exists in v.allchats:', chat);
+              // console.log('🥶🥶🥶 Chat exists in v.allchats:', chat);
               if (!chat.messages) {
                 chat.messages = [];
               }
@@ -102,7 +100,7 @@
                 }
               }
             } else {
-              console.log('🥶🥶🥶 No chat found for message with visitor_id:', payload.new.visitor_id);
+              // console.log('🥶🥶🥶 No chat found for message with visitor_id:', payload.new.visitor_id);
             }
 
             // 📥 add to active chat object
@@ -111,9 +109,9 @@
 
               pushMessage(payload);
 
-              console.log('💬💬💬 MESSAGE INSERT active chat object updated:', v.active_chat_object);
+              // console.log('💬💬💬 MESSAGE INSERT active chat object updated:', v.active_chat_object);
             } else {
-              console.log('💬💬💬 MESSAGE INSERT active chat is not new chat id:', v.active_chat_object);
+              // console.log('💬💬💬 MESSAGE INSERT active chat is not new chat id:', v.active_chat_object);
             }
           }
         )
@@ -158,25 +156,100 @@
           payload => {
             if (payload.new.placement !== 'admin') {
               const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
+              console.log('💩💩💩💩💩💩💩💩💩 updatedChat:', payload);
               if (updatedChat) {
-                console.log('💩💩💩 Chat in array updated:', updatedChat);
-                Object.assign(updatedChat, payload.new);
+                // console.log('💩💩💩 Chat in array updated:', updatedChat);
                 // console.log('Chat updated:', updatedChat);
 
-                // if it updates and it now does belong in v.chats, update it so it can be rendered in list
-                // ⚠️ add this still
+                // Update chat in all other arrays if they exist
+                ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
+                  const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.id);
+                  if (chatInArray) {
+                    Object.assign(chatInArray, payload.new);
+                    // console.log(`💩💩💩 Chat in ${chatArrayName} updated:`, chatInArray);
+                  }
+                });
 
                 // ⚠️ I don't know why this exists
                 // if (!v.chats.find(item => item.id == v.active_chat)) {
                 //   // is this first condition not redundant? edit: dont think so
                 //   if (v.chats.length > 0) v.active_chat = v.chats[0].id;
                 // }
-              }
+              } else {
+                console.log('💩💩💩 Chat not found in allchats, adding tu updatedChats:', payload.new.id);
 
-              if (payload.new.id == v.active_chat_object.id) {
-                console.log('💩💩💩 Chat in active chat object updated:', payload.new);
-                Object.assign(v.active_chat_object, payload.new);
-                // console.log('active chat object updated (reference):', v.active_chat_object);
+                // Check if any of the important properties have changed
+                const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed'];
+                let hasRelevantChanges = false;
+
+                if (payload.old) {
+                  relevantProperties.forEach(prop => {
+                    if (payload.old[prop] !== payload.new[prop]) {
+                      console.log(`Property ${prop} changed from ${payload.old[prop]} to ${payload.new[prop]}`);
+                      hasRelevantChanges = true;
+                    }
+                  });
+                }
+
+                if (hasRelevantChanges || !payload.old) {
+                  // Add or update chat in updatedChats
+                  const existingChat = v.updatedChats.find(chat => chat.id === payload.new.id);
+                  if (existingChat) {
+                    // Update existing chat in updatedChats
+                    Object.assign(existingChat, payload.new);
+                    // console.log('💩💩💩 Chat in updatedChats updated:', existingChat);
+                  } else {
+                    // Fetch operators and messages before adding to updatedChats
+                    console.log('💩💩💩 Fetching operators and messages for chat before adding to updatedChats:', payload.new.id);
+
+                    // Create a copy of the new chat
+                    const chatToAdd = { ...payload.new };
+
+                    async function fetchOperators(chatId) {
+                      try {
+                        const { data, error } = await supaClient.from('operators').select('*').eq('chat_id', chatId);
+
+                        if (error) throw error;
+                        return data || [];
+                      } catch (err) {
+                        console.error('Error fetching operators:', err);
+                        return [];
+                      }
+                    }
+
+                    async function fetchMessages(chatId) {
+                      try {
+                        const { data, error } = await supaClient.from('messages').select('*').eq('visitor_id', chatId).order('created_at', { ascending: false }).limit(50);
+
+                        if (error) throw error;
+                        return data || [];
+                      } catch (err) {
+                        console.error('Error fetching messages:', err);
+                        return [];
+                      }
+                    }
+
+                    // Fetch both operators and messages in parallel
+                    Promise.all([fetchOperators(payload.new.id), fetchMessages(payload.new.id)])
+                      .then(([operators, messages]) => {
+                        chatToAdd.operators = operators;
+                        chatToAdd.messages = messages;
+
+                        // Now add the complete chat to updatedChats
+                        console.log('💩💩💩 Adding complete chat to updatedChats:', chatToAdd);
+                        v.updatedChats.push(chatToAdd);
+                      })
+                      .catch(err => {
+                        console.error('Error fetching data for chat:', err);
+                      });
+                  }
+                }
+
+                if (payload.new.id == v.active_chat_object.id) {
+                  console.log('��💩💩 Chat in active chat object updated:', payload.new);
+                  Object.assign(v.active_chat_object, payload.new);
+                  // console.log('active chat object updated (reference):', v.active_chat_object);
+                }
               }
             }
           }
