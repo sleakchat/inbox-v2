@@ -347,14 +347,14 @@
   }
 
   // Send a system message to the chat with custom message_type_data
-  async function sendSystemMessage(chat_id, message_type, message_type_data) {
+  async function sendSystemMessage(chat_id, message_type, message_type_data, author_member_id = null) {
     await supabase.from('messages').insert({
       visitor_id: chat_id,
       author_type: 'system',
       message_type: message_type,
       message_type_data: message_type_data,
       chatbot_id: v.active_chat_object.chatbot_id,
-      author_member_id: currentMember.id
+      author_member_id: author_member_id || currentMember.id
     });
   }
 
@@ -452,17 +452,17 @@
       // //   updates.livechat = false;
       // // }
 
-      // now close the chat
-      if (chatState.open == true) {
-        updates.open = false;
-      }
-
       await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left' });
 
+      // now close the chat
+      if (chatState.open == true) {
+        updates.open = false;
+        await sendSystemMessage(chatState.id, 'chat_closed', {});
+      }
+
       // Update chat with all changes
       await supabase.from('chats').update(updates).eq('id', chatState.id);
-      await sendSystemMessage(chatState.id, 'chat_closed', {});
 
       document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
       let leaveLivechatEvent = new CustomEvent('leaveLivechat', { detail: { message: 'Joining live chat' } });
@@ -507,7 +507,8 @@
         for (const op of operators) {
           if (op.user_id !== except_user_id) {
             await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', op.user_id);
-            await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', user_id: op.user_id });
+            await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left' }, op.member_id);
+            console.log(`Operator removed from chat : `, op);
           }
         }
       }
