@@ -214,6 +214,7 @@
 
       v.loadmorechats = [];
       v.newchats = [];
+      v.updatedChats = [];
 
       Wized.requests.execute('get_chats');
 

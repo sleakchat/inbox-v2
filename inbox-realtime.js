@@ -158,7 +158,7 @@
               const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
               console.log('💩💩💩💩💩💩💩💩💩 updatedChat:', payload);
               if (updatedChat) {
-                // console.log('💩💩💩 Chat in array updated:', updatedChat);
+                console.log('💩💩💩 Chat in array updated:', updatedChat);
                 // console.log('Chat updated:', updatedChat);
 
                 // Update chat in all other arrays if they exist
@@ -244,12 +244,11 @@
                       });
                   }
                 }
-
-                if (payload.new.id == v.active_chat_object.id) {
-                  console.log('��💩💩 Chat in active chat object updated:', payload.new);
-                  Object.assign(v.active_chat_object, payload.new);
-                  // console.log('active chat object updated (reference):', v.active_chat_object);
-                }
+              }
+              if (payload.new.id == v.active_chat_object.id) {
+                console.log('��💩💩 Chat in active chat object updated:', payload.new);
+                Object.assign(v.active_chat_object, payload.new);
+                // console.log('active chat object updated (reference):', v.active_chat_object);
               }
             }
           }
