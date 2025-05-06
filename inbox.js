@@ -288,11 +288,11 @@
     url.searchParams.set('chat', newChatId);
     window.history.replaceState(null, '', url.toString());
 
-    if (v.active_chat_object.livechat == false) {
-      document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
-    } else {
-      document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
-    }
+    // if (v.active_chat_object.livechat == false) {
+    //   document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
+    // } else {
+    //   document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
+    // }
 
     Wized.requests.execute('update_chat_hasunread');
 
@@ -434,9 +434,9 @@
       await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'joined' });
 
       v.livechatstatus == true;
-      document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
-      let joinLivechatEvent = new CustomEvent('joinLivechat', { detail: { message: 'Joining live chat' } });
-      window.dispatchEvent(joinLivechatEvent);
+      // document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
+      // let joinLivechatEvent = new CustomEvent('joinLivechat', { detail: { message: 'Joining live chat' } });
+      // window.dispatchEvent(joinLivechatEvent);
     }
 
     async function leaveChat(user_id, chatState) {
@@ -464,9 +464,9 @@
       // Update chat with all changes
       await supabase.from('chats').update(updates).eq('id', chatState.id);
 
-      document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
-      let leaveLivechatEvent = new CustomEvent('leaveLivechat', { detail: { message: 'Joining live chat' } });
-      window.dispatchEvent(leaveLivechatEvent);
+      // document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
+      // let leaveLivechatEvent = new CustomEvent('leaveLivechat', { detail: { message: 'Joining live chat' } });
+      // window.dispatchEvent(leaveLivechatEvent);
     }
 
     window.handleLiveChat = async function (realtimeState) {
