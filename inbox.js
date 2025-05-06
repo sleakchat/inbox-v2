@@ -271,7 +271,6 @@
     }
 
     if (!skeletonShown) {
-      console.log('hiding skeleton');
       hidekeleton();
     }
 
