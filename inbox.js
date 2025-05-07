@@ -238,14 +238,19 @@
     v.active_chat = newChatId;
 
     // v.active_chat_object = JSON.parse(JSON.stringify(v.chats.find(chat => chat.id == newChatId)));
-    if (newChatId) {
+    if (!newChatId) {
+      v.active_chat_object = null;
+      v.livechatstatus = false;
+    } else {
       const newChat = await fetchChat(newChatId);
       // console.log('📥 fetchChat response =', newChat);
       // console.log('📥 fetchChat response messages count =', newChat.messages?.length);
 
       v.active_chat_object = JSON.parse(JSON.stringify(newChat));
-    } else {
-      v.active_chat_object = null;
+
+      v.livechatstatus = v.active_chat_object.livechat;
+
+      Wized.requests.execute('update_chat_hasunread');
     }
 
     if (!skeletonShown) {
@@ -258,8 +263,6 @@
 
     // also search related chats to render in header modal
 
-    v.livechatstatus = v.active_chat_object.livechat;
-
     // Update URL with chat ID
     const url = new URL(window.location);
     url.searchParams.set('chat', newChatId);
@@ -270,8 +273,6 @@
     // } else {
     //   document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
     // }
-
-    Wized.requests.execute('update_chat_hasunread');
 
     if (window.innerWidth <= 768) {
       document.querySelector('[w-el="messages-grid-container"]').style.display = 'flex';
