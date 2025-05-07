@@ -104,7 +104,7 @@
             }
 
             // 📥 add to active chat object
-            if (payload.new.visitor_id == v.active_chat_object.id) {
+            if (payload.new.visitor_id == v.active_chat_object?.id) {
               // message entrance animations
 
               pushMessage(payload);
@@ -184,16 +184,14 @@
               const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed'];
               let hasRelevantChanges = false;
 
-              if (payload.old) {
-                relevantProperties.forEach(prop => {
-                  if (payload.old[prop] !== payload.new[prop]) {
-                    // console.log(`Property ${prop} changed from ${payload.old[prop]} to ${payload.new[prop]}`);
-                    hasRelevantChanges = true;
-                  }
-                });
-              }
+              relevantProperties.forEach(prop => {
+                if (payload.old[prop] !== payload.new[prop]) {
+                  // console.log(`Property ${prop} changed from ${payload.old[prop]} to ${payload.new[prop]}`);
+                  hasRelevantChanges = true;
+                }
+              });
 
-              if (hasRelevantChanges || !payload.old) {
+              if (hasRelevantChangess) {
                 window.updateInboxCounts();
 
                 // Add or update chat in updatedChats
