@@ -305,7 +305,11 @@
 
   window.changeSidebarTabs = async function () {
     Wized.requests.execute('get_chats');
+    v.updatedChats = [];
+    v.newchats = [];
+    v.loadmorechats = [];
     await Wized.requests.waitFor('get_chats');
+
     if (v.chats.length > 0) {
       window.switchActiveChat(v.chats[0].id);
     } else {
@@ -365,8 +369,26 @@
     return true;
   }
 
+  async function removeActiveOperators(chat_id, except_user_id = null) {
+    // Remove all active operators except the one being invited
+
+    const { data: operators } = await supabase.from('operators').select('*').eq('chat_id', chat_id).in('status', ['active', 'invited']);
+
+    if (operators && operators.length > 0) {
+      for (const op of operators) {
+        if (op.user_id !== except_user_id) {
+          await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', op.user_id);
+          await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', type: 'assign_manually' }, op.member_id);
+          console.log(`Operator removed from chat : `, op);
+        }
+      }
+    }
+  }
+
   (async function liveChatPresence() {
     async function joinChat(user_id, chatState) {
+      removeActiveOperators(chatState.id, user_id);
+
       const updates = {};
 
       // if chat is closed, open it
@@ -474,22 +496,6 @@
   //
 
   (async function defineLivechatAssignment() {
-    // Remove all active operators except the one being invited
-    async function removeActiveOperators(chat_id, except_user_id = null) {
-      // Fetch current operators for the chat
-      const { data: operators } = await supabase.from('operators').select('*').eq('chat_id', chat_id).in('status', ['active', 'invited']);
-
-      if (operators && operators.length > 0) {
-        for (const op of operators) {
-          if (op.user_id !== except_user_id) {
-            await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', op.user_id);
-            await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', type: 'assign_manually' }, op.member_id);
-            console.log(`Operator removed from chat : `, op);
-          }
-        }
-      }
-    }
-
     // Invite or update operator
     async function inviteOperator(chat_id, user_id, member_id) {
       // Check if operator already exists

@@ -194,6 +194,8 @@
               }
 
               if (hasRelevantChanges || !payload.old) {
+                window.updateInboxCounts();
+
                 // Add or update chat in updatedChats
                 const existingChat = v.updatedChats.find(chat => chat.id === payload.new.id);
                 if (existingChat) {
@@ -202,6 +204,7 @@
                   // console.log('💩💩💩 Chat in updatedChats updated:', existingChat);
                 } else {
                   // Fetch operators and messages before adding to updatedChats
+
                   // console.log('💩💩💩 Fetching operators and messages for chat before adding to updatedChats:', payload.new.id);
 
                   // Create a copy of the new chat
@@ -257,33 +260,47 @@
 
         // operators table
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'operators' }, payload => {
-          const chat = v.allchats.find(chat => chat.id === payload.new.chat_id);
-          if (chat) {
-            if (!chat.operators) chat.operators = [];
-            chat.operators.push(payload.new);
+          const chatToAdd = v.allchats.find(chat => chat.id === payload.new.chat_id);
+          if (chatToAdd) {
+            if (!chatToAdd.operators) chatToAdd.operators = [];
 
-            // Update active chat object if this is the current chat
-            if (v.active_chat_object?.id === payload.new.chat_id) {
-              if (!v.active_chat_object.operators) v.active_chat_object.operators = [];
-              v.active_chat_object.operators.push(payload.new);
-            }
+            // Update chat in all other arrays if they exist
+            ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
+              const chatInArray = v[chatArrayName].find(chat => chat.id === chatToAdd.id);
+              if (chatInArray) {
+                chatToAdd.operators.push(payload.new);
+                // console.log(`💩💩💩 Chat in ${chatArrayName} updated:`, chatInArray);
+              }
+            });
+          }
+
+          // Update active chat object if this is the current chat
+          if (v.active_chat_object?.id === payload.new.chat_id) {
+            if (!v.active_chat_object.operators) v.active_chat_object.operators = [];
+            v.active_chat_object.operators.push(payload.new);
           }
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'operators' }, payload => {
-          const chat = v.allchats.find(chat => chat.id === payload.new.chat_id);
-          if (chat) {
+          const chatToUpdate = v.allchats.find(chat => chat.id === payload.new.chat_id);
+          if (chatToUpdate) {
             // Update operator in allchats
-            const operator = chat.operators?.find(op => op.user_id === payload.new.user_id);
-            if (operator) {
-              Object.assign(operator, payload.new);
-            }
-
-            // Update operator in active chat object if this is the current chat
-            if (v.active_chat_object?.id === payload.new.chat_id) {
-              const activeOperator = v.active_chat_object.operators?.find(op => op.user_id === payload.new.user_id);
-              if (activeOperator) {
-                Object.assign(activeOperator, payload.new);
+            ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
+              const chatInArray = v[chatArrayName].find(chat => chat.id === chatToAdd.id);
+              if (chatInArray) {
+                const operator = chatInArray.operators?.find(op => op.user_id === payload.new.user_id);
+                if (operator) {
+                  // Update chat in all other arrays if they exist
+                  Object.assign(operator, payload.new);
+                  // console.log(`💩💩💩 Chat in ${chatArrayName} updated:`, chatInArray);
+                }
               }
+            });
+          }
+          // Update operator in active chat object if this is the current chat
+          if (v.active_chat_object?.id === payload.new.chat_id) {
+            const activeOperator = v.active_chat_object.operators?.find(op => op.user_id === payload.new.user_id);
+            if (activeOperator) {
+              Object.assign(activeOperator, payload.new);
             }
           }
         })
