@@ -407,15 +407,15 @@
         updates.livechat = true;
       }
 
-      const remainingOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
-      if (remainingOperators.length === 0) {
-        // updates.livechat = true;
-        // updates.agent_requested = false;
-      } else {
-        // remove any existing operators
-        await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id);
-        await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left', type: 'assign_manually' });
-      }
+      // const remainingOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
+      // if (remainingOperators.length === 0) {
+      //   // updates.livechat = true;
+      //   // updates.agent_requested = false;
+      // } else {
+      //   // remove any existing operators
+      //   await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id);
+      //   await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left', type: 'assign_manually' });
+      // }
 
       // update chat if required
       if (Object.keys(updates).length > 0) {
