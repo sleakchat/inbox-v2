@@ -32,7 +32,7 @@
   }
 
   // Function to update inbox tab counts
-  async function updateInboxCounts() {
+  (window.updateInboxCounts = async function () {
     try {
       const { data, error } = await supabase.rpc('get_inbox_counts', {
         p_member_id: currentMember.id,
@@ -66,10 +66,10 @@
     } catch (error) {
       console.error('Error updating inbox counts:', error);
     }
-  }
+    console.log('updated inbox counts');
+  })();
 
   // Call the count update function initially
-  updateInboxCounts();
   setInterval(updateInboxCounts, 30000);
 
   (function initFilters() {
@@ -141,6 +141,8 @@
 
       // make deep copy
       v.realTimeFilters = JSON.parse(JSON.stringify(filterObject));
+
+      updateInboxCounts();
 
       i.inboxfilter_livechat_enabled = filterObject.livechat.value;
       i.inboxfilter_assigned_enabled = filterObject.assigned.value;
@@ -309,6 +311,7 @@
     } else {
       v.active_chat_object = null;
     }
+    updateInboxCounts();
   };
 
   async function fetchChat(chat_id) {

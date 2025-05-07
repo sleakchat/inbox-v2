@@ -133,6 +133,7 @@
             }
 
             v.newchats.unshift(payload.new);
+            window.updateInboxCounts();
 
             if (v.allchats.length == 0) {
               // check if it exists in chats list
