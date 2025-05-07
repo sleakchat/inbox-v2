@@ -154,102 +154,102 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
-            if (payload.new.placement !== 'admin') {
-              const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
-              console.log('💩💩💩💩💩💩💩💩💩 updatedChat:', payload);
-              if (updatedChat) {
-                console.log('💩💩💩 Chat in array updated:', updatedChat);
-                // console.log('Chat updated:', updatedChat);
+            if (payload.new.placement == 'admin') return;
 
-                // Update chat in all other arrays if they exist
-                ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
-                  const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.id);
-                  if (chatInArray) {
-                    Object.assign(chatInArray, payload.new);
-                    // console.log(`💩💩💩 Chat in ${chatArrayName} updated:`, chatInArray);
+            const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
+            // console.log('💩💩💩💩💩💩💩💩💩 updatedChat:', payload);
+            if (updatedChat) {
+              // console.log('💩💩💩 Chat in array updated:', updatedChat);
+              // console.log('Chat updated:', updatedChat);
+
+              // Update chat in all other arrays if they exist
+              ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
+                const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.id);
+                if (chatInArray) {
+                  Object.assign(chatInArray, payload.new);
+                  // console.log(`💩💩💩 Chat in ${chatArrayName} updated:`, chatInArray);
+                }
+              });
+
+              // ⚠️ I don't know why this exists
+              // if (!v.chats.find(item => item.id == v.active_chat)) {
+              //   // is this first condition not redundant? edit: dont think so
+              //   if (v.chats.length > 0) v.active_chat = v.chats[0].id;
+              // }
+            } else {
+              // console.log('💩💩💩 Chat not found in allchats, adding tu updatedChats:', payload.new.id);
+
+              // Check if any of the important properties have changed
+              const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed'];
+              let hasRelevantChanges = false;
+
+              if (payload.old) {
+                relevantProperties.forEach(prop => {
+                  if (payload.old[prop] !== payload.new[prop]) {
+                    // console.log(`Property ${prop} changed from ${payload.old[prop]} to ${payload.new[prop]}`);
+                    hasRelevantChanges = true;
                   }
                 });
+              }
 
-                // ⚠️ I don't know why this exists
-                // if (!v.chats.find(item => item.id == v.active_chat)) {
-                //   // is this first condition not redundant? edit: dont think so
-                //   if (v.chats.length > 0) v.active_chat = v.chats[0].id;
-                // }
-              } else {
-                console.log('💩💩💩 Chat not found in allchats, adding tu updatedChats:', payload.new.id);
+              if (hasRelevantChanges || !payload.old) {
+                // Add or update chat in updatedChats
+                const existingChat = v.updatedChats.find(chat => chat.id === payload.new.id);
+                if (existingChat) {
+                  // Update existing chat in updatedChats
+                  Object.assign(existingChat, payload.new);
+                  // console.log('💩💩💩 Chat in updatedChats updated:', existingChat);
+                } else {
+                  // Fetch operators and messages before adding to updatedChats
+                  // console.log('💩💩💩 Fetching operators and messages for chat before adding to updatedChats:', payload.new.id);
 
-                // Check if any of the important properties have changed
-                const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed'];
-                let hasRelevantChanges = false;
+                  // Create a copy of the new chat
+                  const chatToAdd = { ...payload.new };
 
-                if (payload.old) {
-                  relevantProperties.forEach(prop => {
-                    if (payload.old[prop] !== payload.new[prop]) {
-                      console.log(`Property ${prop} changed from ${payload.old[prop]} to ${payload.new[prop]}`);
-                      hasRelevantChanges = true;
+                  async function fetchOperators(chatId) {
+                    try {
+                      const { data, error } = await supaClient.from('operators').select('*').eq('chat_id', chatId);
+
+                      if (error) throw error;
+                      return data || [];
+                    } catch (err) {
+                      console.error('Error fetching operators:', err);
+                      return [];
                     }
-                  });
-                }
-
-                if (hasRelevantChanges || !payload.old) {
-                  // Add or update chat in updatedChats
-                  const existingChat = v.updatedChats.find(chat => chat.id === payload.new.id);
-                  if (existingChat) {
-                    // Update existing chat in updatedChats
-                    Object.assign(existingChat, payload.new);
-                    // console.log('💩💩💩 Chat in updatedChats updated:', existingChat);
-                  } else {
-                    // Fetch operators and messages before adding to updatedChats
-                    console.log('💩💩💩 Fetching operators and messages for chat before adding to updatedChats:', payload.new.id);
-
-                    // Create a copy of the new chat
-                    const chatToAdd = { ...payload.new };
-
-                    async function fetchOperators(chatId) {
-                      try {
-                        const { data, error } = await supaClient.from('operators').select('*').eq('chat_id', chatId);
-
-                        if (error) throw error;
-                        return data || [];
-                      } catch (err) {
-                        console.error('Error fetching operators:', err);
-                        return [];
-                      }
-                    }
-
-                    async function fetchMessages(chatId) {
-                      try {
-                        const { data, error } = await supaClient.from('messages').select('*').eq('visitor_id', chatId).order('created_at', { ascending: false }).limit(50);
-
-                        if (error) throw error;
-                        return data || [];
-                      } catch (err) {
-                        console.error('Error fetching messages:', err);
-                        return [];
-                      }
-                    }
-
-                    // Fetch both operators and messages in parallel
-                    Promise.all([fetchOperators(payload.new.id), fetchMessages(payload.new.id)])
-                      .then(([operators, messages]) => {
-                        chatToAdd.operators = operators;
-                        chatToAdd.messages = messages;
-
-                        // Now add the complete chat to updatedChats
-                        console.log('💩💩💩 Adding complete chat to updatedChats:', chatToAdd);
-                        v.updatedChats.push(chatToAdd);
-                      })
-                      .catch(err => {
-                        console.error('Error fetching data for chat:', err);
-                      });
                   }
+
+                  async function fetchMessages(chatId) {
+                    try {
+                      const { data, error } = await supaClient.from('messages').select('*').eq('visitor_id', chatId).order('created_at', { ascending: false }).limit(50);
+
+                      if (error) throw error;
+                      return data || [];
+                    } catch (err) {
+                      console.error('Error fetching messages:', err);
+                      return [];
+                    }
+                  }
+
+                  // Fetch both operators and messages in parallel
+                  Promise.all([fetchOperators(payload.new.id), fetchMessages(payload.new.id)])
+                    .then(([operators, messages]) => {
+                      chatToAdd.operators = operators;
+                      chatToAdd.messages = messages;
+
+                      // Now add the complete chat to updatedChats
+                      // console.log('💩💩💩 Adding complete chat to updatedChats:', chatToAdd);
+                      v.updatedChats.push(chatToAdd);
+                    })
+                    .catch(err => {
+                      console.error('Error fetching data for chat:', err);
+                    });
                 }
               }
-              if (payload.new.id == v.active_chat_object.id) {
-                console.log('��💩💩 Chat in active chat object updated:', payload.new);
-                Object.assign(v.active_chat_object, payload.new);
-                // console.log('active chat object updated (reference):', v.active_chat_object);
-              }
+            }
+            if (payload.new.id == v.active_chat_object.id) {
+              // console.log('��💩💩 Chat in active chat object updated:', payload.new);
+              Object.assign(v.active_chat_object, payload.new);
+              // console.log('active chat object updated (reference):', v.active_chat_object);
             }
           }
         )

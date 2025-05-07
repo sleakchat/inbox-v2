@@ -26,7 +26,7 @@
 
   async function hidekeleton() {
     // await Wized.requests.waitFor('get_chats');
-    console.log('hiding skeleton');
+    // console.log('hiding skeleton');
     document.querySelector("[w-el='skeleton-inbox-initial']").style.display = 'none';
     skeletonShown = true;
   }
@@ -169,7 +169,7 @@
       console.log('✅ using filters from URL');
       applyFilters(queryParamFilters);
     } else if (filters) {
-      // console.log('✅ using filters from DB');
+      console.log('✅ using filters from DB');
       applyFilters(filters);
       // console.log('✅ v.inboxFilterChatbots = ', v.inboxFilters);
     } else {
@@ -178,22 +178,6 @@
 
       console.log('❌ no filters ');
     }
-
-    // commented this out as we do it in applylFilters)()
-
-    // window.changeFilterVariable = function () {
-    //   // const filterStatus = v.inboxFilterStatus;
-    //   // const filterLabel = v.inboxFilterLabel;
-    //   // const filterChatbots = Array.isArray(v.inboxFilterChatbots) ? [...v.inboxFilterChatbots] : [];
-
-    //   // v.realTimeFilters = {
-    //   //   status: filterStatus,
-    //   //   label: filterLabel,
-    //   //   chatbots: filterChatbots
-    //   // };
-    //   v.realtimeFilters = v.inboxFilters;
-    // };
-    // changeFilterVariable();
 
     window.manuallyApplyFilters = async function () {
       v.usedFilters = true;
@@ -217,15 +201,6 @@
       v.updatedChats = [];
 
       Wized.requests.execute('get_chats');
-
-      // const filterbar = document.querySelector("[w-el='inbox-subheader-activefilters']");
-      // if (v.inboxFilterLabel == 'archived') {
-      //   filterbar.style.display = 'flex';
-      // } else if (v.inboxFilterStatus == 'escalated' || v.inboxFilterStatus == 'livechat') {
-      //   filterbar.style.display = 'flex';
-      // } else if (v.inboxFilterLabel == 'open' && v.inboxFilterStatus == 'all') {
-      //   filterbar.style.display = 'none';
-      // }
     };
 
     window.saveFilters = async function () {
@@ -364,7 +339,6 @@
     console.log('realtimeState', realtimeState);
 
     if (realtimeState.livechat !== dbState.livechat || realtimeState.agent_requested !== dbState.agent_requested || realtimeState.open !== dbState.open) {
-      console.log('chat state does not match');
       return false;
     }
 
@@ -471,7 +445,6 @@
 
     window.handleLiveChat = async function (realtimeState) {
       const chat_id = realtimeState.id;
-      // const user_id = r.get_user.data.user.id;
       const user_id = currentUser;
 
       const chatState = await fetchChat(chat_id);
@@ -524,7 +497,7 @@
         await supabase.from('operators').update({ status: 'invited' }).eq('chat_id', chat_id).eq('user_id', user_id);
         console.log(`Operator ${user_id} status updated to invited for chat ${chat_id}`);
       } else {
-        console.log('💩💩💩 doesnt exist, inserting new operator');
+        console.log('operator doesnt exist, inserting new operator');
         // Insert new operator
         await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited' }]);
         console.log(`Operator ${user_id} invited to chat ${chat_id}`);
@@ -537,6 +510,7 @@
 
       if (!matchObjects(realtimeState, chatState)) {
         console.log('states do not match');
+        window.showToastNotification('States do not match', 'warning');
         return;
       }
 
@@ -557,7 +531,6 @@
       await inviteOperator(chat_id, user_id, member_id);
 
       await sendSystemMessage(chat_id, 'agent_requested', { type: 'assign_manually', assigned_to: user_id, assigned_by: currentUser });
-      console.log('payload ', { type: 'assign_manually', assigned_to: user_id, assigned_by: currentUser });
 
       if (chatState.livechat) {
         updates.livechat = false;
@@ -572,24 +545,6 @@
       }
     };
   })();
-
-  // (async function defineAgressiveTakeOver() {
-
-  //   async function removeOperatorFromChat(chat_id, user_id) {
-  //     await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', user_id);
-  //     console.log(`Operator ${user_id} removed from chat ${chat_id}`);
-  //   }
-
-  //   async function takeOverChat(chat_id) {
-  //     await supabase.from('chats').update({ livechat: true }).eq('id', chat_id);
-  //     console.log(`Chat ${chat_id} taken over by agressive take over`);
-  //   }
-
-  //   // here we want to take over a chat if the operator is not responding. Throw the other operator out of the chat and take over the chat.
-
-  //   // get all chats where livechat is true
-
-  // })();
 
   //
 
@@ -641,6 +596,7 @@
 
       if (!matchObjects(realtimeState, chatState)) {
         console.log('states do not match');
+        window.showToastNotification('States do not match', 'warning');
         return;
       }
 
