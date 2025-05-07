@@ -392,7 +392,7 @@
       } else {
         // remove any existing operators
         await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id);
-        await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left' });
+        await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left', type: 'assign_manually' });
       }
 
       // update chat if required
