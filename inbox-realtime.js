@@ -285,7 +285,7 @@
           if (chatToUpdate) {
             // Update operator in allchats
             ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
-              const chatInArray = v[chatArrayName].find(chat => chat.id === chatToAdd.id);
+              const chatInArray = v[chatArrayName].find(chat => chat.id === chatToUpdate.id);
               if (chatInArray) {
                 const operator = chatInArray.operators?.find(op => op.user_id === payload.new.user_id);
                 if (operator) {
