@@ -244,10 +244,8 @@
     } else {
       const newChat = await fetchChat(newChatId);
       // console.log('📥 fetchChat response =', newChat);
-      // console.log('📥 fetchChat response messages count =', newChat.messages?.length);
 
       v.active_chat_object = JSON.parse(JSON.stringify(newChat));
-
       v.livechatstatus = v.active_chat_object.livechat;
 
       Wized.requests.execute('update_chat_hasunread');
@@ -257,15 +255,13 @@
       hidekeleton();
     }
 
-    // has to be a request later on to prevent chat not being in chats array
-    // console.log('📥 new active chat =', v.active_chat_object);
-    // console.log('📥 new active chat AMOUNT =', v.active_chat_object?.messages?.length);
-
-    // also search related chats to render in header modal
-
     // Update URL with chat ID
     const url = new URL(window.location);
-    url.searchParams.set('chat', newChatId);
+    if (newChatId) {
+      url.searchParams.set('chat', newChatId);
+    } else {
+      url.searchParams.delete('chat');
+    }
     window.history.replaceState(null, '', url.toString());
 
     // if (v.active_chat_object.livechat == false) {
