@@ -222,7 +222,7 @@
 
                   async function fetchMessages(chatId) {
                     try {
-                      const { data, error } = await supaClient.from('messages').select('*').eq('visitor_id', chatId).order('created_at', { ascending: false }).limit(50);
+                      const { data, error } = await supaClient.from('messages').select('*').eq('visitor_id', chatId).order('created_at', { ascending: true }).limit(50);
 
                       if (error) throw error;
                       return data || [];
