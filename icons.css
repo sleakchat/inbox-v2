@@ -10,6 +10,10 @@
   color: #e7b549;
 }
 
+[icon-color='error'] {
+  color: #e74c3c;
+}
+
 [icon-color='primary'] {
   color: #542cc1;
 }
