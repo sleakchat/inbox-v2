@@ -391,6 +391,8 @@
 
       const updates = {};
 
+      updates.assigned_manually = false;
+
       // if chat is closed, open it
       if (chatState.open == false) {
         updates.open = true;
@@ -526,6 +528,8 @@
       window.closeAllPopupModals();
 
       const updates = {};
+
+      updates.assigned_manually = true;
 
       // if chat is closed, open it
       if (chatState.open == false) {
