@@ -35,7 +35,7 @@
   (window.updateInboxCounts = async function () {
     try {
       const { data, error } = await supabase.rpc('get_inbox_counts', {
-        p_member_id: currentMember.id,
+        p_user_id: currentUser,
         p_organization_id: currentOrganization.id
       });
 
