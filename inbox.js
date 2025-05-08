@@ -366,7 +366,7 @@
     return true;
   }
 
-  async function removeActiveOperators(chat_id, except_user_id = null) {
+  async function removeActiveOperators(chat_id, except_user_id = null, assigned_manually = false) {
     // Remove all active operators except the one being invited
 
     const { data: operators } = await supabase.from('operators').select('*').eq('chat_id', chat_id).in('status', ['active', 'invited']);
@@ -376,7 +376,8 @@
         if (op.user_id !== except_user_id) {
           await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', op.user_id);
           // Only send system message for active operators
-          if (op.status === 'active') {
+          if (op.status === 'active' && !assigned_manually) {
+            console.log('✅✅✅ removeing operatorssss systemmessage');
             await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', type: 'assign_manually' }, op.member_id);
           }
           console.log(`Operator removed from chat : `, op);
@@ -538,7 +539,7 @@
       }
 
       // Remove all active operators except the one being invited
-      await removeActiveOperators(chat_id, user_id);
+      await removeActiveOperators(chat_id, user_id, true);
 
       // Invite or update the operator
       await inviteOperator(chat_id, user_id, member_id);
