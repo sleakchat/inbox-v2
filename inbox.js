@@ -375,7 +375,10 @@
       for (const op of operators) {
         if (op.user_id !== except_user_id) {
           await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', op.user_id);
-          await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', type: 'assign_manually' }, op.member_id);
+          // Only send system message for active operators
+          if (op.status === 'active') {
+            await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', type: 'assign_manually' }, op.member_id);
+          }
           console.log(`Operator removed from chat : `, op);
         }
       }
