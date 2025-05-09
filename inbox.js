@@ -395,10 +395,6 @@
         messageData.from = otherActiveOperators[0].user_id;
       }
 
-      if (chatState.open == false) {
-        await sendSystemMessage(chatState.id, 'chat_opened', {});
-      }
-
       const updates = {};
       updates.assigned_manually = false;
       if (chatState.open == false) {
@@ -434,6 +430,10 @@
         await supabase.from('operators').insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active' }]);
       }
 
+      if (chatState.open == false) {
+        await sendSystemMessage(chatState.id, 'chat_opened', {});
+      }
+
       await sendSystemMessage(chatState.id, 'operator_changed', messageData);
 
       v.livechatstatus == true;
@@ -444,11 +444,14 @@
 
     async function leaveChat(user_id, chatState) {
       const updates = {};
-
-      // if livechat is true, set it to false
       if (chatState.livechat == true) {
         updates.livechat = false;
       }
+      if (chatState.open == true) {
+        updates.open = false;
+      }
+      // Update chat with all changes
+      await supabase.from('chats').update(updates).eq('id', chatState.id);
 
       // const remainingOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
       // // if (remainingOperators.length === 0) {
@@ -458,14 +461,9 @@
       await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left' });
 
-      // now close the chat
       if (chatState.open == true) {
-        updates.open = false;
         await sendSystemMessage(chatState.id, 'chat_closed', {});
       }
-
-      // Update chat with all changes
-      await supabase.from('chats').update(updates).eq('id', chatState.id);
 
       // document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
       // let leaveLivechatEvent = new CustomEvent('leaveLivechat', { detail: { message: 'Joining live chat' } });
