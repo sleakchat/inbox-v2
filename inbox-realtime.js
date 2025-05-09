@@ -191,7 +191,7 @@
                 }
               });
 
-              if (hasRelevantChangess) {
+              if (hasRelevantChanges) {
                 window.updateInboxCounts();
 
                 // Add or update chat in updatedChats
