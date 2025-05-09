@@ -19,11 +19,11 @@
 }
 
 [icon-size='micro'] {
-  size: 12px;
+  font-size: 12px;
 }
 
 [icon-size='small'] {
-  size: 14px;
+  font-size: 14px;
 }
 
 [icon-size='regular'] {
