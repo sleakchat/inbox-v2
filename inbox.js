@@ -388,26 +388,24 @@
 
   (async function liveChatPresence() {
     async function joinChat(user_id, chatState) {
-      removeActiveOperators(chatState.id, user_id);
-
-      const updates = {};
-
-      updates.assigned_manually = false;
-
-      // if chat is closed, open it
       if (chatState.open == false) {
-        updates.open = true;
         await sendSystemMessage(chatState.id, 'chat_opened', {});
       }
 
-      // if agent_requested is true, set it to false
+      const updates = {};
+      updates.assigned_manually = false;
+      if (chatState.open == false) {
+        updates.open = true;
+      }
       if (chatState.agent_requested == true) {
         updates.agent_requested = false;
       }
-
-      // if livechat is false, set it to true
       if (chatState.livechat == false) {
         updates.livechat = true;
+      }
+      // update chat if required
+      if (Object.keys(updates).length > 0) {
+        await supabase.from('chats').update(updates).eq('id', chatState.id);
       }
 
       // const remainingOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
@@ -419,11 +417,7 @@
       //   await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chatState.id);
       //   await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'left', type: 'assign_manually' });
       // }
-
-      // update chat if required
-      if (Object.keys(updates).length > 0) {
-        await supabase.from('chats').update(updates).eq('id', chatState.id);
-      }
+      removeActiveOperators(chatState.id, user_id);
 
       if (chatState.operators.some(op => op.user_id === user_id)) {
         // Update status if operator already exists
@@ -536,7 +530,9 @@
       if (chatState.agent_requested == false) {
         updates.agent_requested = true;
       }
-
+      if (chatState.open == false) {
+        updates.open = true;
+      }
       // Update chat if required
       if (Object.keys(updates).length > 0) {
         await supabase.from('chats').update(updates).eq('id', chat_id);
@@ -544,7 +540,6 @@
 
       // if chat is closed, open it
       if (chatState.open == false) {
-        updates.open = true;
         await sendSystemMessage(chatState.id, 'chat_opened', {});
       }
 
