@@ -18,6 +18,10 @@
   color: #542cc1;
 }
 
+[icon-size='micro'] {
+  size: 12px;
+}
+
 [icon-size='small'] {
   size: 14px;
 }
