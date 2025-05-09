@@ -388,6 +388,14 @@
 
   (async function liveChatPresence() {
     async function joinChat(user_id, chatState) {
+      // For dynamic syustem message
+      const messageData = { event_type: 'joined' };
+      const otherActiveOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
+      if (otherActiveOperators.length > 0) {
+        messageData.event_type = 'manually_takeover';
+        messageData.from = otherActiveOperators[0].user_id;
+      }
+
       if (chatState.open == false) {
         await sendSystemMessage(chatState.id, 'chat_opened', {});
       }
@@ -427,7 +435,7 @@
         await supabase.from('operators').insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active' }]);
       }
 
-      await sendSystemMessage(chatState.id, 'operator_changed', { event_type: 'joined' });
+      await sendSystemMessage(chatState.id, 'operator_changed', messageData);
 
       v.livechatstatus == true;
       // document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
