@@ -41,25 +41,43 @@
 
     let retryCount = 0;
 
-    async function showMessage(toastElement) {
+    async function showMessage(toastElement, messageType) {
       toastElement.style.display = 'flex';
-      toastElement.style.opacity = 0;
-      // add scale
-      toastElement.style.transform = 'scale(0.6)';
-      toastElement.style.transform = 'translateY(20px)';
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          toastElement.style.opacity = 1;
-          toastElement.style.transform = 'translateY(0)';
-          toastElement.style.transform = 'scale(1)';
-        });
+
+      let messageElement;
+      let setConfig = {
+        opacity: 0,
+        scale: 0.5,
+        y: 30
+      };
+
+      // For defined message types, animate the second child and set transformOrigin
+      if (messageType === 'default_user' || messageType === 'default_bot' || messageType === 'default_agent') {
+        messageElement = toastElement.firstElementChild?.firstElementChild;
+        if (messageType === 'default_user') {
+          setConfig.transformOrigin = 'bottom left';
+        } else {
+          setConfig.transformOrigin = 'bottom right';
+        }
+      } else {
+        messageElement = toastElement.firstElementChild;
+      }
+
+      gsap.set(messageElement, setConfig);
+
+      gsap.to(messageElement, {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: 0.35,
+        ease: 'power3.out'
       });
     }
 
     async function pushMessage(payload) {
       v.active_chat_object.messages.push(payload.new);
       const toastElement = document.querySelector(`[message_list_id='${payload.new.id}']`);
-      showMessage(toastElement);
+      showMessage(toastElement, payload.new.message_type);
     }
 
     function initializeMainChannel() {

@@ -391,7 +391,7 @@
       const messageData = { event_type: 'joined' };
       const otherActiveOperators = chatState.operators.filter(op => op.status === 'active' && op.user_id !== user_id);
       if (otherActiveOperators.length > 0) {
-        messageData.event_type = 'manually_takeover';
+        messageData.event_context = 'manually_takeover';
         messageData.from = otherActiveOperators[0].user_id;
       }
 
