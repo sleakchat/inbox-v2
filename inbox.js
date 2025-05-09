@@ -529,8 +529,18 @@
       window.closeAllPopupModals();
 
       const updates = {};
-
       updates.assigned_manually = true;
+      if (chatState.livechat) {
+        updates.livechat = false;
+      }
+      if (chatState.agent_requested == false) {
+        updates.agent_requested = true;
+      }
+
+      // Update chat if required
+      if (Object.keys(updates).length > 0) {
+        await supabase.from('chats').update(updates).eq('id', chat_id);
+      }
 
       // if chat is closed, open it
       if (chatState.open == false) {
@@ -545,18 +555,6 @@
       await inviteOperator(chat_id, user_id, member_id);
 
       await sendSystemMessage(chat_id, 'agent_requested', { type: 'assign_manually', assigned_to: user_id, assigned_by: currentUser });
-
-      if (chatState.livechat) {
-        updates.livechat = false;
-      }
-      if (chatState.agent_requested == false) {
-        updates.agent_requested = true;
-      }
-
-      // Update chat if required
-      if (Object.keys(updates).length > 0) {
-        await supabase.from('chats').update(updates).eq('id', chat_id);
-      }
     };
   })();
 
