@@ -88,10 +88,17 @@
             const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
             if (chat) {
               // console.log('🥶🥶🥶 Chat exists in v.allchats:', chat);
-              if (!chat.messages) {
-                chat.messages = [];
-              }
-              chat.messages.push(payload.new);
+
+              // Update messages in all other arrays if they exist
+              ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
+                const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.visitor_id);
+                if (chatInArray) {
+                  if (!chatInArray.messages) {
+                    chatInArray.messages = [];
+                  }
+                  chatInArray.messages.push(payload.new);
+                }
+              });
 
               // chime
               if (payload.new.message_type === 'default_user') {
@@ -181,7 +188,7 @@
               // console.log('💩💩💩 Chat not found in allchats, adding tu updatedChats:', payload.new.id);
 
               // Check if any of the important properties have changed
-              const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed'];
+              const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed', 'enduser_email'];
               let hasRelevantChanges = false;
 
               relevantProperties.forEach(prop => {
