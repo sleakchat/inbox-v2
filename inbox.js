@@ -36,7 +36,8 @@
     try {
       const { data, error } = await supabase.rpc('get_inbox_counts', {
         p_user_id: currentUser,
-        p_organization_id: currentOrganization.id
+        p_organization_id: currentOrganization.id,
+        p_team_inbox: currentOrganization.team_inbox_enabled
       });
 
       if (error) {
