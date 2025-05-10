@@ -229,8 +229,6 @@
     //
   })();
 
-  // end initfilters
-
   if (localStorage.getItem('sleakTrialExpired') !== 'true') {
     Wized.requests.execute('get_chats');
   }
