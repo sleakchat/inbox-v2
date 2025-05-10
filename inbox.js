@@ -235,8 +235,6 @@
     Wized.requests.execute('get_chats');
   }
 
-  console.log('test');
-
   window.switchActiveChat = async function (newChatId) {
     // ⚠️ speeds gonna be a problem here
     v.active_chat = newChatId;
