@@ -33,6 +33,7 @@
 
   // Function to update inbox tab counts
   (window.updateInboxCounts = async function () {
+    console.log('⏳⏳⏳ executing updateInboxCounts');
     try {
       const { data, error } = await supabase.rpc('get_inbox_counts', {
         p_user_id: currentUser,
@@ -65,7 +66,7 @@
           assignedTabCounter.style.display = 'none';
         }
       }
-      // console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
+      console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
     } catch (error) {
       console.error('Error updating inbox counts:', error);
     }
