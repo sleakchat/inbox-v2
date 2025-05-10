@@ -73,7 +73,7 @@
   })();
 
   // Call the count update function initially
-  setInterval(updateInboxCounts, 30000);
+  // setInterval({ updateInboxCounts }, 30000);
 
   (function initFilters() {
     const filtersDefaultState = {
@@ -146,6 +146,7 @@
       v.realTimeFilters = JSON.parse(JSON.stringify(filterObject));
 
       updateInboxCounts();
+      console.log('⏳⏳⏳ calling count - filters applied');
 
       i.inboxfilter_livechat_enabled = filterObject.livechat.value;
       i.inboxfilter_assigned_enabled = filterObject.assigned.value;
@@ -187,10 +188,11 @@
     window.manuallyApplyFilters = async function () {
       v.usedFilters = true;
 
-      const dropdownModals = document.querySelectorAll('[w-el="filters-dropdown"]');
-      dropdownModals.forEach(function (modal) {
-        modal.style.display = 'none';
-      });
+      // const dropdownModals = document.querySelectorAll('[w-el="filters-dropdown"]');
+      // dropdownModals.forEach(function (modal) {
+      //   modal.style.display = 'none';
+      // });
+      closeallmodals;
 
       // v.realTimeFilters = v.inboxFilters;
       // console.log('v.realTimeFilters = ', v.realTimeFilters);
@@ -319,6 +321,7 @@
       v.active_chat_object = null;
     }
     updateInboxCounts();
+    console.log('⏳⏳⏳ calling count - sidebar tabs changed');
   };
 
   async function fetchChat(chat_id) {
