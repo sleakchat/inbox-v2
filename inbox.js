@@ -33,7 +33,6 @@
 
   // Function to update inbox tab counts
   (window.updateInboxCounts = async function () {
-    console.log('⏳⏳⏳ executing updateInboxCounts');
     try {
       const { data, error } = await supabase.rpc('get_inbox_counts', {
         p_user_id: currentUser,
@@ -74,7 +73,7 @@
   })();
 
   // Call the count update function initially
-  // setInterval({ updateInboxCounts }, 30000);
+  setInterval({ updateInboxCounts }, 30000);
 
   (function initFilters() {
     const filtersDefaultState = {
@@ -147,7 +146,6 @@
       v.realTimeFilters = JSON.parse(JSON.stringify(filterObject));
 
       updateInboxCounts();
-      console.log('⏳⏳⏳ calling count - filters applied');
 
       i.inboxfilter_livechat_enabled = filterObject.livechat.value;
       i.inboxfilter_assigned_enabled = filterObject.assigned.value;
@@ -322,7 +320,6 @@
       v.active_chat_object = null;
     }
     updateInboxCounts();
-    console.log('⏳⏳⏳ calling count - sidebar tabs changed');
   };
 
   async function fetchChat(chat_id) {
