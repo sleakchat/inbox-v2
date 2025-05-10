@@ -56,17 +56,19 @@
       } else {
         newTabCounter.style.display = 'none';
       }
-      if (assignedCount > 0) {
-        assignedTabCounter.textContent = assignedCount;
-        assignedTabCounter.style.display = 'flex';
-      } else {
-        assignedTabCounter.style.display = 'none';
+      if (assignedTabCounter) {
+        if (assignedCount > 0) {
+          assignedTabCounter.textContent = assignedCount;
+          assignedTabCounter.style.display = 'flex';
+        } else {
+          assignedTabCounter.style.display = 'none';
+        }
       }
       // console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
     } catch (error) {
       console.error('Error updating inbox counts:', error);
     }
-    console.log('updated inbox counts');
+    // console.log('updated inbox counts');
   })();
 
   // Call the count update function initially
@@ -252,7 +254,9 @@
     }
 
     if (!skeletonShown) {
-      hidekeleton();
+      setTimeout(() => {
+        hidekeleton();
+      }, 500);
     }
 
     // Update URL with chat ID
