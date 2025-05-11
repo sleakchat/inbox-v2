@@ -191,7 +191,7 @@
       // dropdownModals.forEach(function (modal) {
       //   modal.style.display = 'none';
       // });
-      closeallmodals;
+      window.closeallmodals();
 
       // v.realTimeFilters = v.inboxFilters;
       // console.log('v.realTimeFilters = ', v.realTimeFilters);
@@ -229,6 +229,11 @@
     };
 
     //
+    window.copyFilters = function () {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url);
+      window.showToastNotification('Link naar chat gekopieerd', 'success');
+    };
   })();
 
   // end initfilters
