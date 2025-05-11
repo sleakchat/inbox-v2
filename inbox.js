@@ -65,7 +65,7 @@
           assignedTabCounter.style.display = 'none';
         }
       }
-      // console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
+      console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
     } catch (error) {
       console.error('Error updating inbox counts:', error);
     }
@@ -73,7 +73,7 @@
   })();
 
   // Call the count update function initially
-  // setInterval({ updateInboxCounts }, 30000);
+  setInterval({ updateInboxCounts }, 30000);
 
   (function initFilters() {
     const filtersDefaultState = {
@@ -146,7 +146,6 @@
       v.realTimeFilters = JSON.parse(JSON.stringify(filterObject));
 
       updateInboxCounts();
-      console.log('⏳⏳⏳ calling count - filters applied');
 
       i.inboxfilter_livechat_enabled = filterObject.livechat.value;
       i.inboxfilter_assigned_enabled = filterObject.assigned.value;
@@ -192,7 +191,7 @@
       // dropdownModals.forEach(function (modal) {
       //   modal.style.display = 'none';
       // });
-      closeallmodals;
+      window.closeAllPopupModals();
 
       // v.realTimeFilters = v.inboxFilters;
       // console.log('v.realTimeFilters = ', v.realTimeFilters);
@@ -230,6 +229,11 @@
     };
 
     //
+    window.copyFilters = function () {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url);
+      window.showToastNotification('Link naar chat gekopieerd', 'success');
+    };
   })();
 
   // end initfilters
@@ -321,7 +325,6 @@
       v.active_chat_object = null;
     }
     updateInboxCounts();
-    console.log('⏳⏳⏳ calling count - sidebar tabs changed');
   };
 
   async function fetchChat(chat_id) {

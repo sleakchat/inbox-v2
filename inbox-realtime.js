@@ -159,7 +159,6 @@
 
             v.newchats.unshift(payload.new);
             window.updateInboxCounts();
-            console.log('⏳⏳⏳ calling count - chats insert');
 
             if (v.allchats.length == 0) {
               // check if it exists in chats list
@@ -219,7 +218,6 @@
 
               if (hasRelevantChanges) {
                 window.updateInboxCounts();
-                console.log('⏳⏳⏳ calling count - chats update');
 
                 // Add or update chat in updatedChats
                 const existingChat = v.updatedChats.find(chat => chat.id === payload.new.id);
