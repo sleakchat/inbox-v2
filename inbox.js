@@ -191,7 +191,7 @@
       // dropdownModals.forEach(function (modal) {
       //   modal.style.display = 'none';
       // });
-      window.closeallmodals();
+      window.closeAllPopupModals();
 
       // v.realTimeFilters = v.inboxFilters;
       // console.log('v.realTimeFilters = ', v.realTimeFilters);
