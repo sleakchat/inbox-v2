@@ -1,7 +1,4 @@
 (async function initInbox() {
-  // window.Wized = window.Wized || [];
-  // window.Wized.push(async Wized => {
-
   const v = Wized.data.v;
   const r = Wized.data.r;
   const i = Wized.data.i;
@@ -628,31 +625,31 @@
       // const objectInChatsList = v.allchats.some(chat => chat.id == chatState.id);
 
       // ⚠️ this needs to be reconsidered for the new "nieuw/alles" toggle
-      if (v.active_inbox_tab == 'nieuw') {
-        console.log('NIEUW');
-        if (chatState.open == true) {
-          chatListRemoveChat(chatState);
-        } else {
-          chatListAddChat(chatState);
-        }
-      } else if (v.active_inbox_tab !== 'nieuw') {
-        // ⚠️ compare with chat state instead of input state
-        if (i.toggle_inboxfilters_closed == true) {
-          console.log('closed is true');
-          if (chatState.open == true) {
-            chatListAddChat(chatState);
-          } else {
-            chatListRemoveChat(chatState);
-          }
-        } else {
-          console.log('closed is false');
-          if (chatState.open == true) {
-            chatListRemoveChat(chatState);
-          } else {
-            chatListAddChat(chatState);
-          }
-        }
-      }
+      // if (v.active_inbox_tab == 'nieuw') {
+      //   console.log('NIEUW');
+      //   if (chatState.open == true) {
+      //     chatListRemoveChat(chatState);
+      //   } else {
+      //     chatListAddChat(chatState);
+      //   }
+      // } else if (v.active_inbox_tab !== 'nieuw') {
+      //   // ⚠️ compare with chat state instead of input state
+      //   if (i.toggle_inboxfilters_closed == true) {
+      //     console.log('closed is true');
+      //     if (chatState.open == true) {
+      //       chatListAddChat(chatState);
+      //     } else {
+      //       chatListRemoveChat(chatState);
+      //     }
+      //   } else {
+      //     console.log('closed is false');
+      //     if (chatState.open == true) {
+      //       chatListRemoveChat(chatState);
+      //     } else {
+      //       chatListAddChat(chatState);
+      //     }
+      //   }
+      // }
 
       if (chatState.open == true) {
         // close chat
@@ -666,5 +663,4 @@
     };
   })();
   //
-  // });
 })();
