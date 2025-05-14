@@ -17,7 +17,7 @@
     });
 
   const currentUrl = sanitizeUrl(window.location.href);
-  const timestamp = new Date().toISOString();
+  const ts = new Date().toISOString();
 
   if (!data.landing_page) {
     data.landing_page = {
