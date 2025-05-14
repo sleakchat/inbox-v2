@@ -23,7 +23,7 @@
     data.landing_page = {
       url: currentUrl,
       params,
-      timestamp
+      ts
     };
   }
 
@@ -39,7 +39,7 @@
       data.param_pages.push({
         url: currentUrl,
         params,
-        timestamp
+        ts
       });
     }
   }
@@ -52,7 +52,7 @@
     secure: true
   });
 
-  console.log(JSON.stringify(data, null, 2));
+  //   console.log(JSON.stringify(data, null, 2));
 })();
 
 // old logic

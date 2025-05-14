@@ -192,7 +192,6 @@
 
       // v.realTimeFilters = v.inboxFilters;
       // console.log('v.realTimeFilters = ', v.realTimeFilters);
-
       // changeFilterVariable();
       v.realTimeFilters = JSON.parse(JSON.stringify(v.inboxFilters));
 
@@ -203,6 +202,7 @@
       v.newchats = [];
       v.updatedChats = [];
 
+      console.log('✅ v.realTimeFilters = ', v.realTimeFilters);
       Wized.requests.execute('get_chats');
     };
 
