@@ -569,43 +569,43 @@
 
   //
 
-  function chatListRemoveChat(chatState) {
-    const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
-    if (!chatListItem) return;
+  // function chatListRemoveChat(chatState) {
+  //   const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
+  //   if (!chatListItem) return;
 
-    chatListItem.style.transformOrigin = 'top';
+  //   chatListItem.style.transformOrigin = 'top';
 
-    gsap.to(chatListItem, {
-      scale: 0,
-      duration: 0.2,
-      ease: 'power4.inOut',
-      onComplete: () => {
-        gsap.to(chatListItem, { height: 0, duration: 0.1, ease: 'power4.inOut' });
-        setTimeout(() => {
-          chatListItem.style.display = 'none';
-        }, 100);
-      }
-    });
-  }
+  //   gsap.to(chatListItem, {
+  //     scale: 0,
+  //     duration: 0.2,
+  //     ease: 'power4.inOut',
+  //     onComplete: () => {
+  //       gsap.to(chatListItem, { height: 0, duration: 0.1, ease: 'power4.inOut' });
+  //       setTimeout(() => {
+  //         chatListItem.style.display = 'none';
+  //       }, 100);
+  //     }
+  //   });
+  // }
 
-  function chatListAddChat(chatState) {
-    const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
-    if (!chatListItem) return;
+  // function chatListAddChat(chatState) {
+  //   const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
+  //   if (!chatListItem) return;
 
-    chatListItem.style.display = ''; // Reset display property
-    chatListItem.style.transformOrigin = 'top';
-    chatListItem.style.height = '0px';
-    chatListItem.style.transform = 'scale(0)';
+  //   chatListItem.style.display = ''; // Reset display property
+  //   chatListItem.style.transformOrigin = 'top';
+  //   chatListItem.style.height = '0px';
+  //   chatListItem.style.transform = 'scale(0)';
 
-    setTimeout(() => {
-      gsap.to(chatListItem, {
-        height: 'auto',
-        scale: 1,
-        duration: 0.2,
-        ease: 'power4.inOut'
-      });
-    }, 10);
-  }
+  //   setTimeout(() => {
+  //     gsap.to(chatListItem, {
+  //       height: 'auto',
+  //       scale: 1,
+  //       duration: 0.2,
+  //       ease: 'power4.inOut'
+  //     });
+  //   }, 10);
+  // }
 
   (async function chatClosing() {
     // what if there are operators? Or livechat = true?
@@ -662,5 +662,22 @@
       }
     };
   })();
+
+  window.sendInternalNote = async function (chat_id, message) {
+    const { data, error } = await supabase.from('chats').update({ internal_note: message }).eq('id', chat_id);
+    if (error) {
+      console.error('Error sending internal note:', error);
+    }
+  };
+
+  window.Wized = window.Wized || [];
+  window.Wized.push(Wized => {
+    Wized.reactivity.watch(
+      () => Wized.data.v.sendingNoteState,
+      (newValue, oldValue) => {
+        console.log(`my_variable changed from ${oldValue} to ${newValue}`);
+      }
+    );
+  });
   //
 })();
