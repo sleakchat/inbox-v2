@@ -337,7 +337,27 @@
               v.active_chat_object.operators = v.active_chat_object.operators.filter(op => op.user_id !== payload.old.user_id);
             }
           }
-        });
+        })
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'members',
+            filter: `organization_id=eq.${v.activeOrganization}`
+          },
+          payload => {
+            console.log('member updated', payload);
+            // Update the corresponding member in v.rawMembers
+            if (v.rawMembers) {
+              const member = v.rawMembers.find(member => member.id === payload.new.id);
+              if (member) {
+                // Update the member with the new data
+                Object.assign(member, payload.new);
+              }
+            }
+          }
+        );
 
       ////
 
