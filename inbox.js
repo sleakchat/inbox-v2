@@ -165,7 +165,7 @@
     if (urlFilters) {
       try {
         queryParamFilters = JSON.parse(urlFilters);
-        console.log('✅ filters from URL', queryParamFilters);
+        // console.log('✅ filters from URL', queryParamFilters);
       } catch (e) {
         console.error('Error parsing filters from URL', e);
       }
@@ -173,14 +173,14 @@
 
     if (queryParamFilters) {
       // Prioritize URL filters over database filters
-      console.log('✅ using filters from URL');
+      // console.log('✅ using filters from URL');
       applyFilters(queryParamFilters);
     } else if (filters) {
-      console.log('✅ using filters from DB');
+      // console.log('✅ using filters from DB');
       applyFilters(filters);
       // console.log('✅ v.inboxFilterChatbots = ', v.inboxFilters);
     } else {
-      console.log('✅ setting new default filters');
+      // console.log('✅ setting new default filters');
       applyFilters(filtersDefaultState);
 
       console.log('❌ no filters ');
@@ -207,7 +207,7 @@
       v.newchats = [];
       v.updatedChats = [];
 
-      console.log('✅ v.realTimeFilters = ', v.realTimeFilters);
+      // console.log('✅ v.realTimeFilters = ', v.realTimeFilters);
       Wized.requests.execute('get_chats');
     };
 
@@ -353,8 +353,8 @@
 
   // Compare operators and livechat status in real-time vs database state
   function matchObjects(realtimeState, dbState) {
-    console.log('dbState', dbState);
-    console.log('realtimeState', realtimeState);
+    // console.log('dbState', dbState);
+    // console.log('realtimeState', realtimeState);
 
     if (realtimeState.livechat !== dbState.livechat || realtimeState.agent_requested !== dbState.agent_requested || realtimeState.open !== dbState.open) {
       return false;
@@ -376,7 +376,7 @@
       return false;
     }
 
-    console.log('states match');
+    // console.log('states match');
     return true;
   }
 
@@ -393,7 +393,7 @@
           if (op.status === 'active' && !assigned_manually) {
             // await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', type: 'assign_manually' }, op.member_id);
           }
-          console.log(`Operator removed from chat : `, op);
+          // console.log(`Operator removed from chat : `, op);
         }
       }
     }
@@ -497,13 +497,13 @@
       }
 
       const agentIsInChat = chatState.operators.some(op => op.user_id === user_id && op.status === 'active');
-      console.log('agent is in chat = ', agentIsInChat);
+      // console.log('agent is in chat = ', agentIsInChat);
 
       if (agentIsInChat) {
-        console.log('leave chat');
+        // console.log('leave chat');
         await leaveChat(user_id, chatState);
       } else {
-        console.log('join chat');
+        // console.log('join chat');
         await joinChat(user_id, chatState);
       }
     };
@@ -520,12 +520,12 @@
       if (existing) {
         // Update status to invited
         await supabase.from('operators').update({ status: 'invited' }).eq('chat_id', chat_id).eq('user_id', user_id);
-        console.log(`Operator ${user_id} status updated to invited for chat ${chat_id}`);
+        // console.log(`Operator ${user_id} status updated to invited for chat ${chat_id}`);
       } else {
-        console.log('operator doesnt exist, inserting new operator');
+        // console.log('operator doesnt exist, inserting new operator');
         // Insert new operator
         await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited' }]);
-        console.log(`Operator ${user_id} invited to chat ${chat_id}`);
+        // console.log(`Operator ${user_id} invited to chat ${chat_id}`);
       }
     }
 
