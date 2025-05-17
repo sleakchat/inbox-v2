@@ -24,7 +24,42 @@
   async function hidekeleton() {
     // await Wized.requests.waitFor('get_chats');
     // console.log('hiding skeleton');
-    document.querySelector("[w-el='skeleton-inbox-initial']").style.display = 'none';
+    // document.querySelector("[w-el='skeleton-inbox-initial']").style.display = 'none';
+    const skeleton = document.querySelector("[w-el='skeleton-inbox-initial']");
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        skeleton.style.display = 'none';
+        // Optionally, trigger your menu animation here
+      }
+    });
+
+    tl.to(skeleton, {
+      scale: 1,
+      y: -30,
+      duration: 0.25,
+      ease: 'power2.out'
+    }).to(
+      skeleton,
+      {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power1.inOut'
+      },
+      '-=0.15'
+    );
+
+    gsap.to('[menu-stagger]', {
+      opacity: 1,
+      x: 0,
+      duration: 0.4,
+      ease: 'expo.out',
+      stagger: {
+        each: 0.1,
+        from: 'start'
+      },
+      delay: 0.15
+    });
     skeletonShown = true;
   }
 
