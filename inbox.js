@@ -69,8 +69,28 @@
     // console.log('updated inbox counts');
   })();
 
-  // Call the count update function initially
-  setInterval({ updateInboxCounts }, 30000);
+  (async function inboxCountsInterval() {
+    // let countUpdateInterval;
+
+    function startCountUpdateInterval() {
+      // Start new interval
+      let countUpdateInterval = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          window.updateInboxCounts();
+        }
+      }, 30000);
+    }
+
+    startCountUpdateInterval();
+
+    // // Handle visibility changes
+    // document.addEventListener('visibilitychange', () => {
+    //   if (document.visibilityState === 'visible') {
+    //     // Start interval
+    //     startCountUpdateInterval();
+    //   }
+    // });
+  })();
 
   (function initFilters() {
     const filtersDefaultState = {
