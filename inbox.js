@@ -93,6 +93,10 @@
       containstext: {
         enabled: false,
         value: ''
+      },
+      openstatus: {
+        enabled: false,
+        value: true
       }
     };
 
@@ -147,6 +151,7 @@
       i.inboxfilter_livechat_enabled = filterObject.livechat.value;
       i.inboxfilter_assigned_enabled = filterObject.assigned.value;
       i.inboxfilter_isread = filterObject.read.value;
+      i.inboxfilter_openstatus_enabled = filterObject.openstatus.value;
       if (filterObject.containstext.value) i['inboxfilters-containstext'] = filterObject.containstext.value;
 
       window.updateFilterProperty('chatbots', 'value', filterObject.chatbots.value);
