@@ -206,7 +206,7 @@
               // console.log('💩💩💩 Chat not found in allchats, adding tu updatedChats:', payload.new.id);
 
               // Check if any of the important properties have changed
-              const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed', 'enduser_email'];
+              const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed', 'enduser_email', 'updated_at'];
               let hasRelevantChanges = false;
 
               relevantProperties.forEach(prop => {
@@ -296,7 +296,7 @@
               }
             });
           } else {
-            // if the chat doesnt exist and a new operator gets added, it sometimes is not in any array causing updates to be missed [ e.g. when the chat state doesnt change]
+            // if the chat doesnt exist and a new operator gets added, it sometimes is not in any array causing updates to be missed [ e.g. when the chat state doesnt change] EDIT: now handled by chat.updated_at changes
           }
 
           // Update active chat object if this is the current chat
@@ -319,7 +319,7 @@
               }
             });
           } else if (v.active_chat_object?.id === payload.new.chat_id) {
-            // if the chat doesnt exist and a new operator gets added, it sometimes is not in any array causing updates to be missed [ e.g. when the chat state doesnt change]
+            // if the chat doesnt exist and a new operator gets added, it sometimes is not in any array causing updates to be missed [ e.g. when the chat state doesnt change] EDIT: now handled by chat.updated_at changes
           }
 
           if (v.active_chat_object?.id === payload.new.chat_id) {

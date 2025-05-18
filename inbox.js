@@ -445,7 +445,7 @@
     if (operators && operators.length > 0) {
       for (const op of operators) {
         if (op.user_id !== except_user_id) {
-          await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', op.user_id);
+          await supabase.from('operators').update({ status: 'left', handoff_type: null }).eq('chat_id', chat_id).eq('user_id', op.user_id);
           // Only send system message for active operators
           if (op.status === 'active' && !assigned_manually) {
             // await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', type: 'assign_manually' }, op.member_id);
@@ -495,7 +495,7 @@
 
       if (chatState.operators.some(op => op.user_id === user_id)) {
         // Update status if operator already exists
-        await supabase.from('operators').update({ status: 'active' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
+        await supabase.from('operators').update({ status: 'active', handoff_type: null }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       } else {
         // insert new operator if not already in the chat
         await supabase.from('operators').insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active' }]);
