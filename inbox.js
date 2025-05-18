@@ -22,15 +22,11 @@
   let skeletonShown = false;
 
   async function hidekeleton() {
-    // await Wized.requests.waitFor('get_chats');
-    // console.log('hiding skeleton');
-    // document.querySelector("[w-el='skeleton-inbox-initial']").style.display = 'none';
     const skeleton = document.querySelector("[w-el='skeleton-inbox-initial']");
 
     const tl = gsap.timeline({
       onComplete: () => {
         skeleton.style.display = 'none';
-        // Optionally, trigger your menu animation here
       }
     });
 
@@ -58,8 +54,14 @@
         each: 0.1,
         from: 'start'
       },
-      delay: 0.15
+      delay: 0.15,
+      onComplete: () => {
+        gsap.set('[menu-stagger]', {
+          pointerEvents: 'auto'
+        });
+      }
     });
+
     skeletonShown = true;
   }
 
@@ -97,7 +99,7 @@
           assignedTabCounter.style.display = 'none';
         }
       }
-      console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
+      // console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
     } catch (error) {
       console.error('Error updating inbox counts:', error);
     }

@@ -295,6 +295,8 @@
                 // console.log(`💩💩💩 Chat in ${chatArrayName} updated:`, chatInArray);
               }
             });
+          } else {
+            // if the chat doesnt exist and a new operator gets added, it sometimes is not in any array causing updates to be missed [ e.g. when the chat state doesnt change]
           }
 
           // Update active chat object if this is the current chat
@@ -316,6 +318,8 @@
                 }
               }
             });
+          } else if (v.active_chat_object?.id === payload.new.chat_id) {
+            // if the chat doesnt exist and a new operator gets added, it sometimes is not in any array causing updates to be missed [ e.g. when the chat state doesnt change]
           }
 
           if (v.active_chat_object?.id === payload.new.chat_id) {
