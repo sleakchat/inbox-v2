@@ -301,8 +301,65 @@
     Wized.requests.execute('get_chats');
   }
 
+  const bannerParent = document.querySelector('[w-el="send-note-banner-parent"]');
+  const banner = document.querySelector('[w-el="send-note-banner"]');
+
+  Wized.reactivity.watch(
+    () => Wized.data.v.sendingNoteState,
+    (newValue, oldValue) => {
+      if (newValue == true) {
+        // Show parent, measure height
+        bannerParent.style.display = 'block';
+        bannerParent.style.height = 'auto';
+        const fullHeight = bannerParent.offsetHeight + 'px';
+        bannerParent.style.height = '0px';
+
+        // Animate parent height
+        gsap.to(bannerParent, {
+          height: fullHeight,
+          duration: 0.35,
+          ease: 'power2.out',
+          onComplete: () => {
+            bannerParent.style.height = '32px';
+          }
+        });
+
+        // Animate child entrance
+        gsap.to(banner, {
+          opacity: 1,
+          y: 0,
+          duration: 0.4,
+          ease: 'power3.out',
+          delay: 0.05 // slight delay for a nice effect
+        });
+      } else {
+        // Animate child exit
+        gsap.to(banner, {
+          opacity: 0,
+          y: 10,
+          duration: 0.25,
+          ease: 'power2.in'
+        });
+
+        // Animate parent height to 0
+        gsap.to(bannerParent, {
+          height: 0,
+          duration: 0.3,
+          ease: 'power2.in',
+          onComplete: () => {
+            bannerParent.style.display = 'none';
+            bannerParent.style.height = 'auto';
+          }
+        });
+      }
+    }
+  );
+
   // switch active chat
   window.switchActiveChat = async function (newChatId) {
+    v.sendingNoteState = false;
+    console.log('v.sendingNoteState = ', v.sendingNoteState);
+
     // ⚠️ speeds gonna be a problem here
     v.active_chat = newChatId;
 
@@ -732,14 +789,5 @@
     }
   };
 
-  window.Wized = window.Wized || [];
-  window.Wized.push(Wized => {
-    Wized.reactivity.watch(
-      () => Wized.data.v.sendingNoteState,
-      (newValue, oldValue) => {
-        console.log(`my_variable changed from ${oldValue} to ${newValue}`);
-      }
-    );
-  });
   //
 })();
