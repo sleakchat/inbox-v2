@@ -13,7 +13,7 @@
     .split('&')
     .forEach(p => {
       const [k, v] = p.split('=');
-      if (k && v) params[k] = decodeURIComponent(v);
+      if (k && v && k !== 'session_object') params[k] = decodeURIComponent(v);
     });
 
   const currentUrl = sanitizeUrl(window.location.href);
