@@ -274,7 +274,8 @@ textarea {
   border-color: #f3f3ff;
 }
 .list-item.selected .list-item-icon-container {
-  background-color: #7e79f0;
+  /* background-color: #7e79f0; */
+  background-color: #794fec;
   border-color: #a19dff !important;
 }
 .list-item.selected .list-item-icon-container > img {
