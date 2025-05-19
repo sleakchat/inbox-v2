@@ -1,4 +1,6 @@
 (function () {
+  if (pathname.startsWith('/imp') || pathname.startsWith('/redirect')) return;
+
   const cookieName = 'slk_attribution';
   const existing = Cookies.get(cookieName);
   let data = existing ? JSON.parse(existing) : {};
@@ -13,7 +15,7 @@
     .split('&')
     .forEach(p => {
       const [k, v] = p.split('=');
-      if (k && v) params[k] = decodeURIComponent(v);
+      if (k && v && k !== 'session_object') params[k] = decodeURIComponent(v);
     });
 
   const currentUrl = sanitizeUrl(window.location.href);
