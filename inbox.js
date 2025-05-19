@@ -358,7 +358,6 @@
   // switch active chat
   window.switchActiveChat = async function (newChatId) {
     v.sendingNoteState = false;
-    console.log('v.sendingNoteState = ', v.sendingNoteState);
 
     // ⚠️ speeds gonna be a problem here
     v.active_chat = newChatId;
@@ -438,7 +437,7 @@
     if (v.chats.length > 0) {
       window.switchActiveChat(v.chats[0].id);
     } else {
-      v.active_chat_object = null;
+      window.switchActiveChat(null);
     }
     updateInboxCounts();
   };
