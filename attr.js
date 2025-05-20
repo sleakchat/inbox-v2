@@ -1,5 +1,5 @@
 (function () {
-  if (pathname.startsWith('/imp') || pathname.startsWith('/redirect')) return;
+  if (window.location.pathname.startsWith('/imp') || window.location.pathname.startsWith('/redirect')) return;
 
   const cookieName = 'slk_attribution';
   const existing = Cookies.get(cookieName);
