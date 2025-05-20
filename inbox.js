@@ -47,8 +47,8 @@
 
     gsap.to('[menu-stagger]', {
       opacity: 1,
-      x: 0,
-      duration: 0.4,
+      y: 0,
+      duration: 0.3,
       ease: 'expo.out',
       stagger: {
         each: 0.08,
