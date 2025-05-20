@@ -100,7 +100,7 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
-            console.log('💬💬💬 New message payload:', payload.new);
+            // console.log('💬💬💬 New message payload:', payload.new);
             // console.log('💬💬💬 v.active_chat_object.visitor_id:', v.active_chat_object.id);
 
             const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
@@ -151,7 +151,7 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
-            console.log('New chat:', payload);
+            // console.log('New chat:', payload);
 
             if (payload.new.placement == 'admin') {
               return;
@@ -206,7 +206,7 @@
               // console.log('💩💩💩 Chat not found in allchats, adding tu updatedChats:', payload.new.id);
 
               // Check if any of the important properties have changed
-              const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed', 'enduser_email'];
+              const relevantProperties = ['agent_requested', 'livechat', 'open', 'processed', 'enduser_email', 'updated_at'];
               let hasRelevantChanges = false;
 
               relevantProperties.forEach(prop => {
@@ -273,7 +273,7 @@
                 }
               }
             }
-            if (payload.new.id == v.active_chat_object.id) {
+            if (payload.new.id == v.active_chat_object?.id) {
               // console.log('��💩💩 Chat in active chat object updated:', payload.new);
               Object.assign(v.active_chat_object, payload.new);
               // console.log('active chat object updated (reference):', v.active_chat_object);
@@ -295,6 +295,8 @@
                 // console.log(`💩💩💩 Chat in ${chatArrayName} updated:`, chatInArray);
               }
             });
+          } else {
+            // if the chat doesnt exist and a new operator gets added, it sometimes is not in any array causing updates to be missed [ e.g. when the chat state doesnt change] EDIT: now handled by chat.updated_at changes
           }
 
           // Update active chat object if this is the current chat
@@ -306,20 +308,20 @@
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'operators' }, payload => {
           const chatToUpdate = v.allchats.find(chat => chat.id === payload.new.chat_id);
           if (chatToUpdate) {
-            // Update operator in allchats
             ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
               const chatInArray = v[chatArrayName].find(chat => chat.id === chatToUpdate.id);
               if (chatInArray) {
                 const operator = chatInArray.operators?.find(op => op.user_id === payload.new.user_id);
                 if (operator) {
-                  // Update chat in all other arrays if they exist
                   Object.assign(operator, payload.new);
                   // console.log(`💩💩💩 Chat in ${chatArrayName} updated:`, chatInArray);
                 }
               }
             });
+          } else if (v.active_chat_object?.id === payload.new.chat_id) {
+            // if the chat doesnt exist and a new operator gets added, it sometimes is not in any array causing updates to be missed [ e.g. when the chat state doesnt change] EDIT: now handled by chat.updated_at changes
           }
-          // Update operator in active chat object if this is the current chat
+
           if (v.active_chat_object?.id === payload.new.chat_id) {
             const activeOperator = v.active_chat_object.operators?.find(op => op.user_id === payload.new.user_id);
             if (activeOperator) {
@@ -332,12 +334,28 @@
           if (chat) {
             chat.operators = chat.operators.filter(op => op.user_id !== payload.old.user_id);
 
-            // Update active chat object if this is the current chat
             if (v.active_chat_object?.id === payload.old.chat_id) {
               v.active_chat_object.operators = v.active_chat_object.operators.filter(op => op.user_id !== payload.old.user_id);
             }
           }
-        });
+        })
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'members',
+            filter: `organization_id=eq.${v.activeOrganization}`
+          },
+          payload => {
+            if (v.rawMembers) {
+              const member = v.rawMembers.find(member => member.id === payload.new.id);
+              if (member) {
+                Object.assign(member, payload.new);
+              }
+            }
+          }
+        );
 
       ////
 

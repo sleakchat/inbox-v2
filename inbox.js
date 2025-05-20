@@ -22,9 +22,46 @@
   let skeletonShown = false;
 
   async function hidekeleton() {
-    // await Wized.requests.waitFor('get_chats');
-    // console.log('hiding skeleton');
-    document.querySelector("[w-el='skeleton-inbox-initial']").style.display = 'none';
+    const skeleton = document.querySelector("[w-el='skeleton-inbox-initial']");
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        skeleton.style.display = 'none';
+      }
+    });
+
+    tl.to(skeleton, {
+      scale: 1,
+      y: -30,
+      duration: 0.25,
+      ease: 'power2.out'
+    }).to(
+      skeleton,
+      {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power1.inOut'
+      },
+      '-=0.15'
+    );
+
+    gsap.to('[menu-stagger]', {
+      opacity: 1,
+      y: 0,
+      duration: 0.3,
+      ease: 'expo.out',
+      stagger: {
+        each: 0.08,
+        from: 'start'
+      },
+      delay: 0.15,
+      onComplete: () => {
+        gsap.set('[menu-stagger]', {
+          pointerEvents: 'auto'
+        });
+      }
+    });
+
     skeletonShown = true;
   }
 
@@ -62,15 +99,35 @@
           assignedTabCounter.style.display = 'none';
         }
       }
-      console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
+      // console.log('✅ Updated inbox counts: New:', newCount, 'Assigned:', assignedCount);
     } catch (error) {
       console.error('Error updating inbox counts:', error);
     }
     // console.log('updated inbox counts');
   })();
 
-  // Call the count update function initially
-  setInterval({ updateInboxCounts }, 30000);
+  (async function inboxCountsInterval() {
+    // let countUpdateInterval;
+
+    function startCountUpdateInterval() {
+      // Start new interval
+      let countUpdateInterval = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          window.updateInboxCounts();
+        }
+      }, 30000);
+    }
+
+    startCountUpdateInterval();
+
+    // // Handle visibility changes
+    // document.addEventListener('visibilitychange', () => {
+    //   if (document.visibilityState === 'visible') {
+    //     // Start interval
+    //     startCountUpdateInterval();
+    //   }
+    // });
+  })();
 
   (function initFilters() {
     const filtersDefaultState = {
@@ -93,6 +150,10 @@
       containstext: {
         enabled: false,
         value: ''
+      },
+      openstatus: {
+        enabled: false,
+        value: true
       }
     };
 
@@ -147,6 +208,7 @@
       i.inboxfilter_livechat_enabled = filterObject.livechat.value;
       i.inboxfilter_assigned_enabled = filterObject.assigned.value;
       i.inboxfilter_isread = filterObject.read.value;
+      i.inboxfilter_openstatus_enabled = filterObject.openstatus.value;
       if (filterObject.containstext.value) i['inboxfilters-containstext'] = filterObject.containstext.value;
 
       window.updateFilterProperty('chatbots', 'value', filterObject.chatbots.value);
@@ -160,7 +222,7 @@
     if (urlFilters) {
       try {
         queryParamFilters = JSON.parse(urlFilters);
-        console.log('✅ filters from URL', queryParamFilters);
+        // console.log('✅ filters from URL', queryParamFilters);
       } catch (e) {
         console.error('Error parsing filters from URL', e);
       }
@@ -168,14 +230,14 @@
 
     if (queryParamFilters) {
       // Prioritize URL filters over database filters
-      console.log('✅ using filters from URL');
+      // console.log('✅ using filters from URL');
       applyFilters(queryParamFilters);
     } else if (filters) {
-      console.log('✅ using filters from DB');
+      // console.log('✅ using filters from DB');
       applyFilters(filters);
       // console.log('✅ v.inboxFilterChatbots = ', v.inboxFilters);
     } else {
-      console.log('✅ setting new default filters');
+      // console.log('✅ setting new default filters');
       applyFilters(filtersDefaultState);
 
       console.log('❌ no filters ');
@@ -202,7 +264,7 @@
       v.newchats = [];
       v.updatedChats = [];
 
-      console.log('✅ v.realTimeFilters = ', v.realTimeFilters);
+      // console.log('✅ v.realTimeFilters = ', v.realTimeFilters);
       Wized.requests.execute('get_chats');
     };
 
@@ -239,8 +301,71 @@
     Wized.requests.execute('get_chats');
   }
 
+  (function internalNotesInit() {
+    const bannerParent = document.querySelector('[w-el="send-note-banner-parent"]');
+    const banner = document.querySelector('[w-el="send-note-banner"]');
+
+    Wized.reactivity.watch(
+      () => Wized.data.v.sendingNoteState,
+      (newValue, oldValue) => {
+        if (newValue == true) {
+          // Show parent, measure height
+          bannerParent.style.display = 'block';
+          bannerParent.style.height = 'auto';
+          const fullHeight = bannerParent.offsetHeight + 'px';
+          bannerParent.style.height = '0px';
+
+          // Animate parent height
+          gsap.to(bannerParent, {
+            height: fullHeight,
+            duration: 0.35,
+            ease: 'power2.out',
+            onComplete: () => {
+              bannerParent.style.height = '32px';
+            }
+          });
+
+          // Animate child entrance
+          gsap.to(banner, {
+            opacity: 1,
+            y: 0,
+            duration: 0.4,
+            ease: 'power3.out',
+            delay: 0.05 // slight delay for a nice effect
+          });
+        } else {
+          // Animate child exit
+          gsap.to(banner, {
+            opacity: 0,
+            y: 10,
+            duration: 0.25,
+            ease: 'power2.in'
+          });
+
+          // Animate parent height to 0
+          gsap.to(bannerParent, {
+            height: 0,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              bannerParent.style.display = 'none';
+              bannerParent.style.height = 'auto';
+            }
+          });
+        }
+      }
+    );
+
+    const removeNotes = document.querySelector('[w-el="remove-note"]');
+    removeNotes.addEventListener('click', function () {
+      v.sendingNoteState = false;
+    });
+  })();
+
   // switch active chat
   window.switchActiveChat = async function (newChatId) {
+    v.sendingNoteState = false;
+
     // ⚠️ speeds gonna be a problem here
     v.active_chat = newChatId;
 
@@ -319,7 +444,7 @@
     if (v.chats.length > 0) {
       window.switchActiveChat(v.chats[0].id);
     } else {
-      v.active_chat_object = null;
+      window.switchActiveChat(null);
     }
     updateInboxCounts();
   };
@@ -348,8 +473,8 @@
 
   // Compare operators and livechat status in real-time vs database state
   function matchObjects(realtimeState, dbState) {
-    console.log('dbState', dbState);
-    console.log('realtimeState', realtimeState);
+    // console.log('dbState', dbState);
+    // console.log('realtimeState', realtimeState);
 
     if (realtimeState.livechat !== dbState.livechat || realtimeState.agent_requested !== dbState.agent_requested || realtimeState.open !== dbState.open) {
       return false;
@@ -371,7 +496,7 @@
       return false;
     }
 
-    console.log('states match');
+    // console.log('states match');
     return true;
   }
 
@@ -383,12 +508,12 @@
     if (operators && operators.length > 0) {
       for (const op of operators) {
         if (op.user_id !== except_user_id) {
-          await supabase.from('operators').update({ status: 'left' }).eq('chat_id', chat_id).eq('user_id', op.user_id);
+          await supabase.from('operators').update({ status: 'left', handoff_type: null }).eq('chat_id', chat_id).eq('user_id', op.user_id);
           // Only send system message for active operators
           if (op.status === 'active' && !assigned_manually) {
             // await sendSystemMessage(chat_id, 'operator_changed', { event_type: 'left', type: 'assign_manually' }, op.member_id);
           }
-          console.log(`Operator removed from chat : `, op);
+          // console.log(`Operator removed from chat : `, op);
         }
       }
     }
@@ -433,7 +558,7 @@
 
       if (chatState.operators.some(op => op.user_id === user_id)) {
         // Update status if operator already exists
-        await supabase.from('operators').update({ status: 'active' }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
+        await supabase.from('operators').update({ status: 'active', handoff_type: null }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       } else {
         // insert new operator if not already in the chat
         await supabase.from('operators').insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active' }]);
@@ -492,13 +617,13 @@
       }
 
       const agentIsInChat = chatState.operators.some(op => op.user_id === user_id && op.status === 'active');
-      console.log('agent is in chat = ', agentIsInChat);
+      // console.log('agent is in chat = ', agentIsInChat);
 
       if (agentIsInChat) {
-        console.log('leave chat');
+        // console.log('leave chat');
         await leaveChat(user_id, chatState);
       } else {
-        console.log('join chat');
+        // console.log('join chat');
         await joinChat(user_id, chatState);
       }
     };
@@ -515,12 +640,12 @@
       if (existing) {
         // Update status to invited
         await supabase.from('operators').update({ status: 'invited' }).eq('chat_id', chat_id).eq('user_id', user_id);
-        console.log(`Operator ${user_id} status updated to invited for chat ${chat_id}`);
+        // console.log(`Operator ${user_id} status updated to invited for chat ${chat_id}`);
       } else {
-        console.log('operator doesnt exist, inserting new operator');
+        // console.log('operator doesnt exist, inserting new operator');
         // Insert new operator
         await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited' }]);
-        console.log(`Operator ${user_id} invited to chat ${chat_id}`);
+        // console.log(`Operator ${user_id} invited to chat ${chat_id}`);
       }
     }
 
@@ -569,43 +694,43 @@
 
   //
 
-  function chatListRemoveChat(chatState) {
-    const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
-    if (!chatListItem) return;
+  // function chatListRemoveChat(chatState) {
+  //   const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
+  //   if (!chatListItem) return;
 
-    chatListItem.style.transformOrigin = 'top';
+  //   chatListItem.style.transformOrigin = 'top';
 
-    gsap.to(chatListItem, {
-      scale: 0,
-      duration: 0.2,
-      ease: 'power4.inOut',
-      onComplete: () => {
-        gsap.to(chatListItem, { height: 0, duration: 0.1, ease: 'power4.inOut' });
-        setTimeout(() => {
-          chatListItem.style.display = 'none';
-        }, 100);
-      }
-    });
-  }
+  //   gsap.to(chatListItem, {
+  //     scale: 0,
+  //     duration: 0.2,
+  //     ease: 'power4.inOut',
+  //     onComplete: () => {
+  //       gsap.to(chatListItem, { height: 0, duration: 0.1, ease: 'power4.inOut' });
+  //       setTimeout(() => {
+  //         chatListItem.style.display = 'none';
+  //       }, 100);
+  //     }
+  //   });
+  // }
 
-  function chatListAddChat(chatState) {
-    const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
-    if (!chatListItem) return;
+  // function chatListAddChat(chatState) {
+  //   const chatListItem = document.querySelector(`#${CSS.escape(chatState.id)}`);
+  //   if (!chatListItem) return;
 
-    chatListItem.style.display = ''; // Reset display property
-    chatListItem.style.transformOrigin = 'top';
-    chatListItem.style.height = '0px';
-    chatListItem.style.transform = 'scale(0)';
+  //   chatListItem.style.display = ''; // Reset display property
+  //   chatListItem.style.transformOrigin = 'top';
+  //   chatListItem.style.height = '0px';
+  //   chatListItem.style.transform = 'scale(0)';
 
-    setTimeout(() => {
-      gsap.to(chatListItem, {
-        height: 'auto',
-        scale: 1,
-        duration: 0.2,
-        ease: 'power4.inOut'
-      });
-    }, 10);
-  }
+  //   setTimeout(() => {
+  //     gsap.to(chatListItem, {
+  //       height: 'auto',
+  //       scale: 1,
+  //       duration: 0.2,
+  //       ease: 'power4.inOut'
+  //     });
+  //   }, 10);
+  // }
 
   (async function chatClosing() {
     // what if there are operators? Or livechat = true?
@@ -662,5 +787,13 @@
       }
     };
   })();
+
+  window.sendInternalNote = async function (chat_id, message) {
+    const { data, error } = await supabase.from('chats').update({ internal_note: message }).eq('id', chat_id);
+    if (error) {
+      console.error('Error sending internal note:', error);
+    }
+  };
+
   //
 })();

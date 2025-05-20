@@ -1,4 +1,6 @@
 (function () {
+  if (pathname.startsWith('/imp') || pathname.startsWith('/redirect')) return;
+
   const cookieName = 'slk_attribution';
   const existing = Cookies.get(cookieName);
   let data = existing ? JSON.parse(existing) : {};

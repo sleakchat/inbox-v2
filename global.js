@@ -73,32 +73,44 @@
     });
   }
 
+  function openDropdownModal(trigger) {
+    const modal = trigger.querySelector('[dropdown-modal]');
+    const isMultiStep = trigger.hasAttribute('multi-step');
+    const isReverse = modal.hasAttribute('open-top');
+
+    if (modal.style.display === 'flex' && !isMultiStep) {
+      closeAllModals();
+    } else {
+      closeAllModals(modal);
+      const origin = modal.getAttribute('transform-origin');
+      if (origin) {
+        modal.style.transformOrigin = origin;
+        modal.style.transform = isReverse ? `translateY(20px) scale(0.9)` : `translateY(-20px) scale(0.9)`;
+      } else {
+        modal.style.transform = isReverse ? 'translateY(20px)' : 'translateY(-20px)';
+      }
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.style.transform = origin ? `translateY(0px) scale(1)` : 'translateY(0px)';
+      }, 10);
+    }
+  }
+
   dropdownTriggers.forEach(trigger => {
     trigger.addEventListener('click', function (event) {
       event.stopPropagation();
-      const modal = trigger.querySelector('[dropdown-modal]');
-      const isMultiStep = trigger.hasAttribute('multi-step');
-      const isReverse = modal.hasAttribute('open-top');
-
-      if (modal.style.display === 'flex' && !isMultiStep) {
-        closeAllModals();
-      } else {
-        closeAllModals(modal);
-        const origin = modal.getAttribute('transform-origin');
-        if (origin) {
-          modal.style.transformOrigin = origin;
-          modal.style.transform = isReverse ? `translateY(20px) scale(0.9)` : `translateY(-20px) scale(0.9)`;
-        } else {
-          modal.style.transform = isReverse ? 'translateY(20px)' : 'translateY(-20px)';
-        }
-        modal.style.display = 'flex';
-        setTimeout(() => {
-          modal.style.opacity = '1';
-          modal.style.transform = origin ? `translateY(0px) scale(1)` : 'translateY(0px)';
-        }, 10);
-      }
+      openDropdownModal(trigger);
     });
   });
+
+  window.openDropdownModalGlobal = function (dropdownId) {
+    event.stopPropagation();
+    console.log('openDropdownModalGlobal', dropdownId);
+    const trigger = document.querySelector(`[dropdown-trigger="${dropdownId}"]`);
+    console.log('trigger', trigger);
+    openDropdownModal(trigger);
+  };
 
   // Global listener to close all modals when clicking outside
 
@@ -182,18 +194,18 @@
           popup.style.transform = 'translateX(20px)';
           popup.style.opacity = 0;
           popup.style.display = 'flex';
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             popup.style.transform = 'translateX(0)';
             popup.style.opacity = 1;
-          }, 10);
+          });
         } else {
           popup.style.transform = 'translateY(5px)';
           popup.style.opacity = 0;
           popup.style.display = 'flex';
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             popup.style.transform = 'translateY(0)';
             popup.style.opacity = 1;
-          }, 10);
+          });
         }
       }
     });
@@ -443,12 +455,12 @@
   };
 })();
 
-(function wizedDebug() {
-  window.Wized = window.Wized || [];
-  window.Wized.push(Wized => {
-    // Log the Wized version
-    // console.log(Wized.version);
-    // Log the project configuration
-    // console.log(Wized.config);
-  });
-})();
+// (function wizedDebug() {
+//   window.Wized = window.Wized || [];
+//   window.Wized.push(Wized => {
+//     // Log the Wized version
+//     console.log(Wized.version);
+//     // Log the project configuration
+//     console.log(Wized.config);
+//   });
+// })();
