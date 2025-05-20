@@ -205,7 +205,7 @@
           requestAnimationFrame(() => {
             popup.style.transform = 'translateY(0)';
             popup.style.opacity = 1;
-          };
+          });
         }
       }
     });
