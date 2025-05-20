@@ -194,18 +194,18 @@
           popup.style.transform = 'translateX(20px)';
           popup.style.opacity = 0;
           popup.style.display = 'flex';
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             popup.style.transform = 'translateX(0)';
             popup.style.opacity = 1;
-          }, 10);
+          });
         } else {
           popup.style.transform = 'translateY(5px)';
           popup.style.opacity = 0;
           popup.style.display = 'flex';
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             popup.style.transform = 'translateY(0)';
             popup.style.opacity = 1;
-          }, 10);
+          };
         }
       }
     });
