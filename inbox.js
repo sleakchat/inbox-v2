@@ -24,8 +24,6 @@
   async function hidekeleton() {
     const skeleton = document.querySelector("[w-el='skeleton-inbox-initial']");
 
-    console.log('showing skeleton');
-
     const tl = gsap.timeline({
       onComplete: () => {
         skeleton.style.display = 'none';
@@ -53,7 +51,7 @@
       duration: 0.4,
       ease: 'expo.out',
       stagger: {
-        each: 0.1,
+        each: 0.08,
         from: 'start'
       },
       delay: 0.15,
