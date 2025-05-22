@@ -100,7 +100,7 @@
             filter: `chatbot_id=${formattedIds}`
           },
           payload => {
-            // console.log('💬💬💬 New message payload:', payload.new);
+            console.log('💬 New message payload:', payload.new);
             // console.log('💬💬💬 v.active_chat_object.visitor_id:', v.active_chat_object.id);
 
             const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
@@ -183,7 +183,7 @@
             if (payload.new.placement == 'admin') return;
 
             const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
-            // console.log('💩💩💩💩💩💩💩💩💩 updatedChat:', payload);
+            console.log('💬 updatedChat:', payload);
             if (updatedChat) {
               // console.log('💩💩💩 Chat in array updated:', updatedChat);
               // console.log('Chat updated:', updatedChat);
