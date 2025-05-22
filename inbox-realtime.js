@@ -360,14 +360,14 @@
       ////
 
       adminUiChannel.subscribe((status, err) => {
-        // console.log('Messaging channel status changed = ', status);
+        console.log('Realtime channel status changed = ', status);
         const timestamp = new Date().toLocaleTimeString();
         // console.log('realtime event timestamp = ', timestamp);
         // console.log('reconnecting = ', reconnecting);
 
         // if (Wized.data.r.get_user_data.data[0].organizations[0].id == '616d0a37-03ac-47ea-91fc-c9eba9f331fc') chime.play();
 
-        // if (status == 'CHANNEL_ERROR') console.log('Error:', err);
+        if (status == 'CHANNEL_ERROR') console.log('Error:', err);
 
         if (status !== 'SUBSCRIBED') {
           if (!reconnecting) {
