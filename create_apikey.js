@@ -50,7 +50,8 @@
       apiKey = data.api_key;
       v.apikeys.push({
         name: data.name,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        id: data.id
       });
 
       apiKeyText.textContent = apiKey;
