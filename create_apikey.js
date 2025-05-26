@@ -12,7 +12,6 @@
 
   const localStorageKey = window.location.href.includes('dashboard.sleak.chat') ? 'sb-sygpwnluwwetrkmwilea-auth-token' : 'sb-xvqjuiyrmzkhsfosfozs-auth-token';
   const accessToken = JSON.parse(localStorage.getItem(localStorageKey)).access_token;
-  console.log('accessToken = ', accessToken);
 
   const { form, success, openButton, input, copyTrigger, apiKeyText } = {
     form: document.querySelector('[w-el="form-create-apikey"]'),
@@ -35,7 +34,6 @@
   form.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('form submitted');
 
     const { data, error } = await supabase.rpc('create_api_key', {
       organizationid: currentOrganization.id,
@@ -46,7 +44,6 @@
     if (error) {
       console.error('Error creating API key:', error);
     } else {
-      console.log('API key created:', data);
       apiKey = data.api_key;
       v.apikeys.push({
         name: data.name,
