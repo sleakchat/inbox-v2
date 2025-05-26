@@ -282,7 +282,7 @@
         )
 
         // operators table
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'operators' }, payload => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'operators', filter: `organization_id=eq.${v.activeOrganization}` }, payload => {
           const chatToAdd = v.allchats.find(chat => chat.id === payload.new.chat_id);
           if (chatToAdd) {
             if (!chatToAdd.operators) chatToAdd.operators = [];
@@ -305,7 +305,7 @@
             v.active_chat_object.operators.push(payload.new);
           }
         })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'operators' }, payload => {
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'operators', filter: `organization_id=eq.${v.activeOrganization}` }, payload => {
           const chatToUpdate = v.allchats.find(chat => chat.id === payload.new.chat_id);
           if (chatToUpdate) {
             ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
