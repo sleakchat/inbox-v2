@@ -329,16 +329,16 @@
             }
           }
         })
-        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'operators' }, payload => {
-          const chat = v.allchats.find(chat => chat.id === payload.old.chat_id);
-          if (chat) {
-            chat.operators = chat.operators.filter(op => op.user_id !== payload.old.user_id);
+        // .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'operators' }, payload => {
+        //   const chat = v.allchats.find(chat => chat.id === payload.old.chat_id);
+        //   if (chat) {
+        //     chat.operators = chat.operators.filter(op => op.user_id !== payload.old.user_id);
 
-            if (v.active_chat_object?.id === payload.old.chat_id) {
-              v.active_chat_object.operators = v.active_chat_object.operators.filter(op => op.user_id !== payload.old.user_id);
-            }
-          }
-        })
+        //     if (v.active_chat_object?.id === payload.old.chat_id) {
+        //       v.active_chat_object.operators = v.active_chat_object.operators.filter(op => op.user_id !== payload.old.user_id);
+        //     }
+        //   }
+        // })
         .on(
           'postgres_changes',
           {
