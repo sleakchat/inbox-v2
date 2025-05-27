@@ -419,69 +419,82 @@
 
     // isTyping channel broadcast
 
-    let isTypingChannel;
-    await new Promise(res => setTimeout(res, 1000));
-    // ⚠️ maybe just add an await for a request or global variable here
-    let currentChat = v.active_chat_object.id;
-    let inputEventListener = false;
+    // let isTypingChannel;
+    // await new Promise(res => setTimeout(res, 1000));
+    // // ⚠️ maybe just add an await for a request or global variable here
+    // let currentChat = v.active_chat_object.id;
+    // let inputEventListener = false;
 
-    function initializeLiveChatChannel(supaClient) {
-      isTypingChannel = supaClient.channel('isTyping_' + currentChat);
+    // function initializeLiveChatChannel(supaClient) {
+    //   isTypingChannel = supaClient.channel('isTyping_' + currentChat);
 
-      // console.log("first log", isTypingChannel);
+    //   // console.log("first log", isTypingChannel);
 
-      isTypingChannel.subscribe(status => {
-        // if (status !== "SUBSCRIBED") {
-        //   console.log("not subscribed");
-        // } else {
-        //   console.log("Subscribed");
-        // }
+    //   isTypingChannel.subscribe(status => {
+    //     // if (status !== "SUBSCRIBED") {
+    //     //   console.log("not subscribed");
+    //     // } else {
+    //     //   console.log("Subscribed");
+    //     // }
 
-        function sendIsTyping() {
-          isTypingChannel.send({
-            type: 'broadcast',
-            event: 'isTypingAdmin'
-            // payload: { message: "Subscribed to isTypingChannel" },
-          });
-        }
+    //     function sendIsTyping() {
+    //       isTypingChannel.send({
+    //         type: 'broadcast',
+    //         event: 'isTypingAdmin'
+    //         // payload: { message: "Subscribed to isTypingChannel" },
+    //       });
+    //     }
 
-        // input event listener
-        const input = document.querySelector("[w-el='admin-ui-chat-input']");
-        let isTypingFlag = false;
+    //     // input event listener
+    //     const input = document.querySelector("[w-el='admin-ui-chat-input']");
+    //     let isTypingFlag = false;
 
-        if (inputEventListener == false) {
-          input.addEventListener('input', () => {
-            if (isTypingFlag == false) {
-              // console.log('input event');
-              sendIsTyping();
-              isTypingFlag = true;
-              setTimeout(() => {
-                isTypingFlag = false;
-              }, 5000);
-            }
-          });
-        }
-        inputEventListener = true;
-      });
-    }
+    //     if (inputEventListener == false) {
+    //       input.addEventListener('input', () => {
+    //         if (isTypingFlag == false) {
+    //           // console.log('input event');
+    //           sendIsTyping();
+    //           isTypingFlag = true;
+    //           setTimeout(() => {
+    //             isTypingFlag = false;
+    //           }, 5000);
+    //         }
+    //       });
+    //     }
+    //     inputEventListener = true;
+    //   });
+    // }
 
-    function closeLiveChatChannel() {
-      isTypingChannel.unsubscribe();
-      isTypingChannel = null;
-    }
+    // function closeLiveChatChannel() {
+    //   isTypingChannel.unsubscribe();
+    //   isTypingChannel = null;
+    // }
 
-    // operatorChanged event listeners
-    window.addEventListener('joinLivechat', event => {
-      initializeLiveChatChannel(supaClient);
-    });
-    window.addEventListener('leaveLivechat', event => {
-      if (isTypingChannel) {
-        closeLiveChatChannel(supaClient);
-      }
-    });
+    // // operatorChanged event listeners
+    // window.addEventListener('joinLivechat', event => {
+    //   initializeLiveChatChannel(supaClient);
+    // });
+    // window.addEventListener('leaveLivechat', event => {
+    //   if (isTypingChannel) {
+    //     closeLiveChatChannel(supaClient);
+    //   }
+    // });
 
-    if (v.active_chat?.livechat == true) {
-      initializeLiveChatChannel(supaClient);
-    }
+    // if (v.active_chat?.livechat == true) {
+    //   initializeLiveChatChannel(supaClient);
+    // }
+
+    (async function initializeBroadcastChannel() {
+      await supaClient.realtime.setAuth();
+      supaClient
+        .channel(`organization_id:${v.activeOrganization}`, { config: { private: true } })
+        .on('broadcast', { event: 'INSERT', schema: 'public', table: 'chats' }, payload => {
+          console.log('🔊🔊🔊 Broadcast message received:', payload);
+        })
+        .subscribe((status, err) => {
+          console.log('🔊🔊🔊 Broadcast channel status changed = ', status);
+          if (err) console.log('Error:', err);
+        });
+    })();
   })();
 })();
