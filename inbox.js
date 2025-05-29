@@ -467,7 +467,8 @@
       message_type: message_type,
       message_type_data: message_type_data,
       chatbot_id: v.active_chat_object.chatbot_id,
-      author_member_id: author_member_id || currentMember.id
+      author_member_id: author_member_id || currentMember.id,
+      organization_id: v.activeOrganization
     });
   }
 
