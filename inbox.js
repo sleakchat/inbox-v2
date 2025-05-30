@@ -575,6 +575,7 @@
       // document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
       // let joinLivechatEvent = new CustomEvent('joinLivechat', { detail: { message: 'Joining live chat' } });
       // window.dispatchEvent(joinLivechatEvent);
+      updateInboxCounts();
     }
 
     async function leaveChat(user_id, chatState) {
@@ -603,6 +604,8 @@
       // document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
       // let leaveLivechatEvent = new CustomEvent('leaveLivechat', { detail: { message: 'Joining live chat' } });
       // window.dispatchEvent(leaveLivechatEvent);
+
+      updateInboxCounts();
     }
 
     window.handleLiveChat = async function (realtimeState) {
@@ -786,6 +789,8 @@
         await supabase.from('chats').update({ open: true }).eq('id', chatState.id);
         await sendSystemMessage(chat_id, 'chat_opened', {});
       }
+
+      updateInboxCounts();
     };
   })();
 
