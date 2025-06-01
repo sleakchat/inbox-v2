@@ -2,6 +2,29 @@
   display: flex !important;
 }
 
+[hideonpageload] {
+  display: none;
+}
+
+.popup-underlay {
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.select-box-item {
+  .multi-select-box-checked {
+    display: none;
+  }
+  &.selected {
+    .multi-select-box-unchecked {
+      display: none;
+    }
+    .multi-select-box-checked {
+      display: flex;
+    }
+  }
+}
+
 body {
   user-select: none;
 }
