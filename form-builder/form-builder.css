@@ -62,7 +62,8 @@ body {
   transition: opacity 0.2s;
 }
 
-.form-field-wrapper:hover .form-field-controls {
+.form-field-wrapper:hover .form-field-controls,
+.form-field-wrapper.controls-active .form-field-controls {
   opacity: 1;
 }
 
@@ -500,7 +501,8 @@ input:checked + .toggle-slider:before {
   padding-left: 32px;
 }
 
-.add-field-inline:hover {
+.add-field-inline:hover,
+.add-field-inline.dropdown-open {
   opacity: 1;
 }
 

@@ -175,9 +175,18 @@ function createAddFieldInline(insertIndex) {
     e.stopPropagation();
     // Close any other open dropdowns
     document.querySelectorAll('.add-field-dropdown.visible').forEach(d => {
-      if (d !== dropdown) d.classList.remove('visible');
+      if (d !== dropdown) {
+        d.classList.remove('visible');
+        d.closest('.add-field-inline').classList.remove('dropdown-open');
+      }
     });
     dropdown.classList.toggle('visible');
+    // Keep the inline field visible when dropdown is open
+    if (dropdown.classList.contains('visible')) {
+      addFieldEl.classList.add('dropdown-open');
+    } else {
+      addFieldEl.classList.remove('dropdown-open');
+    }
   });
 
   addFieldEl.querySelectorAll('.add-field-option').forEach(option => {
@@ -187,13 +196,6 @@ function createAddFieldInline(insertIndex) {
       fields.splice(insertIndex, 0, fieldDefaults[type]());
       renderFormPreview();
     });
-  });
-
-  // Close dropdown when clicking outside
-  document.addEventListener('click', e => {
-    if (!addFieldEl.contains(e.target)) {
-      dropdown.classList.remove('visible');
-    }
   });
 
   return addFieldEl;
@@ -298,10 +300,28 @@ function renderFormPreview() {
     main.appendChild(fieldWrapper);
   });
 
-  // Add a single add field control at the bottom if there are no fields
-  if (fields.length === 0) {
-    main.appendChild(createAddFieldInline(0));
-  }
+  // Always add an empty field row at the bottom
+  const emptyFieldWrapper = document.createElement('div');
+  emptyFieldWrapper.className = 'form-field-wrapper empty-field-wrapper';
+
+  // Add controls for the empty field
+  const emptyControls = document.createElement('div');
+  emptyControls.className = 'form-field-controls';
+  emptyControls.innerHTML = `
+    <button class="field-control-btn field-add-btn" onclick="showAddFieldDropdown(${fields.length}, this)">
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  `;
+  emptyFieldWrapper.appendChild(emptyControls);
+
+  // Add empty field content
+  const emptyFieldContent = document.createElement('div');
+  emptyFieldContent.className = 'empty-field-content';
+  emptyFieldWrapper.appendChild(emptyFieldContent);
+
+  main.appendChild(emptyFieldWrapper);
 
   // File upload drag effect
   main.querySelectorAll('.file-upload-box').forEach(box => {
@@ -331,6 +351,22 @@ function showAddFieldDropdown(insertIndex, buttonElement) {
     singleselect: 'hgi-checkmark-square-03',
     file: 'hgi-attachment'
   };
+
+  // Remove any existing dropdown
+  const existingDropdown = document.querySelector('.add-field-dropdown.visible');
+  if (existingDropdown) {
+    existingDropdown.remove();
+    // Remove controls-active class from any field wrapper
+    document.querySelectorAll('.form-field-wrapper.controls-active').forEach(wrapper => {
+      wrapper.classList.remove('controls-active');
+    });
+  }
+
+  // Get the field wrapper and add controls-active class
+  const fieldWrapper = buttonElement.closest('.form-field-wrapper');
+  if (fieldWrapper) {
+    fieldWrapper.classList.add('controls-active');
+  }
 
   // Create dropdown
   const dropdown = document.createElement('div');
@@ -366,14 +402,21 @@ function showAddFieldDropdown(insertIndex, buttonElement) {
     });
   });
 
-  // Close on outside click
-  setTimeout(() => {
-    document.addEventListener('click', function closeDropdown(e) {
-      if (!dropdown.contains(e.target)) {
-        dropdown.remove();
-        document.removeEventListener('click', closeDropdown);
+  // Setup global click handler to close dropdown
+  function handleGlobalClick(e) {
+    // Only close if clicking outside the dropdown and button
+    if (!dropdown.contains(e.target) && !buttonElement.contains(e.target)) {
+      dropdown.remove();
+      if (fieldWrapper) {
+        fieldWrapper.classList.remove('controls-active');
       }
-    });
+      document.removeEventListener('click', handleGlobalClick);
+    }
+  }
+
+  // Add the global click handler with a small delay to prevent immediate closing
+  setTimeout(() => {
+    document.addEventListener('click', handleGlobalClick);
   }, 0);
 }
 
@@ -384,6 +427,17 @@ window.showAddFieldDropdown = showAddFieldDropdown;
 document.addEventListener('click', e => {
   if (!e.target.closest('.settings-popover') && !e.target.closest('.field-control-btn')) {
     hideSettingsPopover();
+  }
+});
+
+// Global click handler for closing inline add field dropdowns
+document.addEventListener('click', e => {
+  // Close any open inline add field dropdowns when clicking outside
+  if (!e.target.closest('.add-field-inline')) {
+    document.querySelectorAll('.add-field-inline .add-field-dropdown.visible').forEach(dropdown => {
+      dropdown.classList.remove('visible');
+      dropdown.closest('.add-field-inline').classList.remove('dropdown-open');
+    });
   }
 });
 
