@@ -293,7 +293,7 @@ textarea {
 /* secondary navbar nav items inbox/datasources */
 
 .list-item.selected {
-  background-color: #f1f1f1;
+  background-color: #f3f3f3;
   border-color: #f3f3ff;
 }
 .list-item.selected:hover {
