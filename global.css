@@ -2,6 +2,29 @@
   display: flex !important;
 }
 
+[hideonpageload] {
+  display: none;
+}
+
+.popup-underlay {
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.select-box-item {
+  .multi-select-box-checked {
+    display: none;
+  }
+  &.selected {
+    .multi-select-box-unchecked {
+      display: none;
+    }
+    .multi-select-box-checked {
+      display: flex;
+    }
+  }
+}
+
 body {
   user-select: none;
 }
@@ -270,8 +293,15 @@ textarea {
 /* secondary navbar nav items inbox/datasources */
 
 .list-item.selected {
-  background-color: #f7f7ff;
+  background-color: #f3f3f3;
   border-color: #f3f3ff;
+}
+.list-item.selected:hover {
+  background-color: #f7f7f7;
+  border-color: #f3f3ff;
+}
+.list-item:hover {
+  background-color: #f7f7f7;
 }
 .list-item.selected .list-item-icon-container {
   /* background-color: #7e79f0; */
