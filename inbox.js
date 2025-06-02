@@ -51,7 +51,7 @@
       duration: 0.3,
       ease: 'expo.out',
       stagger: {
-        each: 0.08,
+        each: 0.06,
         from: 'start'
       },
       delay: 0.15,
@@ -397,16 +397,6 @@
       url.searchParams.delete('chat');
     }
     window.history.replaceState(null, '', url.toString());
-
-    // if (v.active_chat_object.livechat == false) {
-    //   document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
-    // } else {
-    //   document.querySelector('[w-el="admin-ui-chat-input"]').removeAttribute('readonly');
-    // }
-
-    if (window.innerWidth <= 768) {
-      document.querySelector('[w-el="messages-grid-container"]').style.display = 'flex';
-    }
   };
 
   (async function setActiveChat() {
