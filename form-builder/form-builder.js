@@ -422,12 +422,11 @@ window.initFormBuilder = async function () {
         if (!dragStarted) {
           e.stopPropagation();
 
-          // Remove any existing popovers
-          document.querySelectorAll('.field-settings-popover').forEach(p => p.remove());
+          closeAllDropdowns();
 
           const popover = document.createElement('div');
           popover.className = 'field-settings-popover';
-          popover.style.position = 'fixed';
+          popover.style.position = 'absolute';
           popover.style.background = '#ffffff';
           popover.style.border = 'none';
           popover.style.borderRadius = '8px';
@@ -437,18 +436,14 @@ window.initFormBuilder = async function () {
           popover.style.minWidth = '180px';
           popover.style.fontSize = '13px';
           popover.style.opacity = '0';
-          popover.style.transform = 'scale(0.95) translateY(-5px)';
+          popover.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
           popover.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
           popover.style.transformOrigin = 'right center';
 
-          // Position the popover based on the drag handle's position
-          const rect = dragHandle.getBoundingClientRect();
-          const fieldRect = fieldWrapper.getBoundingClientRect();
-
-          // Position to the left of drag handle, vertically centered with the field
-          popover.style.top = fieldRect.top + fieldRect.height / 2 + 'px';
-          popover.style.left = rect.left - 188 + 'px'; // 180px width + 8px gap
-          popover.style.transform = 'scale(0.95) translateY(-50%)';
+          // Position to the left of the drag handle
+          popover.style.top = '50%';
+          popover.style.right = '100%';
+          popover.style.marginRight = '8px';
 
           const label = document.createElement('label');
           label.style.display = 'flex';
@@ -494,25 +489,21 @@ window.initFormBuilder = async function () {
           label.appendChild(toggleContainer);
           popover.appendChild(label);
 
-          // Append to body instead of controls
-          document.body.appendChild(popover);
+          // Append to controls div
+          const controls = dragHandle.closest('.form-field-controls');
+          controls.appendChild(popover);
 
-          // Trigger animation after a frame
+          // Trigger animation
           requestAnimationFrame(() => {
             popover.style.opacity = '1';
-            popover.style.transform = 'scale(1) translateY(-50%)';
+            popover.style.transform = 'translateY(-50%) scale(1) translateX(0)';
           });
 
           // Close popover when clicking outside
           setTimeout(() => {
             document.addEventListener('click', function closePopover(e) {
               if (!popover.contains(e.target) && !dragHandle.contains(e.target)) {
-                // Animate out
-                popover.style.opacity = '0';
-                popover.style.transform = 'scale(0.95) translateY(-50%)';
-                setTimeout(() => {
-                  popover.remove();
-                }, 150);
+                closeAllDropdowns();
                 document.removeEventListener('click', closePopover);
               }
             });
@@ -1023,8 +1014,35 @@ window.initFormBuilder = async function () {
     });
   }
 
+  function closeAllDropdowns() {
+    // Close any existing dropdown
+    const existingDropdown = document.querySelector('.field-type-dropdown');
+    if (existingDropdown) {
+      existingDropdown.style.opacity = '0';
+      existingDropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
+      setTimeout(() => {
+        existingDropdown.remove();
+      }, 150);
+    }
+    // Close any existing settings popover
+    const existingPopover = document.querySelector('.field-settings-popover');
+    if (existingPopover) {
+      existingPopover.style.opacity = '0';
+      existingPopover.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
+      setTimeout(() => {
+        existingPopover.remove();
+      }, 150);
+    }
+    // Remove controls-active class from any field wrapper
+    document.querySelectorAll('.form-field-wrapper.controls-active').forEach(wrapper => {
+      wrapper.classList.remove('controls-active');
+    });
+  }
+
   // Function to show add field dropdown from field controls
   function showAddFieldDropdown(insertIndex, buttonElement) {
+    closeAllDropdowns();
+
     const fieldIcons = {
       phone: 'hgi-call-02',
       email: 'hgi-mail-01',
@@ -1033,20 +1051,6 @@ window.initFormBuilder = async function () {
       singleselect: 'hgi-checkmark-square-03',
       file: 'hgi-attachment'
     };
-
-    // Remove any existing dropdown
-    const existingDropdown = document.querySelector('.field-type-dropdown');
-    if (existingDropdown) {
-      existingDropdown.style.opacity = '0';
-      existingDropdown.style.transform = 'scale(0.95) translateX(10px)';
-      setTimeout(() => {
-        existingDropdown.remove();
-      }, 150);
-      // Remove controls-active class from any field wrapper
-      document.querySelectorAll('.form-field-wrapper.controls-active').forEach(wrapper => {
-        wrapper.classList.remove('controls-active');
-      });
-    }
 
     // Get the field wrapper and add controls-active class
     const fieldWrapper = buttonElement.closest('.form-field-wrapper');
@@ -1057,8 +1061,8 @@ window.initFormBuilder = async function () {
     // Create dropdown
     const dropdown = document.createElement('div');
     dropdown.className = 'field-type-dropdown';
-    dropdown.style.position = 'fixed';
-    dropdown.style.display = 'block'; // Ensure it's visible
+    dropdown.style.position = 'absolute';
+    dropdown.style.display = 'block';
     dropdown.style.background = '#ffffff';
     dropdown.style.border = 'none';
     dropdown.style.borderRadius = '8px';
@@ -1068,36 +1072,15 @@ window.initFormBuilder = async function () {
     dropdown.style.minWidth = '180px';
     dropdown.style.fontSize = '13px';
     dropdown.style.opacity = '0';
-    dropdown.style.transform = 'scale(0.95) translateY(-5px)';
     dropdown.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
     dropdown.style.transformOrigin = 'right center';
-    dropdown.style.pointerEvents = 'auto'; // Ensure it's clickable
+    dropdown.style.pointerEvents = 'auto';
 
-    // Position based on button
-    const rect = buttonElement.getBoundingClientRect();
-
-    // For empty field wrapper, position relative to button
-    let topPosition, leftPosition;
-    if (fieldWrapper && fieldWrapper.classList.contains('empty-field-wrapper')) {
-      // Position below the button for empty field - center horizontally
-      topPosition = rect.bottom + 4;
-      leftPosition = rect.left + rect.width / 2 - 90; // Center dropdown (180px / 2 = 90px)
-      dropdown.style.transform = 'scale(0.95) translateX(10px)';
-    } else {
-      // Normal positioning for regular fields - to the left of button
-      const wrapperRect = fieldWrapper ? fieldWrapper.getBoundingClientRect() : rect;
-      topPosition = wrapperRect.top + wrapperRect.height / 2;
-      // The add button is the middle button, so we need to position relative to it
-      leftPosition = rect.left - 188; // 180px width + 8px gap
-      dropdown.style.transform = 'scale(0.95) translateY(-50%) translateX(10px)';
-    }
-
-    // Ensure dropdown stays within viewport
-    const adjustedLeft = Math.max(10, leftPosition);
-
-    // Set initial position
-    dropdown.style.top = topPosition + 'px';
-    dropdown.style.left = adjustedLeft + 'px';
+    // Position to the left of the add button
+    dropdown.style.top = '50%';
+    dropdown.style.right = '100%';
+    dropdown.style.marginRight = '8px';
+    dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
 
     dropdown.innerHTML = `
       ${Object.keys(fieldTypeLabels)
@@ -1121,17 +1104,14 @@ window.initFormBuilder = async function () {
       });
     });
 
-    // Append to body
-    document.body.appendChild(dropdown);
+    // Append to controls div instead of field wrapper
+    const controls = buttonElement.closest('.form-field-controls');
+    controls.appendChild(dropdown);
 
     // Trigger animation
     requestAnimationFrame(() => {
       dropdown.style.opacity = '1';
-      if (fieldWrapper && fieldWrapper.classList.contains('empty-field-wrapper')) {
-        dropdown.style.transform = 'scale(1) translateX(0)';
-      } else {
-        dropdown.style.transform = 'scale(1) translateY(-50%) translateX(0)';
-      }
+      dropdown.style.transform = 'translateY(-50%) scale(1) translateX(0)';
     });
 
     // Add click handlers
@@ -1141,17 +1121,16 @@ window.initFormBuilder = async function () {
         const type = e.target.closest('.field-type-option').getAttribute('data-type');
         v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
 
-        // Hide the dropdown after selection
+        // Hide the dropdown with animation
         dropdown.style.opacity = '0';
-        dropdown.style.transform = fieldWrapper && fieldWrapper.classList.contains('empty-field-wrapper') ? 'scale(0.95) translateX(10px)' : 'scale(0.95) translateY(-50%) translateX(10px)';
+        dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
         setTimeout(() => {
           dropdown.remove();
+          if (fieldWrapper) {
+            fieldWrapper.classList.remove('controls-active');
+          }
+          renderFormPreview();
         }, 150);
-        if (fieldWrapper) {
-          fieldWrapper.classList.remove('controls-active');
-        }
-
-        renderFormPreview();
       });
     });
 
@@ -1159,14 +1138,7 @@ window.initFormBuilder = async function () {
     function handleGlobalClick(e) {
       // Only close if clicking outside the dropdown and button
       if (!dropdown.contains(e.target) && !buttonElement.contains(e.target)) {
-        dropdown.style.opacity = '0';
-        dropdown.style.transform = fieldWrapper && fieldWrapper.classList.contains('empty-field-wrapper') ? 'scale(0.95) translateX(10px)' : 'scale(0.95) translateY(-50%) translateX(10px)';
-        setTimeout(() => {
-          dropdown.remove();
-        }, 150);
-        if (fieldWrapper) {
-          fieldWrapper.classList.remove('controls-active');
-        }
+        closeAllDropdowns();
         document.removeEventListener('click', handleGlobalClick);
       }
     }

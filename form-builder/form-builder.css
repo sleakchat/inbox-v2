@@ -60,6 +60,9 @@ body {
   gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
+  top: 7px;
+  transform: translateY(-50%);
+  height: 20px;
 }
 
 .form-field-wrapper:hover .form-field-controls,
@@ -68,6 +71,7 @@ body {
 }
 
 .field-control-btn {
+  position: relative;
   width: 20px;
   height: 20px;
   background: transparent;
@@ -268,10 +272,6 @@ body {
 
 /* Settings Popover */
 .settings-popover {
-  position: absolute;
-  left: calc(100% + 12px);
-  top: 0;
-  width: 240px;
   background: #ffffff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   border-radius: 8px;
