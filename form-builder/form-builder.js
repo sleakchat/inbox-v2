@@ -431,7 +431,7 @@ window.initFormBuilder = async function () {
           popover.style.background = '#ffffff';
           popover.style.border = 'none';
           popover.style.borderRadius = '8px';
-          popover.style.padding = '4px';
+          popover.style.padding = '0';
           popover.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)';
           popover.style.zIndex = '1000';
           popover.style.minWidth = '180px';
@@ -447,18 +447,19 @@ window.initFormBuilder = async function () {
 
           // Position to the left of drag handle, vertically centered with the field
           popover.style.top = fieldRect.top + fieldRect.height / 2 + 'px';
-          popover.style.left = rect.left - 190 + 'px'; // 180px width + 10px gap
+          popover.style.left = rect.left - 188 + 'px'; // 180px width + 8px gap
           popover.style.transform = 'scale(0.95) translateY(-50%)';
 
           const label = document.createElement('label');
           label.style.display = 'flex';
           label.style.alignItems = 'center';
           label.style.justifyContent = 'space-between';
-          label.style.padding = '8px 12px';
+          label.style.padding = '10px 12px';
           label.style.cursor = 'pointer';
           label.style.color = '#1a1a1a';
-          label.style.borderRadius = '4px';
+          label.style.borderRadius = '8px';
           label.style.transition = 'background-color 0.15s ease';
+          label.style.margin = '0';
 
           // Add hover effect
           label.addEventListener('mouseenter', () => {
@@ -1034,10 +1035,10 @@ window.initFormBuilder = async function () {
     };
 
     // Remove any existing dropdown
-    const existingDropdown = document.querySelector('.add-field-dropdown-active');
+    const existingDropdown = document.querySelector('.field-type-dropdown');
     if (existingDropdown) {
       existingDropdown.style.opacity = '0';
-      existingDropdown.style.transform = 'scale(0.95) translateY(-50%)';
+      existingDropdown.style.transform = 'scale(0.95) translateX(10px)';
       setTimeout(() => {
         existingDropdown.remove();
       }, 150);
@@ -1055,8 +1056,9 @@ window.initFormBuilder = async function () {
 
     // Create dropdown
     const dropdown = document.createElement('div');
-    dropdown.className = 'add-field-dropdown add-field-dropdown-active';
+    dropdown.className = 'field-type-dropdown';
     dropdown.style.position = 'fixed';
+    dropdown.style.display = 'block'; // Ensure it's visible
     dropdown.style.background = '#ffffff';
     dropdown.style.border = 'none';
     dropdown.style.borderRadius = '8px';
@@ -1068,23 +1070,41 @@ window.initFormBuilder = async function () {
     dropdown.style.opacity = '0';
     dropdown.style.transform = 'scale(0.95) translateY(-5px)';
     dropdown.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
-    dropdown.style.transformOrigin = 'center center';
+    dropdown.style.transformOrigin = 'right center';
+    dropdown.style.pointerEvents = 'auto'; // Ensure it's clickable
 
     // Position based on button
     const rect = buttonElement.getBoundingClientRect();
-    const wrapperRect = fieldWrapper ? fieldWrapper.getBoundingClientRect() : rect;
 
-    // Position to the left of add button, vertically centered
-    dropdown.style.top = wrapperRect.top + wrapperRect.height / 2 + 'px';
-    dropdown.style.left = rect.left - 190 + 'px';
-    dropdown.style.transform = 'scale(0.95) translateY(-50%)';
+    // For empty field wrapper, position relative to button
+    let topPosition, leftPosition;
+    if (fieldWrapper && fieldWrapper.classList.contains('empty-field-wrapper')) {
+      // Position below the button for empty field - center horizontally
+      topPosition = rect.bottom + 4;
+      leftPosition = rect.left + rect.width / 2 - 90; // Center dropdown (180px / 2 = 90px)
+      dropdown.style.transform = 'scale(0.95) translateX(10px)';
+    } else {
+      // Normal positioning for regular fields - to the left of button
+      const wrapperRect = fieldWrapper ? fieldWrapper.getBoundingClientRect() : rect;
+      topPosition = wrapperRect.top + wrapperRect.height / 2;
+      // The add button is the middle button, so we need to position relative to it
+      leftPosition = rect.left - 188; // 180px width + 8px gap
+      dropdown.style.transform = 'scale(0.95) translateY(-50%) translateX(10px)';
+    }
+
+    // Ensure dropdown stays within viewport
+    const adjustedLeft = Math.max(10, leftPosition);
+
+    // Set initial position
+    dropdown.style.top = topPosition + 'px';
+    dropdown.style.left = adjustedLeft + 'px';
 
     dropdown.innerHTML = `
       ${Object.keys(fieldTypeLabels)
         .map(
           type =>
-            `<div class="add-field-option" data-type="${type}" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.15s ease;">
-          <i class="hgi hgi-stroke ${fieldIcons[type]}" icon-size="small" icon-color="black" style="margin-right: 8px;"></i>
+            `<div class="field-type-option" data-type="${type}" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.15s ease; color: #1a1a1a;">
+          <i class="hgi hgi-stroke ${fieldIcons[type]}" icon-size="small" icon-color="black" style="margin-right: 8px; color: #000;"></i>
           <span style="font-size: 13px; font-weight: 400; letter-spacing: -0.01em; color: #1a1a1a;">${fieldTypeLabels[type]}</span>
         </div>`
         )
@@ -1092,7 +1112,7 @@ window.initFormBuilder = async function () {
     `;
 
     // Add hover effects to options
-    dropdown.querySelectorAll('.add-field-option').forEach(option => {
+    dropdown.querySelectorAll('.field-type-option').forEach(option => {
       option.addEventListener('mouseenter', () => {
         option.style.backgroundColor = '#f5f5f5';
       });
@@ -1107,15 +1127,30 @@ window.initFormBuilder = async function () {
     // Trigger animation
     requestAnimationFrame(() => {
       dropdown.style.opacity = '1';
-      dropdown.style.transform = 'scale(1) translateY(-50%)';
+      if (fieldWrapper && fieldWrapper.classList.contains('empty-field-wrapper')) {
+        dropdown.style.transform = 'scale(1) translateX(0)';
+      } else {
+        dropdown.style.transform = 'scale(1) translateY(-50%) translateX(0)';
+      }
     });
 
     // Add click handlers
-    dropdown.querySelectorAll('.add-field-option').forEach(option => {
+    dropdown.querySelectorAll('.field-type-option').forEach(option => {
       option.addEventListener('click', e => {
         e.stopPropagation();
-        const type = e.target.closest('.add-field-option').getAttribute('data-type');
+        const type = e.target.closest('.field-type-option').getAttribute('data-type');
         v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
+
+        // Hide the dropdown after selection
+        dropdown.style.opacity = '0';
+        dropdown.style.transform = fieldWrapper && fieldWrapper.classList.contains('empty-field-wrapper') ? 'scale(0.95) translateX(10px)' : 'scale(0.95) translateY(-50%) translateX(10px)';
+        setTimeout(() => {
+          dropdown.remove();
+        }, 150);
+        if (fieldWrapper) {
+          fieldWrapper.classList.remove('controls-active');
+        }
+
         renderFormPreview();
       });
     });
@@ -1125,7 +1160,7 @@ window.initFormBuilder = async function () {
       // Only close if clicking outside the dropdown and button
       if (!dropdown.contains(e.target) && !buttonElement.contains(e.target)) {
         dropdown.style.opacity = '0';
-        dropdown.style.transform = 'scale(0.95) translateY(-50%)';
+        dropdown.style.transform = fieldWrapper && fieldWrapper.classList.contains('empty-field-wrapper') ? 'scale(0.95) translateX(10px)' : 'scale(0.95) translateY(-50%) translateX(10px)';
         setTimeout(() => {
           dropdown.remove();
         }, 150);
