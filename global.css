@@ -292,10 +292,10 @@ textarea {
 
 /* secondary navbar nav items inbox/datasources */
 
-.list-item.selected {
+/* .list-item.selected {
   background-color: #f3f3f3;
   border-color: #f3f3ff;
-}
+} */
 .list-item.selected:hover {
   background-color: #f7f7f7;
   border-color: #f3f3ff;

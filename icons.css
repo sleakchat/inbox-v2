@@ -56,7 +56,7 @@
 }
 
 [icon-color='purple-grad'] {
-  background: linear-gradient(60deg, #a689e6, #754ad4);
+  background: linear-gradient(60deg, #ae92ea, #754ad4);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -72,7 +72,7 @@
 }
 
 [icon-color='green-grad'] {
-  background: linear-gradient(60deg, #00b300, #008000);
+  background: linear-gradient(60deg, #8af059, #3bc14d);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
