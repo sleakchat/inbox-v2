@@ -502,9 +502,9 @@ window.initFormBuilder = async function () {
             const option = document.createElement('div');
             option.style.display = 'flex';
             option.style.alignItems = 'center';
-            option.style.padding = '8px 12px';
+            option.style.padding = '6px 12px';
             option.style.cursor = 'pointer';
-            option.style.borderRadius = '6px';
+            option.style.borderRadius = '8px';
             option.style.transition = 'background-color 0.15s ease';
             option.style.color = '#1a1a1a';
 
@@ -517,7 +517,7 @@ window.initFormBuilder = async function () {
             });
 
             const text = document.createElement('span');
-            text.textContent = 'Verplicht';
+            text.textContent = 'Vereist';
             text.style.fontSize = '13px';
             text.style.fontWeight = '400';
             text.style.letterSpacing = '-0.01em';
@@ -538,6 +538,17 @@ window.initFormBuilder = async function () {
               v.formBuilderConfig.fields[idx].required = checkbox.checked;
             });
 
+            // Make the entire option clickable
+            option.addEventListener('click', e => {
+              // Don't toggle if clicking directly on the checkbox or its label
+              if (!e.target.closest('.toggle-container')) {
+                checkbox.checked = !checkbox.checked;
+                v.formBuilderConfig.fields[idx].required = checkbox.checked;
+                // Trigger change event for any listeners
+                checkbox.dispatchEvent(new Event('change'));
+              }
+            });
+
             option.appendChild(text);
             option.appendChild(toggleContainer);
             popover.appendChild(option);
@@ -555,12 +566,17 @@ window.initFormBuilder = async function () {
 
             // Close popover when clicking outside
             setTimeout(() => {
-              document.addEventListener('click', function closePopover(e) {
+              const closePopoverHandler = function (e) {
+                // Don't close if clicking inside the popover or on the drag handle
                 if (!popover.contains(e.target) && !dragHandle.contains(e.target)) {
                   closeAllDropdowns();
-                  document.removeEventListener('click', closePopover);
+                  document.removeEventListener('click', closePopoverHandler);
                 }
-              });
+              };
+              document.addEventListener('click', closePopoverHandler);
+
+              // Store the handler on the popover element so we can remove it later
+              popover._closeHandler = closePopoverHandler;
             }, 0);
           }, 150);
         }
@@ -1207,6 +1223,10 @@ window.initFormBuilder = async function () {
     // Close any existing settings popover
     const existingPopover = document.querySelector('.field-settings-popover');
     if (existingPopover) {
+      // Remove the click handler if it exists
+      if (existingPopover._closeHandler) {
+        document.removeEventListener('click', existingPopover._closeHandler);
+      }
       existingPopover.style.opacity = '0';
       existingPopover.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
       setTimeout(() => {
