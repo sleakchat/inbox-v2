@@ -12,48 +12,55 @@ window.initFormBuilder = async function () {
   if (isLocalhost) {
     window.v = window.v || {};
     v = window.v;
+    v.formInitialized = true;
     v.formBuilderConfig = v.formBuilderConfig || {
-      formId: 'form_12345',
-      formTitle: 'Genereer een lead',
-      createdAt: '2024-01-10T14:30:00Z',
-      updatedAt: '2024-01-10T15:45:00Z',
+      title: 'Genereer een lead',
+      on_submit: 'webhook',
+      success_message: 'Retour succesvol aangemaakt',
+      disable_airesponse: true,
       fields: [
         {
           id: 'field_1',
-          type: 'phone',
-          label: 'Phone',
-          position: 0
+          type: 'email',
+          label: 'E-mail',
+          required: true,
+          position: 1
         },
         {
           id: 'field_2',
-          type: 'email',
-          label: 'Email',
-          position: 1
+          type: 'phone',
+          label: 'Telefoon',
+          required: true,
+          position: 0
         },
         {
           id: 'field_3',
           type: 'singleline',
-          label: 'Single line',
+          label: 'Text',
+          required: true,
           position: 2
         },
         {
           id: 'field_4',
           type: 'multiline',
-          label: 'Multi line',
+          label: 'Meerdere regels',
+          required: true,
           position: 3
         },
         {
           id: 'field_5',
           type: 'singleselect',
-          label: 'Single select',
-          options: ['Option 1', 'Option 2'],
+          label: 'Meerkeuze',
+          options: ['Optie 1', 'Optie 2'],
           displayType: 'cards',
+          required: true,
           position: 4
         },
         {
           id: 'field_6',
           type: 'file',
-          label: 'File',
+          label: 'Bestand',
+          required: true,
           position: 5
         }
       ]
@@ -61,7 +68,7 @@ window.initFormBuilder = async function () {
   } else {
     defineWizedVariables();
     v = window.v;
-    console.log('🔲 v.formConfig', v.useraAvailabilitySchedule);
+    v.formInitialized = true;
   }
 
   let selectedFieldIndex = -1;
@@ -69,21 +76,21 @@ window.initFormBuilder = async function () {
   let draggedFieldIndex = null;
 
   const fieldTypeLabels = {
-    phone: 'Phone',
-    email: 'Email',
-    singleline: 'Single line',
-    multiline: 'Multi line',
-    singleselect: 'Single select',
-    file: 'File'
+    singleline: 'Text',
+    multiline: 'Meerdere regels',
+    phone: 'Telefoon',
+    email: 'E-mail',
+    singleselect: 'Meerkeuze',
+    file: 'Bestand'
   };
 
   const fieldDefaults = {
-    phone: () => ({ type: 'phone', label: 'Phone' }),
-    email: () => ({ type: 'email', label: 'Email' }),
-    singleline: () => ({ type: 'singleline', label: 'Single line' }),
-    multiline: () => ({ type: 'multiline', label: 'Multi line' }),
-    singleselect: () => ({ type: 'singleselect', label: 'Single select', options: ['Option 1', 'Option 2'], displayType: 'cards' }),
-    file: () => ({ type: 'file', label: 'File' })
+    phone: () => ({ type: 'phone', label: 'Telefoon', required: false }),
+    email: () => ({ type: 'email', label: 'E-mail', required: false }),
+    singleline: () => ({ type: 'singleline', label: 'Text', required: false }),
+    multiline: () => ({ type: 'multiline', label: 'Meerdere regels', required: false }),
+    singleselect: () => ({ type: 'singleselect', label: 'Meerkeuze', options: ['Optie 1', 'Optie 2'], displayType: 'cards', required: false }),
+    file: () => ({ type: 'file', label: 'Bestand', required: false })
   };
 
   function createSettingsPopover(fieldIndex, fieldElement) {
@@ -175,7 +182,7 @@ window.initFormBuilder = async function () {
   }
 
   function addFieldOption(fieldIndex) {
-    v.formBuilderConfig.fields[fieldIndex].options.push('New option');
+    v.formBuilderConfig.fields[fieldIndex].options.push('Nieuwe optie');
     renderFormPreview();
   }
 
@@ -258,8 +265,28 @@ window.initFormBuilder = async function () {
     return addFieldEl;
   }
 
-  function renderFormPreview() {
+  window.renderFormPreview = function () {
+    // Sync the closure v with window.v if it exists
+    if (window.v && window.v.formBuilderConfig) {
+      v = window.v;
+    }
+
     const main = document.querySelector('.form-builder-main');
+    if (!main) {
+      console.error('form-builder-main element not found');
+      return;
+    }
+
+    if (!v.formBuilderConfig) {
+      console.error('formBuilderConfig is undefined');
+      return;
+    }
+
+    if (!v.formBuilderConfig.fields) {
+      console.error('formBuilderConfig.fields is undefined');
+      return;
+    }
+
     main.innerHTML = '';
 
     // Editable form title (Tally-style)
@@ -303,6 +330,13 @@ window.initFormBuilder = async function () {
       titleEditIcon.style.color = '#a1a1aa';
     });
 
+    // Select all text when clicking the edit icon
+    titleEditIcon.addEventListener('click', e => {
+      e.preventDefault();
+      titleInput.focus();
+      titleInput.select();
+    });
+
     // Show/hide icon on hover
     titleWrapper.addEventListener('mouseenter', () => {
       titleEditIcon.style.opacity = '1';
@@ -316,7 +350,7 @@ window.initFormBuilder = async function () {
 
     const titleInput = document.createElement('input');
     titleInput.type = 'text';
-    titleInput.value = v.formBuilderConfig.formTitle;
+    titleInput.value = v.formBuilderConfig.title || 'Naamloos formulier';
     titleInput.className = 'form-title-input';
     titleInput.setAttribute('aria-label', 'Form title');
     titleInput.setAttribute('maxlength', '80');
@@ -328,8 +362,8 @@ window.initFormBuilder = async function () {
     // Style to look like plain text
     titleInput.style.border = 'none';
     titleInput.style.background = 'none';
-    titleInput.style.fontSize = '1.7rem';
-    titleInput.style.fontWeight = '700';
+    titleInput.style.fontSize = '1.5rem';
+    titleInput.style.fontWeight = '600';
     titleInput.style.color = '#18181b';
     titleInput.style.outline = 'none';
     titleInput.style.padding = '0';
@@ -343,12 +377,12 @@ window.initFormBuilder = async function () {
     titleInput.style.caretColor = '#18181b';
     titleInput.style.textAlign = 'left';
     titleInput.style.cursor = 'text';
-    titleInput.style.marginBottom = '20px';
+    titleInput.style.marginBottom = '4px';
 
     // Update config and resize input
     function commitTitleEdit() {
-      v.formBuilderConfig.formTitle = titleInput.value.trim() || 'Untitled form';
-      titleInput.value = v.formBuilderConfig.formTitle;
+      v.formBuilderConfig.title = titleInput.value.trim() || 'Naamloos formulier';
+      titleInput.value = v.formBuilderConfig.title;
       titleInput.style.width = titleInput.value.length + 2 + 'ch';
       renderFormPreview();
     }
@@ -366,11 +400,18 @@ window.initFormBuilder = async function () {
     titleWrapper.appendChild(titleInput);
     main.appendChild(titleWrapper);
 
+    console.log('Added title to main');
+    console.log('Number of fields:', v.formBuilderConfig.fields.length);
+
     // On page load, do NOT overwrite field.label if it already exists in the config
     // Only set label if it is missing or empty
     v.formBuilderConfig.fields.forEach(field => {
       if (typeof field.label !== 'string' || field.label.trim() === '') {
-        field.label = fieldTypeLabels[field.type] || 'Field';
+        field.label = fieldTypeLabels[field.type] || 'Veld';
+      }
+      // Ensure required property exists
+      if (typeof field.required !== 'boolean') {
+        field.required = false;
       }
     });
 
@@ -422,92 +463,106 @@ window.initFormBuilder = async function () {
         if (!dragStarted) {
           e.stopPropagation();
 
-          closeAllDropdowns();
+          const existingPopover = dragHandle.closest('.form-field-controls').querySelector('.field-settings-popover');
+          if (existingPopover) {
+            closeAllDropdowns();
+            return;
+          }
 
-          const popover = document.createElement('div');
-          popover.className = 'field-settings-popover';
-          popover.style.position = 'absolute';
-          popover.style.background = '#ffffff';
-          popover.style.border = 'none';
-          popover.style.borderRadius = '8px';
-          popover.style.padding = '0';
-          popover.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)';
-          popover.style.zIndex = '1000';
-          popover.style.minWidth = '180px';
-          popover.style.fontSize = '13px';
-          popover.style.opacity = '0';
-          popover.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
-          popover.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
-          popover.style.transformOrigin = 'right center';
-
-          // Position to the left of the drag handle
-          popover.style.top = '50%';
-          popover.style.right = '100%';
-          popover.style.marginRight = '8px';
-
-          const label = document.createElement('label');
-          label.style.display = 'flex';
-          label.style.alignItems = 'center';
-          label.style.justifyContent = 'space-between';
-          label.style.padding = '10px 12px';
-          label.style.cursor = 'pointer';
-          label.style.color = '#1a1a1a';
-          label.style.borderRadius = '8px';
-          label.style.transition = 'background-color 0.15s ease';
-          label.style.margin = '0';
-
-          // Add hover effect
-          label.addEventListener('mouseenter', () => {
-            label.style.backgroundColor = '#f5f5f5';
-          });
-          label.addEventListener('mouseleave', () => {
-            label.style.backgroundColor = 'transparent';
-          });
-
-          const text = document.createElement('span');
-          text.textContent = 'Required';
-          text.style.fontSize = '13px';
-          text.style.fontWeight = '400';
-          text.style.letterSpacing = '-0.01em';
-
-          // Create toggle container with exact HTML structure
-          const toggleContainer = document.createElement('div');
-          toggleContainer.className = 'toggle-container smalltoggle';
-          toggleContainer.innerHTML = `
-            <input type="checkbox" id="field-required-${idx}" class="checkbox-default-small" ${field.required ? 'checked' : ''}>
-            <label for="field-required-${idx}" class="toggle-label-small micro">
-              <div class="checkbox-toggle-dot micro"></div>
-            </label>
-          `;
-
-          const checkbox = toggleContainer.querySelector('input');
-          checkbox.addEventListener('change', () => {
-            v.formBuilderConfig.fields[idx].required = checkbox.checked;
-          });
-
-          label.appendChild(text);
-          label.appendChild(toggleContainer);
-          popover.appendChild(label);
-
-          // Append to controls div
-          const controls = dragHandle.closest('.form-field-controls');
-          controls.appendChild(popover);
-
-          // Trigger animation
-          requestAnimationFrame(() => {
-            popover.style.opacity = '1';
-            popover.style.transform = 'translateY(-50%) scale(1) translateX(0)';
-          });
-
-          // Close popover when clicking outside
           setTimeout(() => {
-            document.addEventListener('click', function closePopover(e) {
-              if (!popover.contains(e.target) && !dragHandle.contains(e.target)) {
-                closeAllDropdowns();
-                document.removeEventListener('click', closePopover);
-              }
+            closeAllDropdowns();
+
+            const fieldWrapper = dragHandle.closest('.form-field-wrapper');
+            if (fieldWrapper) {
+              fieldWrapper.classList.add('controls-active');
+            }
+
+            const popover = document.createElement('div');
+            popover.className = 'field-settings-popover';
+            popover.style.position = 'absolute';
+            popover.style.background = '#ffffff';
+            popover.style.border = 'none';
+            popover.style.borderRadius = '12px';
+            popover.style.padding = '4px';
+            popover.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)';
+            popover.style.zIndex = '1000';
+            popover.style.minWidth = '180px';
+            popover.style.fontSize = '13px';
+            popover.style.opacity = '0';
+            popover.style.pointerEvents = 'auto';
+
+            // Position to the left of the drag handle
+            popover.style.top = '50%';
+            popover.style.right = '100%';
+            popover.style.marginRight = '8px';
+
+            // Set initial transform state without transition
+            popover.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
+
+            const option = document.createElement('div');
+            option.style.display = 'flex';
+            option.style.alignItems = 'center';
+            option.style.padding = '8px 12px';
+            option.style.cursor = 'pointer';
+            option.style.borderRadius = '6px';
+            option.style.transition = 'background-color 0.15s ease';
+            option.style.color = '#1a1a1a';
+
+            // Add hover effect
+            option.addEventListener('mouseenter', () => {
+              option.style.backgroundColor = '#f5f5f5';
             });
-          }, 0);
+            option.addEventListener('mouseleave', () => {
+              option.style.backgroundColor = 'transparent';
+            });
+
+            const text = document.createElement('span');
+            text.textContent = 'Verplicht';
+            text.style.fontSize = '13px';
+            text.style.fontWeight = '400';
+            text.style.letterSpacing = '-0.01em';
+            text.style.marginRight = 'auto';
+
+            // Create toggle container with exact HTML structure
+            const toggleContainer = document.createElement('div');
+            toggleContainer.className = 'toggle-container smalltoggle';
+            toggleContainer.innerHTML = `
+              <input type="checkbox" id="field-required-${idx}" class="checkbox-default-small" ${field.required ? 'checked' : ''}>
+              <label for="field-required-${idx}" class="toggle-label-small micro">
+                <div class="checkbox-toggle-dot micro"></div>
+              </label>
+            `;
+
+            const checkbox = toggleContainer.querySelector('input');
+            checkbox.addEventListener('change', () => {
+              v.formBuilderConfig.fields[idx].required = checkbox.checked;
+            });
+
+            option.appendChild(text);
+            option.appendChild(toggleContainer);
+            popover.appendChild(option);
+
+            // Append to controls div
+            const controls = dragHandle.closest('.form-field-controls');
+            controls.appendChild(popover);
+
+            // Enable transitions after initial state is set
+            setTimeout(() => {
+              popover.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+              popover.style.opacity = '1';
+              popover.style.transform = 'translateY(-50%) scale(1) translateX(0)';
+            }, 50);
+
+            // Close popover when clicking outside
+            setTimeout(() => {
+              document.addEventListener('click', function closePopover(e) {
+                if (!popover.contains(e.target) && !dragHandle.contains(e.target)) {
+                  closeAllDropdowns();
+                  document.removeEventListener('click', closePopover);
+                }
+              });
+            }, 0);
+          }, 150);
         }
         dragStarted = false;
       });
@@ -611,7 +666,7 @@ window.initFormBuilder = async function () {
       labelInput.style.cursor = 'text';
 
       function commitLabelEdit() {
-        v.formBuilderConfig.fields[idx].label = labelInput.value.trim() || fieldTypeLabels[field.type] || 'Field';
+        v.formBuilderConfig.fields[idx].label = labelInput.value.trim() || fieldTypeLabels[field.type] || 'Veld';
         renderFormPreview();
       }
       labelInput.addEventListener('blur', commitLabelEdit);
@@ -707,7 +762,7 @@ window.initFormBuilder = async function () {
 
             // Function to add new option
             const addNewOption = () => {
-              v.formBuilderConfig.fields[idx].options.push('New option');
+              v.formBuilderConfig.fields[idx].options.push('Nieuwe optie');
               renderFormPreview();
             };
 
@@ -772,7 +827,7 @@ window.initFormBuilder = async function () {
               });
 
               deleteBtn.addEventListener('mouseenter', () => {
-                deleteBtn.style.backgroundColor = '#f3f3f3';
+                deleteBtn.style.backgroundColor = '#E4E4E7';
                 deleteBtn.style.color = '#a1a1aa';
               });
 
@@ -816,7 +871,7 @@ window.initFormBuilder = async function () {
               optionInput.style.background = 'none';
               optionInput.style.fontSize = '14px';
               optionInput.style.fontWeight = '400';
-              optionInput.style.color = '#0a0a0a';
+              optionInput.style.color = opt === 'Nieuwe optie' ? '#E4E4E7' : '#0a0a0a';
               optionInput.style.outline = 'none';
               optionInput.style.padding = '0';
               optionInput.style.margin = '0';
@@ -844,7 +899,7 @@ window.initFormBuilder = async function () {
                 measurer.style.fontWeight = optionInput.style.fontWeight;
                 measurer.style.fontFamily = optionInput.style.fontFamily;
                 measurer.style.letterSpacing = optionInput.style.letterSpacing;
-                measurer.textContent = optionInput.value || 'Option';
+                measurer.textContent = optionInput.value || 'Optie';
 
                 document.body.appendChild(measurer);
                 const width = measurer.offsetWidth;
@@ -858,19 +913,43 @@ window.initFormBuilder = async function () {
               resizeOptionInput();
 
               function commitOptionEdit() {
-                v.formBuilderConfig.fields[idx].options[optIdx] = optionInput.value.trim() || 'Option';
-                renderFormPreview();
+                v.formBuilderConfig.fields[idx].options[optIdx] = optionInput.value.trim() || 'Optie';
+                // Use setTimeout to check after focus has moved
+                setTimeout(() => {
+                  const activeElement = document.activeElement;
+                  const isOptionInput = activeElement && activeElement.classList.contains('option-label-input');
+                  if (!isOptionInput) {
+                    renderFormPreview();
+                  }
+                }, 0);
               }
               optionInput.addEventListener('blur', commitOptionEdit);
               optionInput.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   optionInput.blur();
+                  renderFormPreview(); // Force render on Enter
                 }
               });
               optionInput.addEventListener('input', () => {
                 v.formBuilderConfig.fields[idx].options[optIdx] = optionInput.value;
+                // Update color based on content
+                optionInput.style.color = optionInput.value === 'Nieuwe optie' ? '#E4E4E7' : '#0a0a0a';
                 resizeOptionInput();
+              });
+
+              // Add focus event to change color when editing
+              optionInput.addEventListener('focus', () => {
+                if (optionInput.value === 'Nieuwe optie') {
+                  optionInput.style.color = '#0a0a0a';
+                }
+              });
+
+              // Add blur event to restore grey color if still default
+              optionInput.addEventListener('blur', () => {
+                if (optionInput.value === 'Nieuwe optie') {
+                  optionInput.style.color = '#E4E4E7';
+                }
               });
 
               optionCard.appendChild(indicatorContainer);
@@ -918,26 +997,32 @@ window.initFormBuilder = async function () {
               addOptionBtn.style.transform = 'translateY(-50%)';
             });
 
-            optionsContainer.appendChild(addOptionBtn);
-
-            // Show/hide add button on hover - include button in hover area
-            let hoverTimeout;
-
-            const showButton = () => {
-              clearTimeout(hoverTimeout);
+            // Show add button when hovering the field wrapper (not the option cards)
+            fieldWrapper.addEventListener('mouseenter', () => {
               addOptionBtn.style.display = 'flex';
-            };
+            });
 
-            const hideButton = () => {
-              hoverTimeout = setTimeout(() => {
-                addOptionBtn.style.display = 'none';
-              }, 100);
-            };
+            fieldWrapper.addEventListener('mouseleave', () => {
+              addOptionBtn.style.display = 'none';
+            });
 
-            optionsContainer.addEventListener('mouseenter', showButton);
-            optionsContainer.addEventListener('mouseleave', hideButton);
-            addOptionBtn.addEventListener('mouseenter', showButton);
-            addOptionBtn.addEventListener('mouseleave', hideButton);
+            // Hide add button when hovering any option card
+            field.options.forEach((opt, optIdx) => {
+              const optionCards = optionsContainer.querySelectorAll('.option-card');
+              if (optionCards[optIdx]) {
+                optionCards[optIdx].addEventListener('mouseenter', () => {
+                  addOptionBtn.style.display = 'none';
+                });
+                optionCards[optIdx].addEventListener('mouseleave', () => {
+                  // Only show again if still hovering the field wrapper
+                  if (fieldWrapper.matches(':hover')) {
+                    addOptionBtn.style.display = 'flex';
+                  }
+                });
+              }
+            });
+
+            optionsContainer.appendChild(addOptionBtn);
 
             fieldPreview.appendChild(optionsContainer);
           } else {
@@ -954,15 +1039,52 @@ window.initFormBuilder = async function () {
         case 'file':
           const fileBox = document.createElement('div');
           fileBox.className = 'file-upload-box';
-          fileBox.innerHTML = `
+
+          // Create default content
+          const defaultContent = document.createElement('div');
+          defaultContent.innerHTML = `
             <i class="hgi hgi-stroke hgi-upload-04 file-upload-icon" icon-size="xlarge" icon-color="black"></i>
-            Click to choose a file or drag here
+            Klik om een bestand te kiezen of sleep hier
           `;
-          const fileInput = document.createElement('input');
-          fileInput.type = 'file';
-          fileInput.style.display = 'none';
-          fileBox.appendChild(fileInput);
-          fileBox.addEventListener('click', () => fileInput.click());
+          defaultContent.style.transition = 'opacity 0.2s ease';
+
+          // Create hover warning content
+          const warningContent = document.createElement('div');
+          warningContent.innerHTML = `
+            <i class="hgi hgi-stroke hgi-information-circle" icon-size="xlarge" icon-color="black" style="margin-bottom: 8px; display: block; color: #71717a;"></i>
+            Let op: Alleen bruikbaar in widget formulier
+          `;
+          warningContent.style.position = 'absolute';
+          warningContent.style.top = '50%';
+          warningContent.style.left = '50%';
+          warningContent.style.transform = 'translate(-50%, -50%)';
+          warningContent.style.fontSize = '13px';
+          warningContent.style.color = '#71717a';
+          warningContent.style.fontWeight = '400';
+          warningContent.style.opacity = '0';
+          warningContent.style.transition = 'opacity 0.2s ease';
+          warningContent.style.textAlign = 'center';
+          warningContent.style.width = '100%';
+          warningContent.style.padding = '0 20px';
+
+          fileBox.appendChild(defaultContent);
+          fileBox.appendChild(warningContent);
+
+          // Just a visual element, no actual file input or functionality
+          fileBox.style.cursor = 'pointer';
+          fileBox.style.position = 'relative';
+
+          // Add hover effects
+          fileBox.addEventListener('mouseenter', () => {
+            defaultContent.style.opacity = '0';
+            warningContent.style.opacity = '1';
+          });
+
+          fileBox.addEventListener('mouseleave', () => {
+            defaultContent.style.opacity = '1';
+            warningContent.style.opacity = '0';
+          });
+
           fieldPreview.appendChild(fileBox);
           break;
         default:
@@ -996,23 +1118,81 @@ window.initFormBuilder = async function () {
 
     main.appendChild(emptyFieldWrapper);
 
-    // File upload drag effect
-    main.querySelectorAll('.file-upload-box').forEach(box => {
-      box.addEventListener('dragover', e => {
-        e.preventDefault();
-        box.classList.add('dragover');
-      });
-      box.addEventListener('dragleave', e => {
-        box.classList.remove('dragover');
-      });
-      box.addEventListener('drop', e => {
-        e.preventDefault();
-        box.classList.remove('dragover');
-        const input = box.querySelector('input[type="file"]');
-        input.files = e.dataTransfer.files;
-      });
+    // Add static "add new field" row at the bottom
+    const addFieldRow = document.createElement('div');
+    addFieldRow.className = 'form-field-wrapper add-field-row';
+    addFieldRow.style.marginTop = '8px';
+
+    // Add controls for the add field row
+    const addFieldControls = document.createElement('div');
+    addFieldControls.className = 'form-field-controls';
+    addFieldControls.style.opacity = '0';
+    addFieldControls.innerHTML = `
+      <div class="left-controls" style="display: flex; gap: 4px; padding-left: 7px; pointer-events: auto;">
+        <button class="field-control-btn field-add-btn" onclick="showAddFieldDropdown(${v.formBuilderConfig.fields.length}, this)">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="right-controls" style="padding-right: 7px; pointer-events: auto;">
+        <!-- Empty right controls for alignment -->
+      </div>
+    `;
+    addFieldRow.appendChild(addFieldControls);
+
+    // Create the field preview container
+    const addFieldPreview = document.createElement('div');
+    addFieldPreview.className = 'form-field-preview';
+    addFieldPreview.style.height = '36px';
+    addFieldPreview.style.display = 'flex';
+    addFieldPreview.style.alignItems = 'center';
+    addFieldPreview.style.justifyContent = 'center';
+    addFieldPreview.style.cursor = 'pointer';
+    addFieldPreview.style.transition = 'background-color 0.2s ease';
+    addFieldPreview.style.borderRadius = '8px';
+
+    // Create the content container
+    const addFieldContent = document.createElement('div');
+    addFieldContent.style.display = 'flex';
+    addFieldContent.style.alignItems = 'center';
+    addFieldContent.style.gap = '8px';
+    addFieldContent.style.opacity = '0';
+    addFieldContent.style.transition = 'opacity 0.2s ease';
+
+    // Add text (without plus icon)
+    const addFieldText = document.createElement('span');
+    addFieldText.textContent = 'Voeg nieuw veld toe';
+    addFieldText.style.fontSize = '13px';
+    addFieldText.style.color = '#71717a';
+    addFieldText.style.fontWeight = '400';
+
+    addFieldContent.appendChild(addFieldText);
+    addFieldPreview.appendChild(addFieldContent);
+
+    // Add hover effects
+    addFieldRow.addEventListener('mouseenter', () => {
+      addFieldPreview.style.backgroundColor = '#fafafa';
+      addFieldContent.style.opacity = '1';
+      addFieldControls.style.opacity = '1';
     });
-  }
+
+    addFieldRow.addEventListener('mouseleave', () => {
+      addFieldPreview.style.backgroundColor = 'transparent';
+      addFieldContent.style.opacity = '0';
+      addFieldControls.style.opacity = '0';
+    });
+
+    // Add click handler to the preview area
+    addFieldPreview.addEventListener('click', e => {
+      e.stopPropagation();
+      const addBtn = addFieldControls.querySelector('.field-add-btn');
+      showAddFieldDropdown(v.formBuilderConfig.fields.length, addBtn);
+    });
+
+    addFieldRow.appendChild(addFieldPreview);
+    main.appendChild(addFieldRow);
+  };
 
   function closeAllDropdowns() {
     // Close any existing dropdown
@@ -1041,112 +1221,123 @@ window.initFormBuilder = async function () {
 
   // Function to show add field dropdown from field controls
   function showAddFieldDropdown(insertIndex, buttonElement) {
-    closeAllDropdowns();
-
-    const fieldIcons = {
-      phone: 'hgi-call-02',
-      email: 'hgi-mail-01',
-      singleline: 'hgi-text-font',
-      multiline: 'hgi-menu-02',
-      singleselect: 'hgi-checkmark-square-03',
-      file: 'hgi-attachment'
-    };
-
-    // Get the field wrapper and add controls-active class
-    const fieldWrapper = buttonElement.closest('.form-field-wrapper');
-    if (fieldWrapper) {
-      fieldWrapper.classList.add('controls-active');
+    // If dropdown is already open and attached to this button, close it
+    const existingDropdown = buttonElement.closest('.form-field-controls').querySelector('.field-type-dropdown');
+    if (existingDropdown) {
+      closeAllDropdowns();
+      return;
     }
 
-    // Create dropdown
-    const dropdown = document.createElement('div');
-    dropdown.className = 'field-type-dropdown';
-    dropdown.style.position = 'absolute';
-    dropdown.style.display = 'block';
-    dropdown.style.background = '#ffffff';
-    dropdown.style.border = 'none';
-    dropdown.style.borderRadius = '8px';
-    dropdown.style.padding = '4px';
-    dropdown.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)';
-    dropdown.style.zIndex = '1000';
-    dropdown.style.minWidth = '180px';
-    dropdown.style.fontSize = '13px';
-    dropdown.style.opacity = '0';
-    dropdown.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
-    dropdown.style.transformOrigin = 'right center';
-    dropdown.style.pointerEvents = 'auto';
-
-    // Position to the left of the add button
-    dropdown.style.top = '50%';
-    dropdown.style.right = '100%';
-    dropdown.style.marginRight = '8px';
-    dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
-
-    dropdown.innerHTML = `
-      ${Object.keys(fieldTypeLabels)
-        .map(
-          type =>
-            `<div class="field-type-option" data-type="${type}" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.15s ease; color: #1a1a1a;">
-          <i class="hgi hgi-stroke ${fieldIcons[type]}" icon-size="small" icon-color="black" style="margin-right: 8px; color: #000;"></i>
-          <span style="font-size: 13px; font-weight: 400; letter-spacing: -0.01em; color: #1a1a1a;">${fieldTypeLabels[type]}</span>
-        </div>`
-        )
-        .join('')}
-    `;
-
-    // Add hover effects to options
-    dropdown.querySelectorAll('.field-type-option').forEach(option => {
-      option.addEventListener('mouseenter', () => {
-        option.style.backgroundColor = '#f5f5f5';
-      });
-      option.addEventListener('mouseleave', () => {
-        option.style.backgroundColor = 'transparent';
-      });
-    });
-
-    // Append to controls div instead of field wrapper
-    const controls = buttonElement.closest('.form-field-controls');
-    controls.appendChild(dropdown);
-
-    // Trigger animation
-    requestAnimationFrame(() => {
-      dropdown.style.opacity = '1';
-      dropdown.style.transform = 'translateY(-50%) scale(1) translateX(0)';
-    });
-
-    // Add click handlers
-    dropdown.querySelectorAll('.field-type-option').forEach(option => {
-      option.addEventListener('click', e => {
-        e.stopPropagation();
-        const type = e.target.closest('.field-type-option').getAttribute('data-type');
-        v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
-
-        // Hide the dropdown with animation
-        dropdown.style.opacity = '0';
-        dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
-        setTimeout(() => {
-          dropdown.remove();
-          if (fieldWrapper) {
-            fieldWrapper.classList.remove('controls-active');
-          }
-          renderFormPreview();
-        }, 150);
-      });
-    });
-
-    // Setup global click handler to close dropdown
-    function handleGlobalClick(e) {
-      // Only close if clicking outside the dropdown and button
-      if (!dropdown.contains(e.target) && !buttonElement.contains(e.target)) {
-        closeAllDropdowns();
-        document.removeEventListener('click', handleGlobalClick);
-      }
-    }
-
-    // Add the global click handler with a small delay to prevent immediate closing
+    // Ensure any ongoing close animations are completed
     setTimeout(() => {
-      document.addEventListener('click', handleGlobalClick);
-    }, 0);
+      closeAllDropdowns();
+
+      const fieldIcons = {
+        phone: 'hgi-call-02',
+        email: 'hgi-mail-01',
+        singleline: 'hgi-text-font',
+        multiline: 'hgi-menu-02',
+        singleselect: 'hgi-checkmark-square-03',
+        file: 'hgi-attachment'
+      };
+
+      // Get the field wrapper and add controls-active class
+      const fieldWrapper = buttonElement.closest('.form-field-wrapper');
+      if (fieldWrapper) {
+        fieldWrapper.classList.add('controls-active');
+      }
+
+      // Create dropdown
+      const dropdown = document.createElement('div');
+      dropdown.className = 'field-type-dropdown';
+      dropdown.style.position = 'absolute';
+      dropdown.style.display = 'block';
+      dropdown.style.background = '#ffffff';
+      dropdown.style.border = 'none';
+      dropdown.style.borderRadius = '12px';
+      dropdown.style.padding = '4px';
+      dropdown.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)';
+      dropdown.style.zIndex = '1000';
+      dropdown.style.minWidth = '180px';
+      dropdown.style.fontSize = '13px';
+      dropdown.style.opacity = '0';
+      dropdown.style.pointerEvents = 'auto';
+
+      // Position to the left of the add button
+      dropdown.style.top = '50%';
+      dropdown.style.right = '100%';
+      dropdown.style.marginRight = '8px';
+
+      // Set initial transform state without transition
+      dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
+
+      dropdown.innerHTML = `
+        ${Object.keys(fieldTypeLabels)
+          .map(
+            type =>
+              `<div class="field-type-option" data-type="${type}" style="display: flex; align-items: center; padding: 6px 8px; cursor: pointer; border-radius: 8px; transition: background-color 0.15s ease; color: #1a1a1a;">
+            <i class="hgi hgi-stroke ${fieldIcons[type]}" icon-size="small" icon-color="black" style="margin-right: 8px; color: #000;"></i>
+            <span style="font-size: 13px; font-weight: 400; letter-spacing: -0.01em; color: #1a1a1a;">${fieldTypeLabels[type]}</span>
+          </div>`
+          )
+          .join('')}
+      `;
+
+      // Add hover effects to options
+      dropdown.querySelectorAll('.field-type-option').forEach(option => {
+        option.addEventListener('mouseenter', () => {
+          option.style.backgroundColor = '#f5f5f5';
+        });
+        option.addEventListener('mouseleave', () => {
+          option.style.backgroundColor = 'transparent';
+        });
+      });
+
+      // Append to controls div
+      const controls = buttonElement.closest('.form-field-controls');
+      controls.appendChild(dropdown);
+
+      // Enable transitions after initial state is set
+      setTimeout(() => {
+        dropdown.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+        dropdown.style.opacity = '1';
+        dropdown.style.transform = 'translateY(-50%) scale(1) translateX(0)';
+      }, 50);
+
+      // Add click handlers for closing
+      dropdown.querySelectorAll('.field-type-option').forEach(option => {
+        option.addEventListener('click', e => {
+          e.stopPropagation();
+          const type = e.target.closest('.field-type-option').getAttribute('data-type');
+          v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
+
+          // Hide the dropdown with animation
+          dropdown.style.opacity = '0';
+          dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
+          setTimeout(() => {
+            dropdown.remove();
+            if (fieldWrapper) {
+              fieldWrapper.classList.remove('controls-active');
+            }
+            renderFormPreview();
+          }, 150);
+        });
+      });
+
+      // Setup global click handler to close dropdown
+      function handleGlobalClick(e) {
+        // Only close if clicking outside the dropdown and button
+        if (!dropdown.contains(e.target) && !buttonElement.contains(e.target)) {
+          closeAllDropdowns();
+          document.removeEventListener('click', handleGlobalClick);
+        }
+      }
+
+      // Add the global click handler with a delay to prevent immediate closing
+      setTimeout(() => {
+        document.addEventListener('click', handleGlobalClick);
+      }, 0);
+    }, 150); // Wait for any ongoing close animations
   }
 
   // Make showAddFieldDropdown global
@@ -1172,6 +1363,23 @@ window.initFormBuilder = async function () {
 
   renderFormPreview();
 
+  // Function to update form config and re-render
+  window.updateFormBuilderConfig = function (newConfig) {
+    if (!newConfig) {
+      console.error('No config provided to updateFormBuilderConfig');
+      return;
+    }
+
+    // Ensure we're updating the same v reference
+    if (window.v) {
+      window.v.formBuilderConfig = newConfig;
+    }
+    v.formBuilderConfig = newConfig;
+
+    // Re-render the form
+    window.renderFormPreview();
+  };
+
   // Export the current form config as JSON
   function exportFormConfig() {
     return JSON.stringify(
@@ -1195,9 +1403,9 @@ window.initFormBuilder = async function () {
     const indicator = document.createElement('div');
     indicator.className = 'drop-indicator';
     indicator.style.height = '2px';
-    indicator.style.background = '#0a0a0a';
+    indicator.style.background = '#B9B9B9';
     indicator.style.margin = '4px 0';
-    indicator.style.borderRadius = '1px';
+    indicator.style.borderRadius = '99px';
     indicator.style.transition = 'all 0.2s';
     return indicator;
   }
