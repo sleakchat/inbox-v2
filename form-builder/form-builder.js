@@ -93,6 +93,32 @@ window.initFormBuilder = async function () {
     file: () => ({ type: 'file', label: 'Bestand', required: false })
   };
 
+  // Function to ensure all fields have proper id and position
+  function ensureFieldIntegrity() {
+    if (!v.formBuilderConfig || !v.formBuilderConfig.fields) return;
+
+    // Ensure each field has an id and update positions
+    v.formBuilderConfig.fields.forEach((field, index) => {
+      // If field doesn't have an id, generate one
+      if (!field.id) {
+        // Find the highest existing field id number
+        let maxId = 0;
+        v.formBuilderConfig.fields.forEach(f => {
+          if (f.id && f.id.startsWith('field_')) {
+            const num = parseInt(f.id.replace('field_', ''));
+            if (!isNaN(num) && num > maxId) {
+              maxId = num;
+            }
+          }
+        });
+        field.id = `field_${maxId + 1}`;
+      }
+
+      // Always update position to match current index
+      field.position = index;
+    });
+  }
+
   function createSettingsPopover(fieldIndex, fieldElement) {
     const field = v.formBuilderConfig.fields[fieldIndex];
 
@@ -193,6 +219,7 @@ window.initFormBuilder = async function () {
 
   function deleteField(fieldIndex) {
     v.formBuilderConfig.fields.splice(fieldIndex, 1);
+    ensureFieldIntegrity(); // Ensure all fields have proper id and position
     hideSettingsPopover();
     renderFormPreview();
   }
@@ -258,6 +285,7 @@ window.initFormBuilder = async function () {
         e.stopPropagation();
         const type = e.target.closest('.add-field-option').getAttribute('data-type');
         v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
+        ensureFieldIntegrity(); // Ensure all fields have proper id and position
         renderFormPreview();
       });
     });
@@ -270,6 +298,9 @@ window.initFormBuilder = async function () {
     if (window.v && window.v.formBuilderConfig) {
       v = window.v;
     }
+
+    // Ensure all fields have proper id and position
+    ensureFieldIntegrity();
 
     const main = document.querySelector('.form-builder-main');
     if (!main) {
@@ -642,6 +673,7 @@ window.initFormBuilder = async function () {
 
         v.formBuilderConfig.fields.splice(newIndex, 0, draggedField);
         draggedFieldIndex = null;
+        ensureFieldIntegrity(); // Ensure all fields have proper id and position
         renderFormPreview();
       });
 
@@ -1330,6 +1362,7 @@ window.initFormBuilder = async function () {
           e.stopPropagation();
           const type = e.target.closest('.field-type-option').getAttribute('data-type');
           v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
+          ensureFieldIntegrity(); // Ensure all fields have proper id and position
 
           // Hide the dropdown with animation
           dropdown.style.opacity = '0';
@@ -1395,6 +1428,9 @@ window.initFormBuilder = async function () {
       window.v.formBuilderConfig = newConfig;
     }
     v.formBuilderConfig = newConfig;
+
+    // Ensure all fields have proper id and position
+    ensureFieldIntegrity();
 
     // Re-render the form
     window.renderFormPreview();
