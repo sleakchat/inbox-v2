@@ -98,7 +98,7 @@ xmlFormBtn.addEventListener('click', function (event) {
         return;
       } else {
         input.classList.remove('alert');
-        productOptionsContainer.style.display = 'none';
+        // productOptionsContainer.style.display = 'none';
         xmlStep1.style.display = 'none';
         xmlStep2.style.display = 'flex';
         xmlStep++;
@@ -118,14 +118,14 @@ xmlForm.addEventListener('submit', function (event) {
 xmlPrevBtn.addEventListener('click', function (event) {
   event.preventDefault();
   if (xmlStep === 2) {
-    productOptionsContainer.style.display = 'block';
+    // productOptionsContainer.style.display = 'block';
     xmlStep1.style.display = 'flex';
     xmlStep2.style.display = 'none';
     xmlStep--;
   } else {
     xmlForm.style.display = 'none';
     formWrapperInitial.style.display = 'flex';
-    productOptionsContainer.style.display = 'block';
+    // productOptionsContainer.style.display = 'block';
     xmlStep = 1;
   }
 });
