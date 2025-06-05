@@ -131,6 +131,9 @@
       if (Wized.data.v.selectedAction === 'order-status') {
         document.querySelector(`[actions-container="order-status-1"]`).style.display = 'block';
       }
+      if (Wized.data.v.selectedAction === 'product-recommedations') {
+        window.initProductRecomms();
+      }
       document.querySelector(`[actions-container="${Wized.data.v.selectedAction}"]`).style.display = 'flex';
     },
     -false

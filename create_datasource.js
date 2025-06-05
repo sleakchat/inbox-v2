@@ -1,3 +1,4 @@
+console.log('create_datasource.js');
 let dataSourceSelectValue = 'pdf';
 const addDataSourceselectBoxes = document.querySelectorAll('[multi-select="select-datasource"]');
 console.log('addDataSourceselectBoxes', addDataSourceselectBoxes);
@@ -62,7 +63,7 @@ const sitemapElement = document.querySelector('[w-el="datasource-form-sitemap"]'
 // const productOptionsContainer = document.querySelector('[w-el="productioptions-selectoxes"]');
 
 // let productOption = 'csv';
-// // product options multi-select boxes
+// // product options multi-select boxesChannable bestand
 // productOptions.forEach(el => {
 //   el.addEventListener('click', function (event) {
 //     const element = event.currentTarget;
