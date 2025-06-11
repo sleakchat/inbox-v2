@@ -33,7 +33,7 @@
   const nestedTriggers = document.querySelectorAll('[nested-modal-trigger]');
   const nestedModals = document.querySelectorAll('[nested-modal]');
 
-  function closeAllModals(exceptModal = null) {
+  window.closeAllModals = function (exceptModal = null) {
     const dropdownModals = document.querySelectorAll('[dropdown-modal]');
     dropdownModals.forEach(modal => {
       if (modal !== exceptModal) {
@@ -51,7 +51,7 @@
         }, 200);
       }
     });
-  }
+  };
 
   function closeAllNestedModals() {
     const nestedModals = document.querySelectorAll('[nested-modal]');

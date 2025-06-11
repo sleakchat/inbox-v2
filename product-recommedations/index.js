@@ -17,11 +17,11 @@
       v.formInitialized = true;
       v.productRecommConfig = v.productRecommConfig || {
         product_recommendations_mapping: {
-          page_url: 'link',
-          product_name: 'title',
-          description: 'description',
-          regular_price: 'price',
-          image_url: 'image_link'
+          page_url: '',
+          product_name: '',
+          description: '',
+          regular_price: '',
+          image_url: ''
         },
         xmlSample: {
           description: 'Afmetingen:\n A: 30.00 mm\n D: 40.00 mm\n L: 120.00 mm',
@@ -52,7 +52,39 @@
       v = window.v;
       v.productRecomsInitialized = true;
     }
+
+    // Force reset the mapping values to ensure they're empty strings
+    if (v.productRecommConfig && v.productRecommConfig.product_recommendations_mapping) {
+      Object.keys(v.productRecommConfig.product_recommendations_mapping).forEach(key => {
+        v.productRecommConfig.product_recommendations_mapping[key] = '';
+      });
+    }
+
     console.log('v.productRecommConfig', v.productRecommConfig);
+
+    // Ensure all mapping values are empty strings before creating UI
+    const resetMappingValues = () => {
+      if (!v.productRecommConfig) {
+        v.productRecommConfig = {
+          product_recommendations_mapping: {}
+        };
+      }
+
+      if (!v.productRecommConfig.product_recommendations_mapping) {
+        v.productRecommConfig.product_recommendations_mapping = {};
+      }
+
+      // Ensure all fields exist and are empty strings
+      const fields = ['page_url', 'product_name', 'description', 'regular_price', 'image_url'];
+      fields.forEach(field => {
+        v.productRecommConfig.product_recommendations_mapping[field] = '';
+      });
+
+      console.log('Reset mapping values:', v.productRecommConfig.product_recommendations_mapping);
+    };
+
+    // Call reset function
+    resetMappingValues();
 
     // Create and add the mapping UI
     createMappingUI();
@@ -182,7 +214,7 @@
           if (typeInfo.type === 'string') {
             valueSpan.textContent = value;
           } else if (typeInfo.type === 'null' || value === undefined) {
-            valueSpan.textContent = 'null';
+            valueSpan.textContent = 'geen';
           } else {
             valueSpan.textContent = String(value);
           }
@@ -262,7 +294,7 @@
         { label: 'Titel', id: 'product_name', icon: 'hgi-text-font' },
         { label: 'Beschrijving', id: 'description', icon: 'hgi-menu-02' },
         { label: 'Prijs', id: 'regular_price', icon: 'hgi-dollar-circle' },
-        { label: 'Image', id: 'image_url', icon: 'hgi-image-01' }
+        { label: 'Afbeelding', id: 'image_url', icon: 'hgi-image-01' }
       ];
 
       // Get all available keys from the XML sample
@@ -344,11 +376,27 @@
         const currentMappingValue = v.productRecommConfig.product_recommendations_mapping[field.id];
         const valueExists = doesValueExistInXmlSample(currentMappingValue, xmlSample);
 
+        console.log(`Field ${field.id}:`, {
+          currentMappingValue,
+          valueExists,
+          isEmpty: !currentMappingValue || currentMappingValue === '',
+          shouldHighlight: currentMappingValue && currentMappingValue !== '' && !valueExists
+        });
+
         const selectButton = document.createElement('button');
         selectButton.className = 'mapping-select-button';
-        if (!valueExists) {
+
+        // Force clean start - add empty-value class for empty values
+        if (!currentMappingValue || currentMappingValue === '') {
+          selectButton.classList.add('empty-value');
+          selectButton.classList.remove('missing-value');
+        }
+        // Only add missing-value class if we have a non-empty value that doesn't exist
+        else if (currentMappingValue && currentMappingValue !== '' && !valueExists) {
+          selectButton.classList.remove('empty-value');
           selectButton.classList.add('missing-value');
         }
+
         selectButton.setAttribute('type', 'button');
         selectButton.setAttribute('aria-haspopup', 'listbox');
 
@@ -358,12 +406,20 @@
         buttonText.style.gap = '2px';
         buttonText.style.flex = '1';
 
-        // Format the button text with arrows for nested paths
-        formatPathWithArrows(currentMappingValue, buttonText);
+        // Format the button text with arrows for nested paths or show placeholder
+        if (currentMappingValue && currentMappingValue !== '') {
+          formatPathWithArrows(currentMappingValue, buttonText);
+        } else {
+          const placeholder = document.createElement('span');
+          placeholder.textContent = 'Selecteer een waarde';
+          placeholder.style.color = '#9ca3af';
+          placeholder.style.fontStyle = 'italic';
+          buttonText.appendChild(placeholder);
+        }
 
         // Create appropriate icon based on selection state
         const statusIcon = document.createElement('i');
-        if (currentMappingValue) {
+        if (currentMappingValue && currentMappingValue !== '') {
           if (valueExists) {
             statusIcon.className = 'hgi hgi-solid hgi-checkmark-circle-01';
           } else {
@@ -373,7 +429,10 @@
           statusIcon.className = 'hgi hgi-stroke hgi-chevron-down';
         }
         statusIcon.setAttribute('icon-size', 'small');
-        statusIcon.setAttribute('icon-color', currentMappingValue && valueExists ? 'success' : currentMappingValue ? 'danger' : 'black');
+        statusIcon.setAttribute(
+          'icon-color',
+          currentMappingValue && currentMappingValue !== '' && valueExists ? 'success' : currentMappingValue && currentMappingValue !== '' && !valueExists ? 'danger' : 'black'
+        );
 
         selectButton.appendChild(buttonText);
         selectButton.appendChild(statusIcon);
@@ -382,6 +441,8 @@
         const dropdown = document.createElement('div');
         dropdown.className = 'mapping-dropdown';
         dropdown.setAttribute('role', 'listbox');
+
+        // Clear selection option and separator removed
 
         // Add sample value preview if it exists
         if (valueExists) {
@@ -458,21 +519,40 @@
 
             // Update the button text with formatted path
             buttonText.innerHTML = ''; // Clear existing content
-            formatPathWithArrows(optionValue, buttonText);
+
+            if (optionValue && optionValue !== '') {
+              formatPathWithArrows(optionValue, buttonText);
+            } else {
+              const placeholder = document.createElement('span');
+              placeholder.textContent = 'Selecteer een waarde';
+              placeholder.style.color = '#9ca3af';
+              placeholder.style.fontStyle = 'italic';
+              buttonText.appendChild(placeholder);
+            }
 
             // Update the mapping in the config with the original path
             v.productRecommConfig.product_recommendations_mapping[field.id] = optionValue;
 
             // Check if value exists in sample
             const valueExists = doesValueExistInXmlSample(optionValue, xmlSample);
-            if (valueExists) {
-              selectButton.classList.remove('missing-value');
-              statusIcon.className = 'hgi hgi-solid hgi-checkmark-circle-01';
-              statusIcon.setAttribute('icon-color', 'success');
+            if (optionValue && optionValue !== '') {
+              if (valueExists) {
+                selectButton.classList.remove('missing-value');
+                selectButton.classList.remove('empty-value');
+                statusIcon.className = 'hgi hgi-solid hgi-checkmark-circle-01';
+                statusIcon.setAttribute('icon-color', 'success');
+              } else {
+                selectButton.classList.add('missing-value');
+                selectButton.classList.remove('empty-value');
+                statusIcon.className = 'hgi hgi-solid hgi-cancel-circle';
+                statusIcon.setAttribute('icon-color', 'danger');
+              }
             } else {
-              selectButton.classList.add('missing-value');
-              statusIcon.className = 'hgi hgi-solid hgi-cancel-circle';
-              statusIcon.setAttribute('icon-color', 'danger');
+              // Empty selection should not show error state
+              selectButton.classList.remove('missing-value');
+              selectButton.classList.add('empty-value');
+              statusIcon.className = 'hgi hgi-stroke hgi-chevron-down';
+              statusIcon.setAttribute('icon-color', 'black');
             }
 
             // Update selected state
@@ -534,52 +614,23 @@
       const jsonTree = container.querySelector('#jsonTree');
       container.insertBefore(mappingContainer, jsonTree);
 
-      // Add resize handle for the JSON tree
-      const resizeHandle = document.createElement('div');
-      resizeHandle.className = 'resize-handle';
-
-      // Add visual indicator in the middle
-      const handleIndicator = document.createElement('div');
-      handleIndicator.className = 'handle-indicator';
-
-      resizeHandle.appendChild(handleIndicator);
-
-      // Insert resize handle before the JSON tree
-      container.insertBefore(resizeHandle, jsonTree);
-
-      // Add resize functionality
-      let startY, startHeight;
-
-      resizeHandle.addEventListener('mousedown', function (e) {
-        startY = e.clientY;
-        startHeight = parseInt(document.defaultView.getComputedStyle(jsonTree).height, 10);
-        document.documentElement.addEventListener('mousemove', resizeTree);
-        document.documentElement.addEventListener('mouseup', stopResize);
-        e.preventDefault();
-      });
-
-      function resizeTree(e) {
-        const newHeight = startHeight + (e.clientY - startY);
-        // Set a minimum height
-        if (newHeight >= 100) {
-          jsonTree.style.height = newHeight + 'px';
-        }
-      }
-
-      function stopResize() {
-        document.documentElement.removeEventListener('mousemove', resizeTree);
-        document.documentElement.removeEventListener('mouseup', stopResize);
-      }
+      // No resize handle needed anymore - removed
     }
 
     // Helper function to check if a path exists in the XML sample
     function doesValueExistInXmlSample(path, xmlSample) {
+      // If path is empty or just whitespace, it doesn't exist
+      if (!path || path === '' || path.trim() === '') return false;
+
+      // Check if the path resolves to a defined value
       return getValueFromPath(path, xmlSample) !== undefined;
     }
 
     // Helper function to get a value from a dotted path
     function getValueFromPath(path, obj) {
-      if (!path) return undefined;
+      // If path is empty or just whitespace, return undefined
+      if (!path || path === '' || path.trim() === '') return undefined;
+
       const parts = path.split('.');
       let current = obj;
 
@@ -720,9 +771,11 @@
     }
 
     // Only show the xmlSample in the tree, not the mapping
-    new JSONTreeVisualizer('jsonTree', {
-      xmlSample: v.productRecommConfig.xmlSample
-    });
+    window.initJsonTree = () => {
+      new JSONTreeVisualizer('jsonTree', {
+        xmlSample: v.productRecommConfig.xmlSample
+      });
+    };
   };
 
   if (isLocalhostt) window.initProductRecomms();
