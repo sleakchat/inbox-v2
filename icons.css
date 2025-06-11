@@ -78,3 +78,11 @@
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
+
+[icon-color='red-grad'] {
+  background: linear-gradient(60deg, #feb678, FF384D);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
