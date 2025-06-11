@@ -80,7 +80,7 @@
 }
 
 [icon-color='red-grad'] {
-  background: linear-gradient(60deg, #feb678, FF384D);
+  background: linear-gradient(60deg, #feb678, #ff384d);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
