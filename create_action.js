@@ -131,7 +131,7 @@
       if (Wized.data.v.selectedAction === 'order-status') {
         document.querySelector(`[actions-container="order-status-1"]`).style.display = 'block';
       }
-      if (Wized.data.v.selectedAction === 'product-recommedations') {
+      if (Wized.data.v.selectedAction === 'product-recommendations') {
         // window.initProductRecomms();
       }
       document.querySelector(`[actions-container="${Wized.data.v.selectedAction}"]`).style.display = 'flex';
@@ -249,8 +249,8 @@
         document.querySelector(`[actions-container="order-status-1"]`).style.display = 'flex';
         document.querySelector(`[actions-container="order-status-2"]`).style.display = 'none';
         return;
-      } else if (event.currentTarget.getAttribute('action-back') === 'product-recommedations') {
-        document.querySelector('[actions-container="product-recommedations"]').style.display = 'flex';
+      } else if (event.currentTarget.getAttribute('action-back') === 'product-recommendations') {
+        document.querySelector('[actions-container="product-recommendations"]').style.display = 'flex';
         document.querySelector('[actions-container="create-productrecomms"]').style.display = 'none';
         return;
       } else {
