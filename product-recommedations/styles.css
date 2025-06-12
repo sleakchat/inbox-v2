@@ -120,6 +120,11 @@ body {
   transform: rotate(180deg);
 }
 
+.status-icon.valid {
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
 .dropdown-arrow {
   position: absolute;
   right: 12px;
@@ -182,8 +187,7 @@ body {
 }
 
 .mapping-dropdown-option.selected {
-  color: #2563eb;
-  background: #eff6ff;
+  color: #18181b;
 }
 
 .option-checkmark {

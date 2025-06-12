@@ -237,21 +237,28 @@
         }
 
         // Create appropriate icon based on selection state
-        const statusIcon = document.createElement('i');
+        let statusIcon;
         if (currentMappingValue && currentMappingValue !== '') {
           if (valueExists) {
-            statusIcon.className = 'hgi hgi-solid hgi-checkmark-circle-01';
+            // Replace icon with checkmark image for valid selections
+            statusIcon = document.createElement('img');
+            statusIcon.src = 'https://cdn.prod.website-files.com/65911e9735540c235757642f/65b56a3ca0e2af577b26dd38_check.svg';
+            statusIcon.alt = 'Valid';
+            statusIcon.style.width = '16px';
+            statusIcon.style.height = '16px';
+            statusIcon.className = 'status-icon valid';
           } else {
+            statusIcon = document.createElement('i');
             statusIcon.className = 'hgi hgi-solid hgi-cancel-circle';
+            statusIcon.setAttribute('icon-size', 'small');
+            statusIcon.setAttribute('icon-color', 'danger');
           }
         } else {
+          statusIcon = document.createElement('i');
           statusIcon.className = 'hgi hgi-stroke hgi-chevron-down';
+          statusIcon.setAttribute('icon-size', 'small');
+          statusIcon.setAttribute('icon-color', 'black');
         }
-        statusIcon.setAttribute('icon-size', 'small');
-        statusIcon.setAttribute(
-          'icon-color',
-          currentMappingValue && currentMappingValue !== '' && valueExists ? 'success' : currentMappingValue && currentMappingValue !== '' && !valueExists ? 'danger' : 'black'
-        );
 
         selectButton.appendChild(buttonText);
         selectButton.appendChild(statusIcon);
@@ -265,6 +272,8 @@
 
         // Add sample value preview if it exists
         if (valueExists) {
+          // Remove the sample value preview - no longer showing this
+          /*
           const sampleValuePreview = document.createElement('div');
           sampleValuePreview.className = 'sample-value-preview';
 
@@ -285,6 +294,7 @@
 
           sampleValuePreview.textContent = displayValue;
           dropdown.appendChild(sampleValuePreview);
+          */
         }
 
         // Add options to dropdown - use all available keys from XML
@@ -310,6 +320,8 @@
           // Add preview of the actual value for this option
           const sampleValue = getValueFromPath(option, xmlSample);
           if (sampleValue !== undefined) {
+            // Remove the value preview display - no longer showing this
+            /*
             const valuePreview = document.createElement('span');
             valuePreview.className = 'option-value-preview';
 
@@ -329,6 +341,7 @@
 
             valuePreview.textContent = previewText;
             optionEl.appendChild(valuePreview);
+            */
           }
 
           // Add a checkmark icon for the initially selected option
@@ -370,20 +383,49 @@
               if (valueExists) {
                 selectButton.classList.remove('missing-value');
                 selectButton.classList.remove('empty-value');
-                statusIcon.className = 'hgi hgi-solid hgi-checkmark-circle-01';
-                statusIcon.setAttribute('icon-color', 'success');
+
+                // Replace status icon with checkmark image
+                const newStatusIcon = document.createElement('img');
+                newStatusIcon.src = 'https://cdn.prod.website-files.com/65911e9735540c235757642f/65b56a3ca0e2af577b26dd38_check.svg';
+                newStatusIcon.alt = 'Valid';
+                newStatusIcon.style.width = '16px';
+                newStatusIcon.style.height = '16px';
+                newStatusIcon.className = 'status-icon valid';
+
+                // Replace the existing status icon
+                selectButton.removeChild(statusIcon);
+                statusIcon = newStatusIcon;
+                selectButton.appendChild(statusIcon);
               } else {
                 selectButton.classList.add('missing-value');
                 selectButton.classList.remove('empty-value');
-                statusIcon.className = 'hgi hgi-solid hgi-cancel-circle';
-                statusIcon.setAttribute('icon-color', 'danger');
+
+                // Replace with error icon
+                const newStatusIcon = document.createElement('i');
+                newStatusIcon.className = 'hgi hgi-solid hgi-cancel-circle';
+                newStatusIcon.setAttribute('icon-size', 'small');
+                newStatusIcon.setAttribute('icon-color', 'danger');
+
+                // Replace the existing status icon
+                selectButton.removeChild(statusIcon);
+                statusIcon = newStatusIcon;
+                selectButton.appendChild(statusIcon);
               }
             } else {
               // Empty selection should not show error state
               selectButton.classList.remove('missing-value');
               selectButton.classList.add('empty-value');
-              statusIcon.className = 'hgi hgi-stroke hgi-chevron-down';
-              statusIcon.setAttribute('icon-color', 'black');
+
+              // Replace with dropdown icon
+              const newStatusIcon = document.createElement('i');
+              newStatusIcon.className = 'hgi hgi-stroke hgi-chevron-down';
+              newStatusIcon.setAttribute('icon-size', 'small');
+              newStatusIcon.setAttribute('icon-color', 'black');
+
+              // Replace the existing status icon
+              selectButton.removeChild(statusIcon);
+              statusIcon = newStatusIcon;
+              selectButton.appendChild(statusIcon);
             }
 
             // Update selected state
