@@ -186,6 +186,12 @@ body {
   background: #eff6ff;
 }
 
+.option-checkmark {
+  display: inline-block;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .mapping-dropdown-option.clear-option {
   color: #6b7280;
   border-bottom: 1px solid #e5e7eb;

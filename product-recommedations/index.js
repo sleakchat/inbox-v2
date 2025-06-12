@@ -1,16 +1,13 @@
 (async function () {
   const isLocalhostt = window.location.hostname === 'localhost';
-  console.log('isLocalhostt', isLocalhostt);
-  // if (localhost) {
-  //   let v, r, i;
-  // }
+  let productRecommsInitialized = false;
 
   function defineWizedVariables() {
     window.v = Wized.data.v;
     window.r = Wized.data.r;
     window.i = Wized.data.i;
   }
-  window.initProductRecomms = async function () {
+  window.initProductRecomms = async function (containerId) {
     if (isLocalhostt) {
       window.v = window.v || {};
       v = window.v;
@@ -48,21 +45,17 @@
         }
       };
     } else {
-      defineWizedVariables();
-      v = window.v;
-      v.productRecomsInitialized = true;
-    }
-
-    // Force reset the mapping values to ensure they're empty strings
-    if (v.productRecommConfig && v.productRecommConfig.product_recommendations_mapping) {
-      Object.keys(v.productRecommConfig.product_recommendations_mapping).forEach(key => {
-        v.productRecommConfig.product_recommendations_mapping[key] = '';
-      });
+      if (!productRecommsInitialized) {
+        defineWizedVariables();
+        v = window.v;
+        v.productRecomsInitialized = true;
+        productRecommsInitialized = true;
+      }
     }
 
     console.log('v.productRecommConfig', v.productRecommConfig);
 
-    // Ensure all mapping values are empty strings before creating UI
+    // Ensure all mapping values exist (but don't reset existing values)
     const resetMappingValues = () => {
       if (!v.productRecommConfig) {
         v.productRecommConfig = {
@@ -74,215 +67,41 @@
         v.productRecommConfig.product_recommendations_mapping = {};
       }
 
-      // Ensure all fields exist and are empty strings
+      // Ensure all fields exist but don't overwrite existing values
       const fields = ['page_url', 'product_name', 'description', 'regular_price', 'image_url'];
       fields.forEach(field => {
-        v.productRecommConfig.product_recommendations_mapping[field] = '';
+        // Only set to empty string if the field doesn't exist
+        if (v.productRecommConfig.product_recommendations_mapping[field] === undefined) {
+          v.productRecommConfig.product_recommendations_mapping[field] = '';
+        }
       });
 
-      console.log('Reset mapping values:', v.productRecommConfig.product_recommendations_mapping);
+      console.log('Mapping values:', v.productRecommConfig.product_recommendations_mapping);
     };
 
     // Call reset function
     resetMappingValues();
 
-    // Create and add the mapping UI
-    createMappingUI();
+    // Create and add the mapping UI to the specified container
+    createMappingUI(containerId);
 
-    // JSON Tree Visualizer
+    // JSON Tree Visualizer - commented out
+    /* 
     class JSONTreeVisualizer {
-      constructor(containerId, data) {
-        this.container = document.getElementById(containerId);
-        this.data = data;
-        this.initIcons();
-        this.init();
-      }
-
-      init() {
-        this.container.innerHTML = '';
-        this.renderTree(this.data, this.container);
-      }
-
-      initIcons() {
-        // Embed SVG icons directly to avoid CORS issues
-        this.icons = {
-          object:
-            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-box"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
-          array:
-            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>',
-          string:
-            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-type"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>',
-          number:
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><text x="50%" y="50%" text-anchor="middle" dy=".3em" font-size="14" font-weight="bold" fill="currentColor" stroke="none">#</text></svg>',
-          boolean: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M9 12l2 2 4-4"/></svg>',
-          null: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'
-        };
-      }
-
-      createSvgIcon(svgString) {
-        // Create a temporary container to parse the SVG
-        const temp = document.createElement('div');
-        temp.innerHTML = svgString;
-        const svg = temp.querySelector('svg');
-
-        if (svg) {
-          // Set consistent size
-          svg.setAttribute('width', '14');
-          svg.setAttribute('height', '14');
-          svg.setAttribute('viewBox', '0 0 24 24');
-          // Remove any classes that might interfere
-          svg.removeAttribute('class');
-          // Ensure stroke color inherits from parent
-          svg.setAttribute('stroke', 'currentColor');
-          return svg;
-        }
-        return null;
-      }
-
-      getTypeInfo(value) {
-        if (value === null) return { type: 'null', icon: this.icons.null };
-        if (value === undefined) return { type: 'null', icon: this.icons.null };
-        if (typeof value === 'string') return { type: 'string', icon: this.icons.string };
-        if (typeof value === 'number') return { type: 'number', icon: this.icons.number };
-        if (typeof value === 'boolean') return { type: 'boolean', icon: this.icons.boolean };
-        if (Array.isArray(value)) return { type: 'array', icon: this.icons.array };
-        if (typeof value === 'object') return { type: 'object', icon: this.icons.object };
-        return { type: 'unknown', icon: this.icons.null };
-      }
-
-      createTreeItem(key, value, isArrayIndex = false) {
-        const item = document.createElement('div');
-        item.className = 'tree-item';
-
-        const itemContent = document.createElement('div');
-        itemContent.className = 'tree-item-content';
-
-        const typeInfo = this.getTypeInfo(value);
-        const isExpandable = typeInfo.type === 'object' || typeInfo.type === 'array';
-
-        // Add expand/collapse button for objects and arrays
-        if (isExpandable) {
-          const expandBtn = document.createElement('button');
-          expandBtn.className = 'tree-expand-btn expanded';
-
-          // Use Hugeicons instead of text character
-          const icon = document.createElement('i');
-          icon.className = 'hgi hgi-solid hgi-arrow-down-01';
-          icon.setAttribute('icon-size', 'micro');
-          icon.setAttribute('icon-color', 'black');
-          expandBtn.appendChild(icon);
-
-          expandBtn.onclick = () => this.toggleExpand(expandBtn, childrenContainer);
-          itemContent.appendChild(expandBtn);
-        } else {
-          const spacer = document.createElement('span');
-          spacer.className = 'tree-expand-spacer';
-          itemContent.appendChild(spacer);
-        }
-
-        // Create label container with icon and key
-        const label = document.createElement('div');
-        label.className = 'tree-label';
-
-        // Add icon
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'tree-type-icon';
-        if (typeInfo.icon) {
-          const svgElement = this.createSvgIcon(typeInfo.icon);
-          if (svgElement) {
-            iconSpan.appendChild(svgElement);
-          }
-        }
-        label.appendChild(iconSpan);
-
-        // Add key inside label
-        const keySpan = document.createElement('span');
-        keySpan.className = isArrayIndex ? 'tree-key array-index' : 'tree-key';
-        keySpan.textContent = key;
-        label.appendChild(keySpan);
-
-        itemContent.appendChild(label);
-
-        // Add value wrapper
-        const valueWrapper = document.createElement('div');
-        valueWrapper.className = 'tree-value-wrapper';
-
-        // Add value or summary for expandable items
-        if (!isExpandable) {
-          const valueSpan = document.createElement('span');
-          valueSpan.className = `tree-value ${typeInfo.type}`;
-          if (typeInfo.type === 'string') {
-            valueSpan.textContent = value;
-          } else if (typeInfo.type === 'null' || value === undefined) {
-            valueSpan.textContent = 'geen';
-          } else {
-            valueSpan.textContent = String(value);
-          }
-          valueWrapper.appendChild(valueSpan);
-        } else {
-          // Add summary for objects/arrays
-          const count = Array.isArray(value) ? value.length : Object.keys(value).length;
-          const summarySpan = document.createElement('span');
-          summarySpan.className = 'tree-summary';
-          if (typeInfo.type === 'array') {
-            summarySpan.textContent = `[${count}]`;
-          } else {
-            summarySpan.textContent = `{${count}}`;
-          }
-          valueWrapper.appendChild(summarySpan);
-        }
-
-        itemContent.appendChild(valueWrapper);
-        item.appendChild(itemContent);
-
-        // Create children container for expandable items
-        let childrenContainer = null;
-        if (isExpandable) {
-          childrenContainer = document.createElement('div');
-          childrenContainer.className = 'tree-children expanded';
-
-          if (Array.isArray(value)) {
-            value.forEach((val, index) => {
-              childrenContainer.appendChild(this.createTreeItem(index, val, true));
-            });
-          } else {
-            Object.keys(value).forEach(k => {
-              childrenContainer.appendChild(this.createTreeItem(k, value[k], false));
-            });
-          }
-
-          item.appendChild(childrenContainer);
-        }
-
-        return item;
-      }
-
-      toggleExpand(button, container) {
-        if (container.classList.contains('expanded')) {
-          container.classList.remove('expanded');
-          button.classList.remove('expanded');
-          button.classList.add('collapsed');
-          // Don't change the icon, just rotate it with CSS
-        } else {
-          container.classList.add('expanded');
-          button.classList.remove('collapsed');
-          button.classList.add('expanded');
-          // Don't change the icon, just rotate it with CSS
-        }
-      }
-
-      renderTree(data, container) {
-        // For the root level, render all top-level properties
-        Object.keys(data).forEach(key => {
-          container.appendChild(this.createTreeItem(key, data[key]));
-        });
-      }
+      // All JSONTreeVisualizer code has been commented out
     }
+    */
 
-    function createMappingUI() {
-      // Get the container
-      const container = document.querySelector('.json-tree-container');
-      if (!container) return;
+    function createMappingUI(containerId) {
+      // Get the container by ID
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`Container with ID '${containerId}' not found`);
+        return;
+      }
+
+      // Clear any existing content in the container
+      container.innerHTML = '';
 
       // Create mapping container
       const mappingContainer = document.createElement('div');
@@ -512,6 +331,18 @@
             optionEl.appendChild(valuePreview);
           }
 
+          // Add a checkmark icon for the initially selected option
+          if (option === currentMappingValue && option !== '') {
+            const checkmarkImg = document.createElement('img');
+            checkmarkImg.src = 'https://cdn.prod.website-files.com/65911e9735540c235757642f/65b56a3ca0e2af577b26dd38_check.svg';
+            checkmarkImg.alt = 'Selected';
+            checkmarkImg.className = 'option-checkmark';
+            checkmarkImg.style.width = '16px';
+            checkmarkImg.style.height = '16px';
+            checkmarkImg.style.marginLeft = 'auto';
+            optionEl.appendChild(checkmarkImg);
+          }
+
           // Handle option selection
           optionEl.addEventListener('click', () => {
             // Get the original path value from the data attribute
@@ -558,8 +389,26 @@
             // Update selected state
             dropdown.querySelectorAll('.mapping-dropdown-option').forEach(opt => {
               opt.classList.remove('selected');
+              // Remove any existing checkmark icons
+              const existingCheckmark = opt.querySelector('.option-checkmark');
+              if (existingCheckmark) {
+                existingCheckmark.remove();
+              }
             });
+
             optionEl.classList.add('selected');
+
+            // Add checkmark icon to the selected option
+            if (optionValue && optionValue !== '') {
+              const checkmarkImg = document.createElement('img');
+              checkmarkImg.src = 'https://cdn.prod.website-files.com/65911e9735540c235757642f/65b56a3ca0e2af577b26dd38_check.svg';
+              checkmarkImg.alt = 'Selected';
+              checkmarkImg.className = 'option-checkmark';
+              checkmarkImg.style.width = '16px';
+              checkmarkImg.style.height = '16px';
+              checkmarkImg.style.marginLeft = 'auto';
+              optionEl.appendChild(checkmarkImg);
+            }
 
             // Hide dropdown
             dropdown.classList.remove('visible');
@@ -610,11 +459,8 @@
         mappingContainer.appendChild(row);
       });
 
-      // Insert the mapping UI before the JSON tree
-      const jsonTree = container.querySelector('#jsonTree');
-      container.insertBefore(mappingContainer, jsonTree);
-
-      // No resize handle needed anymore - removed
+      // Add the mapping container to the specified container
+      container.appendChild(mappingContainer);
     }
 
     // Helper function to check if a path exists in the XML sample
@@ -756,7 +602,7 @@
         textSpan.textContent = part;
         partWrapper.appendChild(textSpan);
 
-        // Add [0] index indicator for array items
+        // Add [0] index indicator for array item
         if (arrayPaths[currentPath]) {
           const indexSpan = document.createElement('span');
           indexSpan.className = 'array-index-indicator';
@@ -770,13 +616,15 @@
       return container;
     }
 
-    // Only show the xmlSample in the tree, not the mapping
+    // Commented out JSON tree initialization
+    /*
     window.initJsonTree = () => {
       new JSONTreeVisualizer('jsonTree', {
         xmlSample: v.productRecommConfig.xmlSample
       });
     };
+    */
   };
 
-  if (isLocalhostt) window.initProductRecomms();
+  if (isLocalhostt) window.initProductRecomms('create-productrecomms-mapping-container');
 })();
