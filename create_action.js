@@ -29,42 +29,55 @@
 
   const authConfig = {
     shopify: [
-      { name: 'base_url', label: 'Base URL', type: 'text', required: true },
-      { name: 'access_token', label: 'Access Token', type: 'text', required: true }
+      { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-store.myshopify.com' },
+      { name: 'access_token', label: 'Access Token', type: 'text', required: true, placeholder: 'shpat_xxxxxxxxxxxxxxxxxxxx' }
     ],
     woocommerce: [
-      { name: 'base_url', label: 'Base URL', type: 'text', required: true },
-      { name: 'consumer_key', label: 'Consumer Key', type: 'text', required: true },
-      { name: 'consumer_secret', label: 'Consumer Secret', type: 'text', required: true }
+      { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-store.com/wp-json/wc/v3' },
+      { name: 'consumer_key', label: 'Consumer Key', type: 'text', required: true, placeholder: 'ck_xxxxxxxxxxxxxxxxxxxx' },
+      { name: 'consumer_secret', label: 'Consumer Secret', type: 'text', required: true, placeholder: 'cs_xxxxxxxxxxxxxxxxxxxx' }
     ],
     lightspeed: [
-      { name: 'client_id', label: 'Client ID', type: 'text', required: true },
-      { name: 'client_secret', label: 'Client Secret', type: 'text', required: true },
-      { name: 'access_token', label: 'Access Token', type: 'text', required: true }
+      { name: 'client_id', label: 'Client ID', type: 'text', required: true, placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' },
+      { name: 'client_secret', label: 'Client Secret', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
+      { name: 'access_token', label: 'Access Token', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }
     ],
-    magento: [{ name: 'bearer_token', label: 'Bearer Token', type: 'text', required: true }],
-    myparcel: [{ name: 'api_key', label: 'API Key', type: 'text', required: true }],
+    magento: [{ name: 'bearer_token', label: 'Bearer Token', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
+    myparcel: [{ name: 'api_key', label: 'API Key', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
     sendcloud: [
-      { name: 'api_key', label: 'API Key', type: 'text', required: true },
-      { name: 'api_secret', label: 'API Secret', type: 'text', required: true }
+      { name: 'api_key', label: 'API Key', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
+      { name: 'api_secret', label: 'API Secret', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }
     ],
-    picqer: [{ name: 'api_key', label: 'API Key', type: 'text', required: true }]
+    picqer: [{ name: 'api_key', label: 'API Key', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }]
   };
 
-  function cleanupDynamicAuthInputs() {
-    const wrapper = document.querySelector('[w-el="create-template-form-inputs-wrapper"]');
+  function cleanupDynamicAuthInputs(wrapperElementName) {
+    const wrapper = document.querySelector(`[w-el="${wrapperElementName}"]`);
     if (!wrapper) return;
     wrapper.querySelectorAll('[data-dynamic-auth="true"]').forEach(el => el.remove());
   }
 
-  function renderAuthInputsForTemplate(templateKey) {
-    cleanupDynamicAuthInputs();
-    const wrapper = document.querySelector('[w-el="create-template-form-inputs-wrapper"]');
+  window.renderAuthInputsForTemplate = function (templateKey, element) {
+    cleanupDynamicAuthInputs(element);
+    const wrapper = document.querySelector(`[w-el="${element}"]`);
     const config = authConfig[templateKey];
-    if (!config || !wrapper) return;
+    const template = document.querySelector(`[w-el=order-status-form-dynamic-template]`);
+    console.log('--- renderAuthInputsForTemplate DEBUG ---');
+    console.log('templateKey:', templateKey);
+    console.log('element:', element);
+    console.log('config:', config);
+    console.log('wrapper found:', !!wrapper, wrapper);
+    console.log('template found:', !!template, template);
+    if (template) {
+      const inputInTemplate = template.querySelector('.auth-form-input');
+      console.log('input with .auth-form-input in template:', !!inputInTemplate, inputInTemplate);
+    }
+    if (!config || !wrapper || !template) {
+      console.warn('Missing config, wrapper, or template. Aborting render.');
+      return;
+    }
     config.forEach(field => {
-      const template = document.querySelector('[w-el="order-status-form-dynamic-template"]');
-      if (!template) return;
+      // Use the already-found template
       const clone = template.cloneNode(true);
       clone.setAttribute('data-dynamic-auth', 'true');
       // Set label
@@ -77,6 +90,12 @@
         input.setAttribute('type', field.type);
         input.required = field.required;
         input.value = '';
+        if (field.placeholder) {
+          input.setAttribute('placeholder', field.placeholder);
+        }
+        console.log('Created input:', { name: field.name, type: field.type });
+      } else {
+        console.warn('No .auth-form-input found in clone for field:', field);
       }
       // Set icon class
       const iconDiv = clone.querySelector('.auth-form-input-icon i');
@@ -88,17 +107,31 @@
         }
       }
       wrapper.appendChild(clone);
+      console.log('Appended clone for', field.name);
     });
-  }
+  };
+
+  window.setAuthInputsForTemplate = function (templateKey, dynamicInputs) {
+    // Always clean up the edit container before inserting new inputs
+    cleanupDynamicAuthInputs('create-template-form-inputs-wrapper-edit');
+    console.log('Setting auth inputs:', { templateKey, dynamicInputs });
+    renderAuthInputsForTemplate(templateKey, 'create-template-form-inputs-wrapper-edit');
+    Object.keys(dynamicInputs).forEach(key => {
+      const input = document.querySelector(`[name="${key}"]`);
+      console.log('Looking for input:', { key, found: !!input });
+      if (input) {
+        const value = dynamicInputs[key].value;
+        input.value = value;
+        console.log('Set value:', { key, value });
+      }
+    });
+  };
 
   selectOrderStatusTemplatButton.addEventListener('click', function (event) {
     document.querySelector(`[actions-container="order-status-1"]`).style.display = 'none';
     document.querySelector(`[actions-container="order-status-2"]`).style.display = 'flex';
-    // Render dynamic auth inputs for the selected template
-    // Normalize template key to match config keys (lowercase, no spaces)
     let templateKey = Wized.data.v.selectedOrdersApiTemplate;
-    if (templateKey) templateKey = templateKey.toLowerCase().replace(/\s+/g, '');
-    renderAuthInputsForTemplate(templateKey);
+    renderAuthInputsForTemplate(templateKey, 'create-template-form-inputs-wrapper');
   });
 
   const actionContainerInitial = document.querySelector('[actions-container="initial"]');
