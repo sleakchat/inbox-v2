@@ -29,7 +29,7 @@
 
   const authConfig = {
     shopify: [
-      { name: 'api_key', label: 'API Key', type: 'text', required: true },
+      { name: 'base_url', label: 'Base URL', type: 'text', required: true },
       { name: 'access_token', label: 'Access Token', type: 'text', required: true }
     ],
     woocommerce: [
