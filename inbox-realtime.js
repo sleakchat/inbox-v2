@@ -12,6 +12,7 @@
   (async function realtimeInit() {
     const { version, client } = await Wized.requests.getClient('supabase');
     let supaClient = client;
+    console.log('supa version = ', version)
 
     const { data } = supaClient.auth.onAuthStateChange((event, session) => {
       console.log('auth event =', JSON.stringify({ event, time: new Date().toLocaleTimeString() }, null, 2));
