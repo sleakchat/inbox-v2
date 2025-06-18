@@ -38,17 +38,30 @@
       { name: 'consumer_secret', label: 'Consumer Secret', type: 'text', required: true, placeholder: 'cs_xxxxxxxxxxxxxxxxxxxx' }
     ],
     lightspeed: [
-      { name: 'client_id', label: 'Client ID', type: 'text', required: true, placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' },
-      { name: 'client_secret', label: 'Client Secret', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
-      { name: 'access_token', label: 'Access Token', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }
+      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
+      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
     ],
     magento: [{ name: 'bearer_token', label: 'Bearer Token', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
-    myparcel: [{ name: 'api_key', label: 'API Key', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
+    myparcel: [{ name: 'api_token', label: 'API Token', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
     sendcloud: [
-      { name: 'api_key', label: 'API Key', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
-      { name: 'api_secret', label: 'API Secret', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }
+      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
+      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
     ],
-    picqer: [{ name: 'api_key', label: 'API Key', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }]
+    picqer: [
+      { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-picqer-url.com' },
+      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
+      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
+    ],
+    monta: [
+      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
+      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
+    ],
+    shopware: [
+      { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-shopware-url.com' },
+      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
+      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
+    ]
+    // Add shopware or other CMS if needed
   };
 
   function cleanupDynamicAuthInputs(wrapperElementName) {
@@ -102,8 +115,13 @@
       if (iconDiv) {
         if (field.name === 'base_url') {
           iconDiv.className = 'hgi hgi-stroke hgi-link-02';
-        } else if (field.name.includes('key') || field.name.includes('secret') || field.name.includes('token') || field.name.includes('password') || field.name.includes('credential')) {
+        } else if (field.name === 'username') {
+          iconDiv.className = 'hgi hgi-stroke hgi-user-01';
+        } else if (field.type === 'password' || field.name.includes('key') || field.name.includes('secret') || field.name.includes('token') || field.name.includes('credential')) {
           iconDiv.className = 'hgi hgi-stroke hgi-lock-password';
+        } else {
+          // Default icon for any other field type
+          iconDiv.className = 'hgi hgi-stroke hgi-input-field';
         }
       }
       wrapper.appendChild(clone);
