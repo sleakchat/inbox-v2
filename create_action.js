@@ -116,7 +116,7 @@
         if (field.name === 'base_url') {
           iconDiv.className = 'hgi hgi-stroke hgi-link-02';
         } else if (field.name === 'username') {
-          iconDiv.className = 'hgi hgi-stroke hgi-user-01';
+          iconDiv.className = 'hgi hgi-stroke hgi-text-font';
         } else if (field.type === 'password' || field.name.includes('key') || field.name.includes('secret') || field.name.includes('token') || field.name.includes('credential')) {
           iconDiv.className = 'hgi hgi-stroke hgi-lock-password';
         } else {
