@@ -138,7 +138,7 @@
       const input = document.querySelector(`[name="${key}"]`);
       console.log('Looking for input:', { key, found: !!input });
       if (input) {
-        const value = dynamicInputs[key].value;
+        const value = dynamicInputs[key];
         input.value = value;
         console.log('Set value:', { key, value });
       }
