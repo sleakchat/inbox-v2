@@ -18,6 +18,7 @@ window.initFormBuilder = async function () {
       on_submit: 'webhook',
       success_message: 'Retour succesvol aangemaakt',
       disable_airesponse: true,
+      button_text: 'Hulp aanvragen',
       fields: [
         {
           id: 'field_1',
@@ -71,9 +72,15 @@ window.initFormBuilder = async function () {
     v.formInitialized = true;
   }
 
+  // Ensure button_text exists in config
+  if (!v.formBuilderConfig.button_text) {
+    v.formBuilderConfig.button_text = 'Hulp aanvragen';
+  }
+
   let selectedFieldIndex = -1;
   let currentPopover = null;
   let draggedFieldIndex = null;
+  let isDropdownOpen = false;
 
   const fieldTypeLabels = {
     singleline: 'Text',
@@ -244,17 +251,25 @@ window.initFormBuilder = async function () {
       file: 'hgi-attachment'
     };
 
+    // Check if email and phone fields already exist
+    const hasEmailField = v.formBuilderConfig.fields.some(field => field.type === 'email');
+    const hasPhoneField = v.formBuilderConfig.fields.some(field => field.type === 'phone');
+
     addFieldEl.innerHTML = `
     <div class="add-field-trigger">+</div>
     <div class="add-field-dropdown">
       ${Object.keys(fieldTypeLabels)
-        .map(
-          type =>
-            `<div class="add-field-option" data-type="${type}">
-          <i class="hgi hgi-stroke ${fieldIcons[type]}" icon-size="small" icon-color="black"></i>
-          ${fieldTypeLabels[type]}
-        </div>`
-        )
+        .map(type => {
+          const isDisabled = (type === 'email' && hasEmailField) || (type === 'phone' && hasPhoneField);
+          const opacity = isDisabled ? '0.3' : '1';
+          const cursor = isDisabled ? 'not-allowed' : 'pointer';
+          const pointerEvents = isDisabled ? 'none' : 'auto';
+
+          return `<div class="add-field-option" data-type="${type}" style="opacity: ${opacity}; cursor: ${cursor}; pointer-events: ${pointerEvents};">
+              <i class="hgi hgi-stroke ${fieldIcons[type]}" icon-size="small" icon-color="black"></i>
+              ${fieldTypeLabels[type]}
+            </div>`;
+        })
         .join('')}
     </div>
   `;
@@ -284,6 +299,18 @@ window.initFormBuilder = async function () {
       option.addEventListener('click', e => {
         e.stopPropagation();
         const type = e.target.closest('.add-field-option').getAttribute('data-type');
+
+        // Check if field type is disabled
+        const isDisabled = (type === 'email' && hasEmailField) || (type === 'phone' && hasPhoneField);
+
+        if (isDisabled) {
+          // Show warning toast
+          if (typeof window.showToastNotification === 'function') {
+            window.showToastNotification('Maar een veld van dit type toegestaan', 'warning');
+          }
+          return;
+        }
+
         v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
         ensureFieldIntegrity(); // Ensure all fields have proper id and position
         renderFormPreview();
@@ -1169,7 +1196,8 @@ window.initFormBuilder = async function () {
     // Add static "add new field" row at the bottom
     const addFieldRow = document.createElement('div');
     addFieldRow.className = 'form-field-wrapper add-field-row';
-    addFieldRow.style.marginTop = '8px';
+    addFieldRow.style.marginTop = '-6px';
+    addFieldRow.style.marginBottom = '-4px';
 
     // Add controls for the add field row
     const addFieldControls = document.createElement('div');
@@ -1192,7 +1220,7 @@ window.initFormBuilder = async function () {
     // Create the field preview container
     const addFieldPreview = document.createElement('div');
     addFieldPreview.className = 'form-field-preview';
-    addFieldPreview.style.height = '36px';
+    addFieldPreview.style.height = '32px';
     addFieldPreview.style.display = 'flex';
     addFieldPreview.style.alignItems = 'center';
     addFieldPreview.style.justifyContent = 'center';
@@ -1218,17 +1246,31 @@ window.initFormBuilder = async function () {
     addFieldContent.appendChild(addFieldText);
     addFieldPreview.appendChild(addFieldContent);
 
-    // Add hover effects
-    addFieldRow.addEventListener('mouseenter', () => {
+    // Function to show the add field row
+    function showAddFieldRow() {
       addFieldPreview.style.backgroundColor = '#fafafa';
       addFieldContent.style.opacity = '1';
       addFieldControls.style.opacity = '1';
-    });
+    }
 
-    addFieldRow.addEventListener('mouseleave', () => {
+    // Function to hide the add field row
+    function hideAddFieldRow() {
       addFieldPreview.style.backgroundColor = 'transparent';
       addFieldContent.style.opacity = '0';
       addFieldControls.style.opacity = '0';
+    }
+
+    // Add hover effects
+    addFieldRow.addEventListener('mouseenter', () => {
+      showAddFieldRow();
+    });
+
+    addFieldRow.addEventListener('mouseleave', () => {
+      // Only hide if dropdown is not open
+      const dropdown = addFieldRow.querySelector('.field-type-dropdown');
+      if (!dropdown) {
+        hideAddFieldRow();
+      }
     });
 
     // Add click handler to the preview area
@@ -1236,10 +1278,171 @@ window.initFormBuilder = async function () {
       e.stopPropagation();
       const addBtn = addFieldControls.querySelector('.field-add-btn');
       showAddFieldDropdown(v.formBuilderConfig.fields.length, addBtn);
+      // Ensure it stays visible
+      showAddFieldRow();
     });
+
+    // Override the showAddFieldDropdown function for this specific button
+    const originalShowAddFieldDropdown = window.showAddFieldDropdown;
+    window.showAddFieldDropdown = function (insertIndex, buttonElement) {
+      // Check if this is the bottom add field button
+      const isBottomButton = buttonElement.closest('.add-field-row');
+
+      // Call the original function first
+      originalShowAddFieldDropdown(insertIndex, buttonElement);
+
+      // If this is the bottom button, ensure it stays visible
+      if (isBottomButton) {
+        showAddFieldRow();
+      }
+    };
 
     addFieldRow.appendChild(addFieldPreview);
     main.appendChild(addFieldRow);
+
+    // Add submit button section
+    const submitButtonSection = document.createElement('div');
+    submitButtonSection.className = 'form-submit-section';
+
+    // Create the button container
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.position = 'relative';
+    buttonContainer.style.width = '100%';
+
+    // Create the button
+    const submitButton = document.createElement('button');
+    submitButton.className = 'form-submit-button';
+    submitButton.style.width = '100%';
+    submitButton.style.padding = '12px 24px';
+    submitButton.style.backgroundColor = '#18181b';
+    submitButton.style.color = '#ffffff';
+    submitButton.style.border = 'none';
+    submitButton.style.borderRadius = '8px';
+    submitButton.style.fontSize = '14px';
+    submitButton.style.fontWeight = '500';
+    submitButton.style.cursor = 'pointer';
+    submitButton.style.transition = 'all 0.2s ease';
+    submitButton.textContent = v.formBuilderConfig.button_text;
+    submitButton.style.boxShadow = '0 2px 3px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)';
+
+    // Add hover effect
+    submitButton.addEventListener('mouseenter', () => {
+      submitButton.style.backgroundColor = '#3f3f46'; // Lighter black
+    });
+    submitButton.addEventListener('mouseleave', () => {
+      submitButton.style.backgroundColor = '#18181b';
+    });
+
+    // Create edit icon (shows on hover)
+    const editIcon = document.createElement('button');
+    editIcon.className = 'button-edit-icon';
+    editIcon.innerHTML = '<i class="hgi hgi-solid hgi-sharp hgi-pen-01" icon-size="micro" icon-color="black"></i>';
+    editIcon.style.position = 'absolute';
+    editIcon.style.left = '-28px'; // Changed from right to left
+    editIcon.style.top = '50%';
+    editIcon.style.transform = 'translateY(-50%)';
+    editIcon.style.width = '20px';
+    editIcon.style.height = '20px';
+    editIcon.style.display = 'flex';
+    editIcon.style.alignItems = 'center';
+    editIcon.style.justifyContent = 'center';
+    editIcon.style.opacity = '0';
+    editIcon.style.transition = 'all 0.2s';
+    editIcon.style.color = '#a1a1aa';
+    editIcon.style.cursor = 'pointer';
+    editIcon.style.background = 'transparent';
+    editIcon.style.border = 'none';
+    editIcon.style.borderRadius = '4px';
+    editIcon.style.padding = '0';
+
+    // Add hover effect to edit icon
+    editIcon.addEventListener('mouseenter', () => {
+      editIcon.style.background = '#f4f4f5';
+      editIcon.style.color = '#B9B9B9';
+      editIcon.style.opacity = '0.5';
+    });
+
+    editIcon.addEventListener('mouseleave', () => {
+      editIcon.style.background = 'transparent';
+      editIcon.style.color = '#a1a1aa';
+    });
+
+    // Show/hide edit icon on hover
+    buttonContainer.addEventListener('mouseenter', () => {
+      editIcon.style.opacity = '1';
+    });
+
+    buttonContainer.addEventListener('mouseleave', () => {
+      if (!isEditing) {
+        editIcon.style.opacity = '0';
+      }
+    });
+
+    // Create input for editing
+    const buttonTextInput = document.createElement('input');
+    buttonTextInput.type = 'text';
+    buttonTextInput.className = 'button-text-input';
+    buttonTextInput.value = v.formBuilderConfig.button_text;
+    buttonTextInput.style.position = 'absolute';
+    buttonTextInput.style.top = '0';
+    buttonTextInput.style.left = '0';
+    buttonTextInput.style.width = '100%';
+    buttonTextInput.style.height = '100%';
+    buttonTextInput.style.padding = '12px 24px';
+    buttonTextInput.style.backgroundColor = '#18181b';
+    buttonTextInput.style.color = '#ffffff';
+    buttonTextInput.style.border = 'none';
+    buttonTextInput.style.borderRadius = '8px';
+    buttonTextInput.style.fontSize = '14px';
+    buttonTextInput.style.fontWeight = '500';
+    buttonTextInput.style.display = 'none';
+    buttonTextInput.style.outline = 'none';
+    buttonTextInput.style.textAlign = 'center';
+
+    let isEditing = false;
+
+    function startEditing(e) {
+      e.preventDefault();
+      isEditing = true;
+      submitButton.style.opacity = '0';
+      buttonTextInput.style.display = 'block';
+      buttonTextInput.focus();
+      buttonTextInput.select();
+    }
+
+    // Handle edit icon click
+    editIcon.addEventListener('click', startEditing);
+
+    // Handle button click
+    submitButton.addEventListener('click', startEditing);
+
+    // Handle input blur and enter key
+    function commitButtonTextEdit() {
+      isEditing = false;
+      v.formBuilderConfig.button_text = buttonTextInput.value.trim() || 'Hulp aanvragen';
+      submitButton.textContent = v.formBuilderConfig.button_text;
+      buttonTextInput.value = v.formBuilderConfig.button_text;
+      submitButton.style.opacity = '1';
+      buttonTextInput.style.display = 'none';
+      if (!buttonContainer.matches(':hover')) {
+        editIcon.style.opacity = '0';
+      }
+    }
+
+    buttonTextInput.addEventListener('blur', commitButtonTextEdit);
+    buttonTextInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        buttonTextInput.blur();
+      }
+    });
+
+    // Add elements to the DOM
+    buttonContainer.appendChild(submitButton);
+    buttonContainer.appendChild(buttonTextInput);
+    buttonContainer.appendChild(editIcon);
+    submitButtonSection.appendChild(buttonContainer);
+    main.appendChild(submitButtonSection);
   };
 
   function closeAllDropdowns() {
@@ -1251,6 +1454,26 @@ window.initFormBuilder = async function () {
       setTimeout(() => {
         existingDropdown.remove();
       }, 150);
+
+      // If this was attached to the bottom add field row, check hover state
+      const addFieldRow = document.querySelector('.form-field-wrapper.add-field-row');
+      if (addFieldRow && existingDropdown.closest('.add-field-row')) {
+        const addFieldPreview = addFieldRow.querySelector('.form-field-preview');
+        const addFieldContent = addFieldRow.querySelector('.form-field-preview > div');
+        const addFieldControls = addFieldRow.querySelector('.form-field-controls');
+
+        // Only hide if not hovering
+        if (!addFieldRow.matches(':hover')) {
+          addFieldPreview.style.backgroundColor = 'transparent';
+          addFieldContent.style.opacity = '0';
+          addFieldControls.style.opacity = '0';
+        } else {
+          // If still hovering, keep it visible
+          addFieldPreview.style.backgroundColor = '#fafafa';
+          addFieldContent.style.opacity = '1';
+          addFieldControls.style.opacity = '1';
+        }
+      }
     }
     // Close any existing settings popover
     const existingPopover = document.querySelector('.field-settings-popover');
@@ -1270,151 +1493,6 @@ window.initFormBuilder = async function () {
       wrapper.classList.remove('controls-active');
     });
   }
-
-  // Function to show add field dropdown from field controls
-  function showAddFieldDropdown(insertIndex, buttonElement) {
-    // If dropdown is already open and attached to this button, close it
-    const existingDropdown = buttonElement.closest('.form-field-controls').querySelector('.field-type-dropdown');
-    if (existingDropdown) {
-      closeAllDropdowns();
-      return;
-    }
-
-    // Ensure any ongoing close animations are completed
-    setTimeout(() => {
-      closeAllDropdowns();
-
-      const fieldIcons = {
-        phone: 'hgi-call-02',
-        email: 'hgi-mail-01',
-        singleline: 'hgi-text-font',
-        multiline: 'hgi-menu-02',
-        singleselect: 'hgi-checkmark-square-03',
-        file: 'hgi-attachment'
-      };
-
-      // Get the field wrapper and add controls-active class
-      const fieldWrapper = buttonElement.closest('.form-field-wrapper');
-      if (fieldWrapper) {
-        fieldWrapper.classList.add('controls-active');
-      }
-
-      // Create dropdown
-      const dropdown = document.createElement('div');
-      dropdown.className = 'field-type-dropdown';
-      dropdown.style.position = 'absolute';
-      dropdown.style.display = 'block';
-      dropdown.style.background = '#ffffff';
-      dropdown.style.border = 'none';
-      dropdown.style.borderRadius = '12px';
-      dropdown.style.padding = '4px';
-      dropdown.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)';
-      dropdown.style.zIndex = '1000';
-      dropdown.style.minWidth = '180px';
-      dropdown.style.fontSize = '13px';
-      dropdown.style.opacity = '0';
-      dropdown.style.pointerEvents = 'auto';
-
-      // Position to the left of the add button
-      dropdown.style.top = '50%';
-      dropdown.style.right = '100%';
-      dropdown.style.marginRight = '8px';
-
-      // Set initial transform state without transition
-      dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
-
-      dropdown.innerHTML = `
-        ${Object.keys(fieldTypeLabels)
-          .map(
-            type =>
-              `<div class="field-type-option" data-type="${type}" style="display: flex; align-items: center; padding: 6px 8px; cursor: pointer; border-radius: 8px; transition: background-color 0.15s ease; color: #1a1a1a;">
-            <i class="hgi hgi-stroke ${fieldIcons[type]}" icon-size="small" icon-color="black" style="margin-right: 8px; color: #000;"></i>
-            <span style="font-size: 13px; font-weight: 400; letter-spacing: -0.01em; color: #1a1a1a;">${fieldTypeLabels[type]}</span>
-          </div>`
-          )
-          .join('')}
-      `;
-
-      // Add hover effects to options
-      dropdown.querySelectorAll('.field-type-option').forEach(option => {
-        option.addEventListener('mouseenter', () => {
-          option.style.backgroundColor = '#f5f5f5';
-        });
-        option.addEventListener('mouseleave', () => {
-          option.style.backgroundColor = 'transparent';
-        });
-      });
-
-      // Append to controls div
-      const controls = buttonElement.closest('.form-field-controls');
-      controls.appendChild(dropdown);
-
-      // Enable transitions after initial state is set
-      setTimeout(() => {
-        dropdown.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
-        dropdown.style.opacity = '1';
-        dropdown.style.transform = 'translateY(-50%) scale(1) translateX(0)';
-      }, 50);
-
-      // Add click handlers for closing
-      dropdown.querySelectorAll('.field-type-option').forEach(option => {
-        option.addEventListener('click', e => {
-          e.stopPropagation();
-          const type = e.target.closest('.field-type-option').getAttribute('data-type');
-          v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
-          ensureFieldIntegrity(); // Ensure all fields have proper id and position
-
-          // Hide the dropdown with animation
-          dropdown.style.opacity = '0';
-          dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
-          setTimeout(() => {
-            dropdown.remove();
-            if (fieldWrapper) {
-              fieldWrapper.classList.remove('controls-active');
-            }
-            renderFormPreview();
-          }, 150);
-        });
-      });
-
-      // Setup global click handler to close dropdown
-      function handleGlobalClick(e) {
-        // Only close if clicking outside the dropdown and button
-        if (!dropdown.contains(e.target) && !buttonElement.contains(e.target)) {
-          closeAllDropdowns();
-          document.removeEventListener('click', handleGlobalClick);
-        }
-      }
-
-      // Add the global click handler with a delay to prevent immediate closing
-      setTimeout(() => {
-        document.addEventListener('click', handleGlobalClick);
-      }, 0);
-    }, 150); // Wait for any ongoing close animations
-  }
-
-  // Make showAddFieldDropdown global
-  window.showAddFieldDropdown = showAddFieldDropdown;
-
-  // Close settings popover when clicking outside
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.settings-popover') && !e.target.closest('.field-control-btn')) {
-      hideSettingsPopover();
-    }
-  });
-
-  // Global click handler for closing inline add field dropdowns
-  document.addEventListener('click', e => {
-    // Close any open inline add field dropdowns when clicking outside
-    if (!e.target.closest('.add-field-inline')) {
-      document.querySelectorAll('.add-field-inline .add-field-dropdown.visible').forEach(dropdown => {
-        dropdown.classList.remove('visible');
-        dropdown.closest('.add-field-inline').classList.remove('dropdown-open');
-      });
-    }
-  });
-
-  renderFormPreview();
 
   // Function to update form config and re-render
   window.updateFormBuilderConfig = function (newConfig) {
@@ -1483,6 +1561,187 @@ window.initFormBuilder = async function () {
       { offset: Number.NEGATIVE_INFINITY }
     ).element;
   }
+
+  // Function to show add field dropdown from field controls
+  function showAddFieldDropdown(insertIndex, buttonElement) {
+    // If dropdown is already open and attached to this button, close it
+    const existingDropdown = buttonElement.closest('.form-field-controls').querySelector('.field-type-dropdown');
+    if (existingDropdown) {
+      closeAllDropdowns();
+      return;
+    }
+
+    // Ensure any ongoing close animations are completed
+    setTimeout(() => {
+      closeAllDropdowns();
+
+      const fieldIcons = {
+        phone: 'hgi-call-02',
+        email: 'hgi-mail-01',
+        singleline: 'hgi-text-font',
+        multiline: 'hgi-menu-02',
+        singleselect: 'hgi-checkmark-square-03',
+        file: 'hgi-attachment'
+      };
+
+      // Check if email and phone fields already exist
+      const hasEmailField = v.formBuilderConfig.fields.some(field => field.type === 'email');
+      const hasPhoneField = v.formBuilderConfig.fields.some(field => field.type === 'phone');
+
+      // Get the field wrapper and add controls-active class
+      const fieldWrapper = buttonElement.closest('.form-field-wrapper');
+      if (fieldWrapper) {
+        fieldWrapper.classList.add('controls-active');
+      }
+
+      // Create dropdown
+      const dropdown = document.createElement('div');
+      dropdown.className = 'field-type-dropdown';
+      dropdown.style.position = 'absolute';
+      dropdown.style.display = 'block';
+      dropdown.style.background = '#ffffff';
+      dropdown.style.border = 'none';
+      dropdown.style.borderRadius = '12px';
+      dropdown.style.padding = '4px';
+      dropdown.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)';
+      dropdown.style.zIndex = '1000';
+      dropdown.style.minWidth = '180px';
+      dropdown.style.fontSize = '13px';
+      dropdown.style.opacity = '0';
+      dropdown.style.pointerEvents = 'auto';
+
+      // Position to the left of the add button
+      dropdown.style.top = '50%';
+      dropdown.style.right = '100%';
+      dropdown.style.marginRight = '8px';
+
+      // Set initial transform state without transition
+      dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
+
+      dropdown.innerHTML = `
+        ${Object.keys(fieldTypeLabels)
+          .map(type => {
+            const isDisabled = (type === 'email' && hasEmailField) || (type === 'phone' && hasPhoneField);
+            const opacity = isDisabled ? '0.3' : '1';
+            const cursor = isDisabled ? 'not-allowed' : 'pointer';
+            const pointerEvents = isDisabled ? 'none' : 'auto';
+
+            return `<div class="field-type-option" data-type="${type}" style="display: flex; align-items: center; padding: 6px 8px; cursor: ${cursor}; border-radius: 8px; transition: background-color 0.15s ease; color: #1a1a1a; opacity: ${opacity}; pointer-events: ${pointerEvents};">
+                <i class="hgi hgi-stroke ${fieldIcons[type]}" icon-size="small" icon-color="black" style="margin-right: 8px; color: #000;"></i>
+                <span style="font-size: 13px; font-weight: 400; letter-spacing: -0.01em; color: #1a1a1a;">${fieldTypeLabels[type]}</span>
+              </div>`;
+          })
+          .join('')}
+      `;
+
+      // Add hover effects to options
+      dropdown.querySelectorAll('.field-type-option').forEach(option => {
+        const type = option.getAttribute('data-type');
+        const isDisabled = (type === 'email' && hasEmailField) || (type === 'phone' && hasPhoneField);
+
+        if (!isDisabled) {
+          option.addEventListener('mouseenter', () => {
+            option.style.backgroundColor = '#f5f5f5';
+          });
+          option.addEventListener('mouseleave', () => {
+            option.style.backgroundColor = 'transparent';
+          });
+        }
+      });
+
+      // Append to controls div
+      const controls = buttonElement.closest('.form-field-controls');
+      controls.appendChild(dropdown);
+
+      // Enable transitions after initial state is set
+      setTimeout(() => {
+        dropdown.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+        dropdown.style.opacity = '1';
+        dropdown.style.transform = 'translateY(-50%) scale(1) translateX(0)';
+      }, 50);
+
+      // Add click handlers for closing
+      dropdown.querySelectorAll('.field-type-option').forEach(option => {
+        option.addEventListener('click', e => {
+          e.stopPropagation();
+          const type = e.target.closest('.field-type-option').getAttribute('data-type');
+
+          // Check if field type is disabled
+          const isDisabled = (type === 'email' && hasEmailField) || (type === 'phone' && hasPhoneField);
+
+          if (isDisabled) {
+            // Show warning toast
+            if (typeof window.showToastNotification === 'function') {
+              window.showToastNotification('Maar een veld van dit type toegestaan', 'warning');
+            }
+            return;
+          }
+
+          v.formBuilderConfig.fields.splice(insertIndex, 0, fieldDefaults[type]());
+          ensureFieldIntegrity(); // Ensure all fields have proper id and position
+
+          // Hide the dropdown with animation
+          dropdown.style.opacity = '0';
+          dropdown.style.transform = 'translateY(-50%) scale(0.95) translateX(10px)';
+          setTimeout(() => {
+            dropdown.remove();
+            if (fieldWrapper) {
+              fieldWrapper.classList.remove('controls-active');
+            }
+            renderFormPreview();
+          }, 150);
+        });
+      });
+
+      // Setup global click handler to close dropdown
+      function handleGlobalClick(e) {
+        // Only close if clicking outside the dropdown and button
+        const isBottomButton = buttonElement.closest('.add-field-row');
+
+        // If this is the bottom add button, don't close on mouseleave
+        if (isBottomButton) {
+          if (!dropdown.contains(e.target) && !buttonElement.contains(e.target) && !e.target.closest('.add-field-row')) {
+            closeAllDropdowns();
+            document.removeEventListener('click', handleGlobalClick);
+          }
+        } else {
+          // For other buttons, use original behavior
+          if (!dropdown.contains(e.target) && !buttonElement.contains(e.target)) {
+            closeAllDropdowns();
+            document.removeEventListener('click', handleGlobalClick);
+          }
+        }
+      }
+
+      // Add the global click handler with a delay to prevent immediate closing
+      setTimeout(() => {
+        document.addEventListener('click', handleGlobalClick);
+      }, 0);
+    }, 150); // Wait for any ongoing close animations
+  }
+
+  // Make showAddFieldDropdown global
+  window.showAddFieldDropdown = showAddFieldDropdown;
+
+  // Close settings popover when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.settings-popover') && !e.target.closest('.field-control-btn')) {
+      hideSettingsPopover();
+    }
+  });
+
+  // Global click handler for closing inline add field dropdowns
+  document.addEventListener('click', e => {
+    // Close any open inline add field dropdowns when clicking outside
+    if (!e.target.closest('.add-field-inline')) {
+      document.querySelectorAll('.add-field-inline .add-field-dropdown.visible').forEach(dropdown => {
+        dropdown.classList.remove('visible');
+        dropdown.closest('.add-field-inline').classList.remove('dropdown-open');
+      });
+    }
+  });
+
+  renderFormPreview();
 };
 
 if (isLocalhost) {
