@@ -316,21 +316,22 @@
             fullPayload: payload.payload
           });
 
-          // if (table === 'messages' && eventType === 'INSERT') {
-          //   handleMessageInsert(payload.payload);
-          // } else if (table === 'chats' && eventType === 'INSERT') {
-          //   handleChatInsert(payload.payload);
-          // } else if (table === 'chats' && eventType === 'UPDATE') {
-          //   handleChatUpdate(payload.payload);
-          // } else if (table === 'operators' && eventType === 'INSERT') {
-          //   handleOperatorInsert(payload.payload);
-          // } else if (table === 'operators' && eventType === 'UPDATE') {
-          //   handleOperatorUpdate(payload.payload);
-          // } else if (table === 'members' && eventType === 'UPDATE') {
-          //   handleMemberUpdate(payload.payload);
-          // } else {
-          //   console.log('❌ No matching handler for:', { table, eventType });
-          // }
+          if (table === 'messages' && eventType === 'INSERT') {
+            handleMessageInsert(payload.payload);
+          } else if (table === 'chats' && eventType === 'INSERT') {
+            handleChatInsert(payload.payload);
+          } else if (table === 'chats' && eventType === 'UPDATE') {
+            handleChatUpdate(payload.payload);
+          } else if (table === 'operators' && eventType === 'INSERT') {
+            handleOperatorInsert(payload.payload);
+          } else if (table === 'operators' && eventType === 'UPDATE') {
+            handleOperatorUpdate(payload.payload);
+          } else if (table === 'members' && eventType === 'UPDATE') {
+            handleMemberUpdate(payload.payload);
+          } else {
+            console.log('❌ No matching handler for:', { table, eventType });
+          }
+          
         });
         // .subscribe((status, err) => {
         //   console.log('🔊🔊🔊 Broadcast channel status changed = ', status);
@@ -338,80 +339,80 @@
         // });
       })();
 
-      // Add back postgres_changes subscriptions
-      adminUiChannel
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `chatbot_id=in.(${idsArray.join(',')})`
-          },
-          payload => {
-            handleMessageInsert(payload);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'chats',
-            filter: `chatbot_id=in.(${idsArray.join(',')})`
-          },
-          payload => {
-            handleChatInsert(payload);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'chats',
-            filter: `chatbot_id=in.(${idsArray.join(',')})`
-          },
-          payload => {
-            handleChatUpdate(payload);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'operators',
-            filter: `organization_id=eq.${v.activeOrganization}`
-          },
-          payload => {
-            handleOperatorInsert(payload);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'operators',
-            filter: `organization_id=eq.${v.activeOrganization}`
-          },
-          payload => {
-            handleOperatorUpdate(payload);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'members',
-            filter: `organization_id=eq.${v.activeOrganization}`
-          },
-          payload => {
-            handleMemberUpdate(payload);
-          }
-        );
+      // // Add back postgres_changes subscriptions
+      // adminUiChannel
+      //   .on(
+      //     'postgres_changes',
+      //     {
+      //       event: 'INSERT',
+      //       schema: 'public',
+      //       table: 'messages',
+      //       filter: `chatbot_id=in.(${idsArray.join(',')})`
+      //     },
+      //     payload => {
+      //       handleMessageInsert(payload);
+      //     }
+      //   )
+      //   .on(
+      //     'postgres_changes',
+      //     {
+      //       event: 'INSERT',
+      //       schema: 'public',
+      //       table: 'chats',
+      //       filter: `chatbot_id=in.(${idsArray.join(',')})`
+      //     },
+      //     payload => {
+      //       handleChatInsert(payload);
+      //     }
+      //   )
+      //   .on(
+      //     'postgres_changes',
+      //     {
+      //       event: 'UPDATE',
+      //       schema: 'public',
+      //       table: 'chats',
+      //       filter: `chatbot_id=in.(${idsArray.join(',')})`
+      //     },
+      //     payload => {
+      //       handleChatUpdate(payload);
+      //     }
+      //   )
+      //   .on(
+      //     'postgres_changes',
+      //     {
+      //       event: 'INSERT',
+      //       schema: 'public',
+      //       table: 'operators',
+      //       filter: `organization_id=eq.${v.activeOrganization}`
+      //     },
+      //     payload => {
+      //       handleOperatorInsert(payload);
+      //     }
+      //   )
+      //   .on(
+      //     'postgres_changes',
+      //     {
+      //       event: 'UPDATE',
+      //       schema: 'public',
+      //       table: 'operators',
+      //       filter: `organization_id=eq.${v.activeOrganization}`
+      //     },
+      //     payload => {
+      //       handleOperatorUpdate(payload);
+      //     }
+      //   )
+      //   .on(
+      //     'postgres_changes',
+      //     {
+      //       event: 'UPDATE',
+      //       schema: 'public',
+      //       table: 'members',
+      //       filter: `organization_id=eq.${v.activeOrganization}`
+      //     },
+      //     payload => {
+      //       handleMemberUpdate(payload);
+      //     }
+      //   );
 
       adminUiChannel.subscribe((status, err) => {
         console.log('Realtime channel status changed = ', status);
