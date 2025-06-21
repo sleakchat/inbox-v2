@@ -106,33 +106,59 @@ window.initFormBuilder = async function () {
   function ensureFieldIntegrity() {
     if (!v.formBuilderConfig || !v.formBuilderConfig.fields) return;
 
-    // Keep track of used IDs to handle duplicates
+    // Keep track of ID occurrences
+    const idCounts = {};
     const usedIds = new Set();
 
-    // Ensure each field has an id and update positions
-    v.formBuilderConfig.fields.forEach((field, index) => {
-      // If field doesn't have an id or has old style id, generate one from label
+    // First pass: count occurrences of each base ID
+    v.formBuilderConfig.fields.forEach(field => {
       if (!field.id || field.id.startsWith('field_')) {
         // Convert label to id format (lowercase, replace spaces with underscore)
-        let baseId = field.label
+        const baseId = field.label
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '_')
           .replace(/^_+|_+$/g, '');
-        let newId = baseId;
-        let counter = 2;
+        idCounts[baseId] = (idCounts[baseId] || 0) + 1;
+      } else {
+        // For existing IDs, strip any _N suffix to get the base ID
+        const baseId = field.id.replace(/_\d+$/, '');
+        idCounts[baseId] = (idCounts[baseId] || 0) + 1;
+      }
+    });
 
-        // If this ID is already used, append a number
+    // Second pass: assign unique IDs
+    v.formBuilderConfig.fields.forEach((field, index) => {
+      let baseId;
+
+      if (!field.id || field.id.startsWith('field_')) {
+        // Generate base ID from label
+        baseId = field.label
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '');
+      } else {
+        // Use existing ID as base, stripped of any _N suffix
+        baseId = field.id.replace(/_\d+$/, '');
+      }
+
+      // If this base ID appears multiple times, append numbers
+      if (idCounts[baseId] > 1) {
+        let counter = 1;
+        let newId = `${baseId}_${counter}`;
+
+        // Find the next available numbered ID
         while (usedIds.has(newId)) {
-          newId = `${baseId}_${counter}`;
           counter++;
+          newId = `${baseId}_${counter}`;
         }
 
         field.id = newId;
-        usedIds.add(newId);
       } else {
-        // If field has custom id, still track it for uniqueness
-        usedIds.add(field.id);
+        // If it's unique, use the base ID
+        field.id = baseId;
       }
+
+      usedIds.add(field.id);
 
       // Always update position to match current index
       field.position = index;
