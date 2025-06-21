@@ -1,6 +1,6 @@
 (async function () {
   // select boxes start
-  Wized.data.v.selectedAction = 'handoff';
+  Wized.data.v.selectedAction = 'api';
   function handleClick(event) {
     const element = event.currentTarget;
     Wized.data.v.selectedAction = element.getAttribute('data-value');
@@ -75,18 +75,10 @@
     const wrapper = document.querySelector(`[w-el="${element}"]`);
     const config = authConfig[templateKey];
     const template = document.querySelector(`[w-el=order-status-form-dynamic-template]`);
-    console.log('--- renderAuthInputsForTemplate DEBUG ---');
-    console.log('templateKey:', templateKey);
-    console.log('element:', element);
-    console.log('config:', config);
-    console.log('wrapper found:', !!wrapper, wrapper);
-    console.log('template found:', !!template, template);
     if (template) {
       const inputInTemplate = template.querySelector('.auth-form-input');
-      console.log('input with .auth-form-input in template:', !!inputInTemplate, inputInTemplate);
     }
     if (!config || !wrapper || !template) {
-      console.warn('Missing config, wrapper, or template. Aborting render.');
       return;
     }
     config.forEach(field => {
@@ -106,9 +98,6 @@
         if (field.placeholder) {
           input.setAttribute('placeholder', field.placeholder);
         }
-        console.log('Created input:', { name: field.name, type: field.type });
-      } else {
-        console.warn('No .auth-form-input found in clone for field:', field);
       }
       // Set icon class
       const iconDiv = clone.querySelector('.auth-form-input-icon i');
@@ -125,22 +114,18 @@
         }
       }
       wrapper.appendChild(clone);
-      console.log('Appended clone for', field.name);
     });
   };
 
   window.setAuthInputsForTemplate = function (templateKey, dynamicInputs) {
     // Always clean up the edit container before inserting new inputs
     cleanupDynamicAuthInputs('create-template-form-inputs-wrapper-edit');
-    console.log('Setting auth inputs:', { templateKey, dynamicInputs });
     renderAuthInputsForTemplate(templateKey, 'create-template-form-inputs-wrapper-edit');
     Object.keys(dynamicInputs).forEach(key => {
       const input = document.querySelector(`[name="${key}"]`);
-      console.log('Looking for input:', { key, found: !!input });
       if (input) {
         const value = dynamicInputs[key];
         input.value = value;
-        console.log('Set value:', { key, value });
       }
     });
   };
@@ -155,8 +140,6 @@
   const actionContainerInitial = document.querySelector('[actions-container="initial"]');
   const actionsContainers = document.querySelectorAll('[actions-container]');
   const buttonInitial = document.querySelector("[w-el='create-action-btn']");
-  console.log('buttonInitial', buttonInitial);
-  console.log('actionContainerInitial', actionContainerInitial);
 
   // const pdfForm = document.querySelector('[datasourcesform="pdf"]');
   // const urlForm = document.querySelector('[datasourcesform="url"]');

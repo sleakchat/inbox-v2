@@ -15,41 +15,43 @@ window.initFormBuilder = async function () {
     v.formInitialized = true;
     v.formBuilderConfig = v.formBuilderConfig || {
       title: 'Genereer een lead',
+
       on_submit: 'webhook',
+
       success_message: 'Retour succesvol aangemaakt',
       disable_airesponse: true,
       button_text: 'Hulp aanvragen',
       fields: [
         {
-          id: 'field_1',
+          id: 'email',
           type: 'email',
           label: 'E-mail',
           required: true,
           position: 1
         },
         {
-          id: 'field_2',
+          id: 'telefoon',
           type: 'phone',
           label: 'Telefoon',
           required: true,
           position: 0
         },
         {
-          id: 'field_3',
+          id: 'text',
           type: 'singleline',
           label: 'Text',
           required: true,
           position: 2
         },
         {
-          id: 'field_4',
+          id: 'meerdere_regels',
           type: 'multiline',
           label: 'Meerdere regels',
           required: true,
           position: 3
         },
         {
-          id: 'field_5',
+          id: 'meerkeuze',
           type: 'singleselect',
           label: 'Meerkeuze',
           options: ['Optie 1', 'Optie 2'],
@@ -58,7 +60,7 @@ window.initFormBuilder = async function () {
           position: 4
         },
         {
-          id: 'field_6',
+          id: 'bestand',
           type: 'file',
           label: 'Bestand',
           required: true,
@@ -92,33 +94,44 @@ window.initFormBuilder = async function () {
   };
 
   const fieldDefaults = {
-    phone: () => ({ type: 'phone', label: 'Telefoon', required: false }),
-    email: () => ({ type: 'email', label: 'E-mail', required: false }),
-    singleline: () => ({ type: 'singleline', label: 'Text', required: false }),
-    multiline: () => ({ type: 'multiline', label: 'Meerdere regels', required: false }),
-    singleselect: () => ({ type: 'singleselect', label: 'Meerkeuze', options: ['Optie 1', 'Optie 2'], displayType: 'cards', required: false }),
-    file: () => ({ type: 'file', label: 'Bestand', required: false })
+    phone: () => ({ type: 'phone', label: 'Telefoon', id: 'telefoon', required: false }),
+    email: () => ({ type: 'email', label: 'E-mail', id: 'email', required: false }),
+    singleline: () => ({ type: 'singleline', label: 'Text', id: 'text', required: false }),
+    multiline: () => ({ type: 'multiline', label: 'Meerdere regels', id: 'meerdere_regels', required: false }),
+    singleselect: () => ({ type: 'singleselect', label: 'Meerkeuze', id: 'meerkeuze', options: ['Optie 1', 'Optie 2'], displayType: 'cards', required: false }),
+    file: () => ({ type: 'file', label: 'Bestand', id: 'bestand', required: false })
   };
 
   // Function to ensure all fields have proper id and position
   function ensureFieldIntegrity() {
     if (!v.formBuilderConfig || !v.formBuilderConfig.fields) return;
 
+    // Keep track of used IDs to handle duplicates
+    const usedIds = new Set();
+
     // Ensure each field has an id and update positions
     v.formBuilderConfig.fields.forEach((field, index) => {
-      // If field doesn't have an id, generate one
-      if (!field.id) {
-        // Find the highest existing field id number
-        let maxId = 0;
-        v.formBuilderConfig.fields.forEach(f => {
-          if (f.id && f.id.startsWith('field_')) {
-            const num = parseInt(f.id.replace('field_', ''));
-            if (!isNaN(num) && num > maxId) {
-              maxId = num;
-            }
-          }
-        });
-        field.id = `field_${maxId + 1}`;
+      // If field doesn't have an id or has old style id, generate one from label
+      if (!field.id || field.id.startsWith('field_')) {
+        // Convert label to id format (lowercase, replace spaces with underscore)
+        let baseId = field.label
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '');
+        let newId = baseId;
+        let counter = 2;
+
+        // If this ID is already used, append a number
+        while (usedIds.has(newId)) {
+          newId = `${baseId}_${counter}`;
+          counter++;
+        }
+
+        field.id = newId;
+        usedIds.add(newId);
+      } else {
+        // If field has custom id, still track it for uniqueness
+        usedIds.add(field.id);
       }
 
       // Always update position to match current index
@@ -852,6 +865,7 @@ window.initFormBuilder = async function () {
             field.options.forEach((opt, optIdx) => {
               const optionCard = document.createElement('div');
               optionCard.className = 'option-card';
+              optionCard.style.pointerEvents = 'auto';
 
               // Option indicator (A, B, C, etc.)
               const indicator = document.createElement('span');
@@ -960,6 +974,7 @@ window.initFormBuilder = async function () {
               optionInput.style.textAlign = 'left';
               optionInput.style.cursor = 'text';
               optionInput.style.fontFamily = 'inherit';
+              optionInput.style.pointerEvents = 'auto';
 
               // Auto-resize function
               function resizeOptionInput() {
@@ -993,7 +1008,13 @@ window.initFormBuilder = async function () {
                 setTimeout(() => {
                   const activeElement = document.activeElement;
                   const isOptionInput = activeElement && activeElement.classList.contains('option-label-input');
-                  if (!isOptionInput) {
+                  const isFieldLabelInput = activeElement && activeElement.classList.contains('field-label-input');
+                  const isTitleInput = activeElement && activeElement.classList.contains('form-title-input');
+                  const isButtonInput = activeElement && activeElement.classList.contains('button-text-input');
+                  const isFormInput = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT');
+
+                  // Don't re-render if focus moved to another editable element
+                  if (!isOptionInput && !isFieldLabelInput && !isTitleInput && !isButtonInput && !isFormInput) {
                     renderFormPreview();
                   }
                 }, 0);
@@ -1024,6 +1045,19 @@ window.initFormBuilder = async function () {
               optionInput.addEventListener('blur', () => {
                 if (optionInput.value === 'Nieuwe optie') {
                   optionInput.style.color = '#E4E4E7';
+                }
+              });
+
+              // Add click handler to option card to focus the input
+              optionCard.addEventListener('mousedown', e => {
+                // Don't focus if clicking on the delete button or the input itself
+                if (!e.target.closest('.option-delete-btn') && !e.target.closest('.option-label-input')) {
+                  e.preventDefault(); // Prevent default to avoid triggering blur
+                  // Use setTimeout to ensure focus happens after any blur events
+                  setTimeout(() => {
+                    optionInput.focus();
+                    optionInput.select();
+                  }, 0);
                 }
               });
 
@@ -1313,7 +1347,7 @@ window.initFormBuilder = async function () {
     const submitButton = document.createElement('button');
     submitButton.className = 'form-submit-button';
     submitButton.style.width = '100%';
-    submitButton.style.padding = '12px 24px';
+    submitButton.style.padding = '10px 24px';
     submitButton.style.backgroundColor = '#18181b';
     submitButton.style.color = '#ffffff';
     submitButton.style.border = 'none';

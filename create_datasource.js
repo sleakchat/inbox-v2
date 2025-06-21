@@ -1,7 +1,5 @@
-console.log('create_datasource.js');
 let dataSourceSelectValue = 'pdf';
 const addDataSourceselectBoxes = document.querySelectorAll('[multi-select="select-datasource"]');
-console.log('addDataSourceselectBoxes', addDataSourceselectBoxes);
 
 function handleClick(event) {
   addDataSourceselectBoxes.forEach(box => {
