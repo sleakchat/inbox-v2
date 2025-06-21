@@ -106,8 +106,9 @@ window.initFormBuilder = async function () {
   function ensureFieldIntegrity() {
     if (!v.formBuilderConfig || !v.formBuilderConfig.fields) return;
 
-    // Keep track of ID occurrences
+    // Keep track of ID occurrences and first occurrence
     const idCounts = {};
+    const firstOccurrence = {};
     const usedIds = new Set();
 
     // First pass: count occurrences of each base ID
@@ -141,18 +142,25 @@ window.initFormBuilder = async function () {
         baseId = field.id.replace(/_\d+$/, '');
       }
 
-      // If this base ID appears multiple times, append numbers
+      // If this base ID appears multiple times
       if (idCounts[baseId] > 1) {
-        let counter = 1;
-        let newId = `${baseId}_${counter}`;
+        if (!firstOccurrence[baseId]) {
+          // This is the first occurrence, keep it as is
+          firstOccurrence[baseId] = true;
+          field.id = baseId;
+        } else {
+          // This is a subsequent occurrence, append numbers starting from 2
+          let counter = 2;
+          let newId = `${baseId}_${counter}`;
 
-        // Find the next available numbered ID
-        while (usedIds.has(newId)) {
-          counter++;
-          newId = `${baseId}_${counter}`;
+          // Find the next available numbered ID
+          while (usedIds.has(newId)) {
+            counter++;
+            newId = `${baseId}_${counter}`;
+          }
+
+          field.id = newId;
         }
-
-        field.id = newId;
       } else {
         // If it's unique, use the base ID
         field.id = baseId;
