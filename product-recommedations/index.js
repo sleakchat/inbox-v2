@@ -111,7 +111,6 @@
       const mappingFields = [
         { label: 'Productpagina URL', id: 'page_url', icon: 'hgi-link-01' },
         { label: 'Titel', id: 'product_name', icon: 'hgi-text-font' },
-        { label: 'Beschrijving', id: 'description', icon: 'hgi-menu-02' },
         { label: 'Prijs', id: 'regular_price', icon: 'hgi-dollar-circle' },
         { label: 'Afbeelding', id: 'image_url', icon: 'hgi-image-01' }
       ];
@@ -270,30 +269,6 @@
 
         // Clear selection option and separator removed
 
-        // Add sample value preview if it exists
-        if (valueExists) {
-          const sampleValuePreview = document.createElement('div');
-          sampleValuePreview.className = 'sample-value-preview';
-
-          const value = getValueFromPath(currentMappingValue, xmlSample);
-          let displayValue;
-
-          // Format arrays to display without line breaks
-          if (Array.isArray(value)) {
-            displayValue = value.join(',');
-          } else {
-            displayValue = String(value);
-          }
-
-          // Truncate long values
-          if (displayValue.length > 50) {
-            displayValue = displayValue.substring(0, 47) + '...';
-          }
-
-          sampleValuePreview.textContent = displayValue;
-          dropdown.appendChild(sampleValuePreview);
-        }
-
         // Add options to dropdown - use all available keys from XML
         availableXmlKeys.forEach(option => {
           const optionEl = document.createElement('div');
@@ -304,7 +279,14 @@
           optionEl.setAttribute('role', 'option');
           optionEl.setAttribute('data-value', option);
 
-          // Create a container for the formatted path
+          // Create a container for the formatted path and value preview
+          const optionContainer = document.createElement('div');
+          optionContainer.style.display = 'flex';
+          optionContainer.style.alignItems = 'center';
+          optionContainer.style.justifyContent = 'space-between';
+          optionContainer.style.width = '100%';
+
+          // Path container (left side)
           const pathContainer = document.createElement('span');
           pathContainer.style.display = 'flex';
           pathContainer.style.alignItems = 'center';
@@ -312,13 +294,16 @@
 
           // Format the option text with arrows and icons for nested paths
           formatPathWithArrows(option, pathContainer);
-          optionEl.appendChild(pathContainer);
+          optionContainer.appendChild(pathContainer);
 
-          // Add preview of the actual value for this option
+          // Add preview of the actual value for this option (right side)
           const sampleValue = getValueFromPath(option, xmlSample);
           if (sampleValue !== undefined) {
             const valuePreview = document.createElement('span');
             valuePreview.className = 'option-value-preview';
+            valuePreview.style.color = '#71717a';
+            valuePreview.style.fontSize = '0.875rem';
+            valuePreview.style.marginLeft = '8px';
 
             let previewText;
 
@@ -335,8 +320,10 @@
             }
 
             valuePreview.textContent = previewText;
-            optionEl.appendChild(valuePreview);
+            optionContainer.appendChild(valuePreview);
           }
+
+          optionEl.appendChild(optionContainer);
 
           // Add a checkmark icon for the initially selected option
           if (option === currentMappingValue && option !== '') {
@@ -346,8 +333,8 @@
             checkmarkImg.className = 'option-checkmark';
             checkmarkImg.style.width = '16px';
             checkmarkImg.style.height = '16px';
-            checkmarkImg.style.marginLeft = 'auto';
-            optionEl.appendChild(checkmarkImg);
+            checkmarkImg.style.marginLeft = '8px';
+            optionContainer.appendChild(checkmarkImg);
           }
 
           // Handle option selection
@@ -442,8 +429,8 @@
               checkmarkImg.className = 'option-checkmark';
               checkmarkImg.style.width = '16px';
               checkmarkImg.style.height = '16px';
-              checkmarkImg.style.marginLeft = 'auto';
-              optionEl.appendChild(checkmarkImg);
+              checkmarkImg.style.marginLeft = '8px';
+              optionContainer.appendChild(checkmarkImg);
             }
 
             // Hide dropdown
