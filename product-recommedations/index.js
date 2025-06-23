@@ -272,8 +272,6 @@
 
         // Add sample value preview if it exists
         if (valueExists) {
-          // Remove the sample value preview - no longer showing this
-          /*
           const sampleValuePreview = document.createElement('div');
           sampleValuePreview.className = 'sample-value-preview';
 
@@ -294,7 +292,6 @@
 
           sampleValuePreview.textContent = displayValue;
           dropdown.appendChild(sampleValuePreview);
-          */
         }
 
         // Add options to dropdown - use all available keys from XML
@@ -320,8 +317,6 @@
           // Add preview of the actual value for this option
           const sampleValue = getValueFromPath(option, xmlSample);
           if (sampleValue !== undefined) {
-            // Remove the value preview display - no longer showing this
-            /*
             const valuePreview = document.createElement('span');
             valuePreview.className = 'option-value-preview';
 
@@ -341,7 +336,6 @@
 
             valuePreview.textContent = previewText;
             optionEl.appendChild(valuePreview);
-            */
           }
 
           // Add a checkmark icon for the initially selected option
@@ -619,6 +613,9 @@
         else if (arrayPaths[currentPath]) {
           const iconSpan = document.createElement('span');
           iconSpan.className = 'array-icon';
+          iconSpan.style.display = 'flex';
+          iconSpan.style.alignItems = 'center';
+          iconSpan.style.marginRight = '4px';
 
           // Use SVG for array icon
           const temp = document.createElement('div');
@@ -632,6 +629,8 @@
             svg.setAttribute('viewBox', '0 0 24 24');
             svg.setAttribute('stroke', 'currentColor');
             svg.style.color = '#71717a';
+            svg.style.display = 'block'; // Ensure SVG is block-level
+            svg.style.flexShrink = '0'; // Prevent SVG from shrinking
 
             iconSpan.appendChild(svg);
           }
