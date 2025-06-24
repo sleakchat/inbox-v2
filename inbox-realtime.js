@@ -303,7 +303,7 @@
 
       adminUiChannel = supaClient.channel(`organization_id:${v.activeOrganization}`, { config: { private: true } });
       // adminUiChannel = supaClient.channel(`visitor_id:b2796c2b-ecc7-47bc-9bd2-4cfa4046f751`, { config: { private: true } });
-      C(async function initializeBroadcastChannel() {
+      (async function initializeBroadcastChannel() {
         await supaClient.realtime.setAuth();
         adminUiChannel.on('broadcast', { event: '*' }, payload => {
           console.log('🔊🔊🔊 Broadcast message:', payload);
