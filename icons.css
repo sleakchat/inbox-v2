@@ -46,6 +46,10 @@
   color: #542cc1;
 }
 
+[icon-color='check-green'] {
+  color: #1a9921;
+}
+
 [icon-color='blue-grad'] {
   color: linear-gradient(to right, #0679e5, #0047b3);
   background: linear-gradient(to right, #0679e5, #0047b3);
@@ -72,7 +76,15 @@
 }
 
 [icon-color='green-grad'] {
-  background: linear-gradient(60deg, #8af059, #3bc14d);
+  background: linear-gradient(60deg, #a6dd52, #179128);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+[icon-color='red-grad'] {
+  background: linear-gradient(60deg, #feb678, #ff384d);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

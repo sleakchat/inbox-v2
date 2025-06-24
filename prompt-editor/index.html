@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minimal Editor.js</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      #editorjs {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 20px;
+        min-height: 200px;
+      }
+      button {
+        background: #4a86e8;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 6px;
+        overflow: auto;
+        margin-top: 20px;
+      }
+    </style>
+
+    <!-- Only load Editor.js core -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+  </head>
+  <body>
+    <h1>Minimal Editor.js</h1>
+
+    <!-- Editor container -->
+    <div id="editorjs"></div>
+
+    <!-- Save button -->
+    <button id="save-button">Save Content</button>
+
+    <!-- Output area -->
+    <pre id="output"></pre>
+
+    <script>
+      // Initialize Editor.js with just the core functionality
+      const editor = new EditorJS({
+        holder: 'editorjs',
+        // No tools specified, only default paragraph tool will be available
+        data: {
+          blocks: [
+            {
+              type: 'paragraph',
+              data: {
+                text: 'This is the simplest possible Editor.js implementation. Start typing here...'
+              }
+            }
+          ]
+        }
+      });
+
+      // Save button functionality
+      document.getElementById('save-button').addEventListener('click', function () {
+        editor
+          .save()
+          .then(data => {
+            document.getElementById('output').innerHTML = JSON.stringify(data, null, 2);
+          })
+          .catch(error => {
+            console.error('Saving error', error);
+            document.getElementById('output').innerHTML = 'Error: ' + error.message;
+          });
+      });
+    </script>
+  </body>
+</html>

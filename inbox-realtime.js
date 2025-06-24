@@ -15,11 +15,11 @@
     console.log('supa version = ', version)
 
     const { data } = supaClient.auth.onAuthStateChange((event, session) => {
-      console.log('auth event =', JSON.stringify({ event, time: new Date().toLocaleTimeString() }, null, 2));
+      // console.log('auth event =', JSON.stringify({ event, time: new Date().toLocaleTimeString() }, null, 2));
       if (event === 'TOKEN_REFRESHED') {
-        console.log('TOKEN_REFRESHED event - initializing main channel in 10 seconds');
+        // console.log('TOKEN_REFRESHED event - initializing main channel in 10 seconds');
         setTimeout(() => {
-          console.log('Initializing main channel');
+          // console.log('Initializing main channel');
           adminUiChannel.unsubscribe();
           initializeMainChannel();
         }, 5000);
@@ -303,18 +303,17 @@
 
       adminUiChannel = supaClient.channel(`organization_id:${v.activeOrganization}`, { config: { private: true } });
       // adminUiChannel = supaClient.channel(`visitor_id:b2796c2b-ecc7-47bc-9bd2-4cfa4046f751`, { config: { private: true } });
-
-      (async function initializeBroadcastChannel() {
+      C(async function initializeBroadcastChannel() {
         await supaClient.realtime.setAuth();
         adminUiChannel.on('broadcast', { event: '*' }, payload => {
           console.log('🔊🔊🔊 Broadcast message:', payload);
           const { table, eventType } = payload.payload;
 
-          console.log('🔍 Payload structure:', {
-            table,
-            eventType,
-            fullPayload: payload.payload
-          });
+          // console.log('🔍 Payload structure:', {
+          //   table,
+          //   eventType,
+          //   fullPayload: payload.payload
+          // });
 
           if (table === 'messages' && eventType === 'INSERT') {
             handleMessageInsert(payload.payload);
@@ -415,10 +414,10 @@
       //   );
 
       adminUiChannel.subscribe((status, err) => {
-        console.log('Realtime channel status changed = ', status);
+        // console.log('Realtime channel status changed = ', status);
         const timestamp = new Date().toLocaleTimeString();
-        console.log('realtime event timestamp = ', timestamp);
-        console.log('reconnecting = ', reconnecting);
+        // console.log('realtime event timestamp = ', timestamp);
+        // console.log('reconnecting = ', reconnecting);
 
         // if (Wized.data.r.get_user_data.data[0].organizations[0].id == '616d0a37-03ac-47ea-91fc-c9eba9f331fc') chime.play();
 
@@ -428,17 +427,17 @@
           if (!reconnecting) {
             restartRequired = true;
             if (retryCount > maxRetries) {
-              console.log('Reached maximum retry attempts for main channel.');
+              // console.log('Reached maximum retry attempts for main channel.');
               return;
             } else {
               retryCount += 1;
-              console.log('reconnecting');
+              // console.log('reconnecting');
               if (status !== 'CLOSED') {
                 unsubscribeRequired = true;
-                console.log('status is not closed, Unsubscribing from main channel');
+                // console.log('status is not closed, Unsubscribing from main channel');
                 adminUiChannel.unsubscribe();
               } else {
-                console.log('status is closed, Unsubscribing from main channel');
+                // console.log('status is closed, Unsubscribing from main channel');
                 initializeMainChannel();
               }
             }
@@ -456,16 +455,16 @@
     initializeMainChannel();
 
     document.onvisibilitychange = () => {
-      console.log('visibility change', document.visibilityState);
+      // console.log('visibility change', document.visibilityState);
       if (document.visibilityState === 'visible' && !reconnecting) {
         // if (document.visibilityState === 'visible' && !reconnecting && restartRequired) { <- this is the original line
         if (unsubscribeRequired) {
-          console.log('unsubscribing / required');
+          // console.log('unsubscribing / required');
           adminUiChannel.unsubscribe();
           unsubscribeRequired = false;
           initializeMainChannel();
         } else {
-          console.log('not unsubscribing / not required ');
+          // console.log('not unsubscribing / not required ');
         }
 
         retryCount = 0;

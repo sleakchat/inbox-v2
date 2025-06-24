@@ -1,6 +1,5 @@
 let dataSourceSelectValue = 'pdf';
 const addDataSourceselectBoxes = document.querySelectorAll('[multi-select="select-datasource"]');
-console.log('addDataSourceselectBoxes', addDataSourceselectBoxes);
 
 function handleClick(event) {
   addDataSourceselectBoxes.forEach(box => {
@@ -62,7 +61,7 @@ const sitemapElement = document.querySelector('[w-el="datasource-form-sitemap"]'
 // const productOptionsContainer = document.querySelector('[w-el="productioptions-selectoxes"]');
 
 // let productOption = 'csv';
-// // product options multi-select boxes
+// // product options multi-select boxesChannable bestand
 // productOptions.forEach(el => {
 //   el.addEventListener('click', function (event) {
 //     const element = event.currentTarget;
@@ -98,7 +97,7 @@ xmlFormBtn.addEventListener('click', function (event) {
         return;
       } else {
         input.classList.remove('alert');
-        productOptionsContainer.style.display = 'none';
+        // productOptionsContainer.style.display = 'none';
         xmlStep1.style.display = 'none';
         xmlStep2.style.display = 'flex';
         xmlStep++;
@@ -118,14 +117,14 @@ xmlForm.addEventListener('submit', function (event) {
 xmlPrevBtn.addEventListener('click', function (event) {
   event.preventDefault();
   if (xmlStep === 2) {
-    productOptionsContainer.style.display = 'block';
+    // productOptionsContainer.style.display = 'block';
     xmlStep1.style.display = 'flex';
     xmlStep2.style.display = 'none';
     xmlStep--;
   } else {
     xmlForm.style.display = 'none';
     formWrapperInitial.style.display = 'flex';
-    productOptionsContainer.style.display = 'block';
+    // productOptionsContainer.style.display = 'block';
     xmlStep = 1;
   }
 });
@@ -186,7 +185,7 @@ window.resetDatasourceFormState = function () {
   xmlStep1.style.display = 'flex';
   xmlStep2.style.display = 'none';
   // xmlFormContainer.style.display = 'none';
-  csvForm.style.display = 'flex';
+  csvForm.style.display = 'none';
   // productOptionsContainer.style.display = 'block';
 
   addDataSourceselectBoxes.forEach(option => option.classList.remove('selected'));

@@ -17,8 +17,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: 100vh;
   position: relative;
+  padding-bottom: 20px;
 }
 
 .form-builder-main {
@@ -45,14 +45,17 @@ body {
 /* Form Fields */
 .form-field-wrapper {
   position: relative;
-  margin-left: -32px;
-  padding-left: 32px;
+  margin-left: -60px;
+  margin-right: -60px;
+  padding-left: 60px;
+  padding-right: 60px;
 }
 
 .form-field-controls {
   position: absolute;
-  left: -50px;
-  width: auto;
+  width: 68px;
+  min-width: 68px;
+  left: -20px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -60,6 +63,10 @@ body {
   gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
+  top: 7px;
+  transform: translateY(-50%);
+  height: 20px;
+  align-items: end;
 }
 
 .form-field-wrapper:hover .form-field-controls,
@@ -68,6 +75,7 @@ body {
 }
 
 .field-control-btn {
+  position: relative;
   width: 20px;
   height: 20px;
   background: transparent;
@@ -88,8 +96,8 @@ body {
 }
 
 .field-control-btn.field-delete-btn:hover {
-  background: #fee2e2;
-  color: #ef4444;
+  background: #f4f4f5;
+  color: #52525b;
 }
 
 .field-control-btn svg {
@@ -99,6 +107,7 @@ body {
 
 .form-field-preview {
   margin-bottom: 16px;
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -121,10 +130,10 @@ body {
 }
 
 .form-field-preview label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #0a0a0a;
-  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #7a7a7a;
+  margin-bottom: 4px;
   text-align: left;
   gap: 0;
   display: block;
@@ -197,13 +206,13 @@ body {
 .option-card {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 8px 8px 8px 12px;
   border: 1px solid #e4e4e7;
   border-radius: 6px;
   background: #ffffff;
   cursor: pointer;
   transition: all 0.2s;
-  gap: 10px;
+  gap: 4px;
   min-width: fit-content;
   flex: 0 0 auto;
 }
@@ -268,10 +277,6 @@ body {
 
 /* Settings Popover */
 .settings-popover {
-  position: absolute;
-  left: calc(100% + 12px);
-  top: 0;
-  width: 240px;
   background: #ffffff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   border-radius: 8px;
@@ -463,10 +468,6 @@ input:checked + .toggle-slider:before {
   align-items: center;
   justify-content: center;
   transition: color 0.2s;
-}
-
-.option-remove:hover {
-  color: #ef4444;
 }
 
 .add-option-btn {
