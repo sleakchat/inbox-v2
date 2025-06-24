@@ -111,6 +111,7 @@
       const mappingFields = [
         { label: 'Productpagina URL', id: 'page_url', icon: 'hgi-link-01' },
         { label: 'Titel', id: 'product_name', icon: 'hgi-text-font' },
+        { label: 'Beschrijving', id: 'description', icon: 'hgi-menu-02' },
         { label: 'Prijs', id: 'regular_price', icon: 'hgi-dollar-circle' },
         { label: 'Afbeelding', id: 'image_url', icon: 'hgi-image-01' }
       ];
@@ -302,7 +303,7 @@
             const valuePreview = document.createElement('span');
             valuePreview.className = 'option-value-preview';
             valuePreview.style.color = '#71717a';
-            valuePreview.style.fontSize = '0.875rem';
+            valuePreview.style.fontSize = '12px';
             valuePreview.style.marginLeft = '8px';
 
             let previewText;
