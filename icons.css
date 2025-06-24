@@ -46,6 +46,10 @@
   color: #542cc1;
 }
 
+[icon-color='check-green'] {
+  color: #1a9921;
+}
+
 [icon-color='blue-grad'] {
   color: linear-gradient(to right, #0679e5, #0047b3);
   background: linear-gradient(to right, #0679e5, #0047b3);
