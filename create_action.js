@@ -1,6 +1,27 @@
 (async function () {
   // select boxes start
   Wized.data.v.selectedAction = 'api';
+
+  // Display names mapping
+  const displayNames = {
+    // Templates
+    shopify: 'Shopify orders',
+    woocommerce: 'Woocommerce orders',
+    lightspeed: 'Lightspeed orders',
+    magento: 'Magento orders',
+    myparcel: 'MyParcel orders',
+    sendcloud: 'SendCloud orders',
+    picqer: 'Picqer orders',
+    monta: 'Monta orders',
+    shopware: 'Shopware orders',
+    // Actions
+    'custom-action': 'Custom action',
+    'order-status': 'Order status',
+    'human-handoff': 'Human handoff',
+    formulier: 'Formulier',
+    'product-recommendations': 'Productaanbevelingen'
+  };
+
   function handleClick(event) {
     const element = event.currentTarget;
     Wized.data.v.selectedAction = element.getAttribute('data-value');
@@ -30,19 +51,22 @@
   const authConfig = {
     shopify: [
       { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-store.myshopify.com' },
-      { name: 'access_token', label: 'Access Token', type: 'text', required: true, placeholder: 'shpat_xxxxxxxxxxxxxxxxxxxx' }
+      { name: 'access_token', label: 'Access Token', type: 'password', required: true, placeholder: 'shpat_xxxxxxxxxxxxxxxxxxxx' }
     ],
     woocommerce: [
-      { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-store.com/wp-json/wc/v3' },
-      { name: 'consumer_key', label: 'Consumer Key', type: 'text', required: true, placeholder: 'ck_xxxxxxxxxxxxxxxxxxxx' },
-      { name: 'consumer_secret', label: 'Consumer Secret', type: 'text', required: true, placeholder: 'cs_xxxxxxxxxxxxxxxxxxxx' }
+      { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-store.com' },
+      { name: 'consumer_key', label: 'Consumer Key', type: 'password', required: true, placeholder: 'ck_xxxxxxxxxxxxxxxxxxxx' },
+      { name: 'consumer_secret', label: 'Consumer Secret', type: 'password', required: true, placeholder: 'cs_xxxxxxxxxxxxxxxxxxxx' }
     ],
     lightspeed: [
       { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
       { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
     ],
-    magento: [{ name: 'bearer_token', label: 'Bearer Token', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
-    myparcel: [{ name: 'api_token', label: 'API Token', type: 'text', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
+    magento: [
+      { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-store.com' },
+      { name: 'access_token', label: 'Access Token', type: 'password', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }
+    ],
+    myparcel: [{ name: 'api_token', label: 'API Token', type: 'password', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
     sendcloud: [
       { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
       { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
@@ -134,6 +158,8 @@
     document.querySelector(`[actions-container="order-status-1"]`).style.display = 'none';
     document.querySelector(`[actions-container="order-status-2"]`).style.display = 'flex';
     let templateKey = Wized.data.v.selectedOrdersApiTemplate;
+    // Set the action name based on selected template's display name
+    Wized.data.i.create_action_name = displayNames[templateKey] || templateKey;
     renderAuthInputsForTemplate(templateKey, 'create-template-form-inputs-wrapper');
   });
 
@@ -168,6 +194,9 @@
       if (Wized.data.v.selectedAction === 'product-recommendations') {
         // window.initProductRecomms();
       }
+      // Set the action name based on selected action's display name
+      Wized.data.i.create_action_name = displayNames[Wized.data.v.selectedAction] || Wized.data.v.selectedAction;
+      console.log('Wized.data.i.create_action_name', Wized.data.i.create_action_name);
       document.querySelector(`[actions-container="${Wized.data.v.selectedAction}"]`).style.display = 'flex';
     },
     -false

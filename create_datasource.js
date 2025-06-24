@@ -185,7 +185,7 @@ window.resetDatasourceFormState = function () {
   xmlStep1.style.display = 'flex';
   xmlStep2.style.display = 'none';
   // xmlFormContainer.style.display = 'none';
-  csvForm.style.display = 'flex';
+  csvForm.style.display = 'none';
   // productOptionsContainer.style.display = 'block';
 
   addDataSourceselectBoxes.forEach(option => option.classList.remove('selected'));
