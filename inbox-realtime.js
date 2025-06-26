@@ -117,6 +117,30 @@
       }
     }
 
+    async function handleMessageUpdate(payload) {
+      const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
+      if (chat) {
+        // Update messages in all other arrays if they exist
+        ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
+          const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.visitor_id);
+          if (chatInArray && chatInArray.messages) {
+            const messageToUpdate = chatInArray.messages.find(msg => msg.id === payload.new.id);
+            if (messageToUpdate) {
+              Object.assign(messageToUpdate, payload.new);
+            }
+          }
+        });
+      }
+
+      // Update message in active chat object if this is the current chat
+      if (payload.new.visitor_id == v.active_chat_object?.id) {
+        const messageToUpdate = v.active_chat_object.messages?.find(msg => msg.id === payload.new.id);
+        if (messageToUpdate) {
+          Object.assign(messageToUpdate, payload.new);
+        }
+      }
+    }
+
     async function handleChatInsert(payload) {
       // console.log('New chat:', payload);
 
@@ -140,7 +164,7 @@
       if (payload.new.placement == 'admin') return;
 
       const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
-      console.log('💬 updatedChat:', payload);
+      // console.log('💬 updatedChat:', payload);
       if (updatedChat) {
         // console.log('💩💩💩 Chat in array updated:', updatedChat);
         // console.log('Chat updated:', updatedChat);
@@ -316,6 +340,8 @@
 
           if (table === 'messages' && eventType === 'INSERT') {
             handleMessageInsert(payload.payload);
+          } else if (table === 'messages' && eventType === 'UPDATE') {
+            handleMessageUpdate(payload.payload);
           } else if (table === 'chats' && eventType === 'INSERT') {
             handleChatInsert(payload.payload);
           } else if (table === 'chats' && eventType === 'UPDATE') {
