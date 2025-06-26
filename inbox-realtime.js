@@ -330,7 +330,7 @@
       (async function initializeBroadcastChannel() {
         await supaClient.realtime.setAuth();
         adminUiChannel.on('broadcast', { event: '*' }, payload => {
-          console.log('🔊🔊🔊 Broadcast message:', payload);
+          // console.log('🔊🔊🔊 Broadcast message:', payload);
           const { table, eventType } = payload.payload;
 
           // console.log('🔍 Payload structure:', {
