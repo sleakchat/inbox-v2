@@ -819,6 +819,16 @@ window.initFormBuilder = async function () {
           inputEl.placeholder = field.label;
           inputEl.style.paddingLeft = '32px'; // Make room for icon
 
+          // Add click handler to select the label input
+          inputEl.addEventListener('click', e => {
+            e.preventDefault();
+            const labelInput = fieldPreview.querySelector('.field-label-input');
+            if (labelInput) {
+              labelInput.focus();
+              labelInput.select();
+            }
+          });
+
           // Create phone icon
           const phoneIcon = document.createElement('i');
           phoneIcon.className = 'hgi hgi-stroke hgi-call-02';
@@ -844,6 +854,16 @@ window.initFormBuilder = async function () {
           inputEl.placeholder = field.label;
           inputEl.style.paddingLeft = '32px'; // Make room for icon
 
+          // Add click handler to select the label input
+          inputEl.addEventListener('click', e => {
+            e.preventDefault();
+            const labelInput = fieldPreview.querySelector('.field-label-input');
+            if (labelInput) {
+              labelInput.focus();
+              labelInput.select();
+            }
+          });
+
           // Create email icon
           const emailIcon = document.createElement('i');
           emailIcon.className = 'hgi hgi-stroke hgi-mail-01';
@@ -867,11 +887,33 @@ window.initFormBuilder = async function () {
           inputEl = document.createElement('input');
           inputEl.type = 'text';
           inputEl.placeholder = field.label;
+
+          // Add click handler to select the label input
+          inputEl.addEventListener('click', e => {
+            e.preventDefault();
+            const labelInput = fieldPreview.querySelector('.field-label-input');
+            if (labelInput) {
+              labelInput.focus();
+              labelInput.select();
+            }
+          });
+
           fieldPreview.appendChild(inputEl);
           break;
         case 'multiline':
           textareaEl = document.createElement('textarea');
           textareaEl.placeholder = field.label;
+
+          // Add click handler to select the label input
+          textareaEl.addEventListener('click', e => {
+            e.preventDefault();
+            const labelInput = fieldPreview.querySelector('.field-label-input');
+            if (labelInput) {
+              labelInput.focus();
+              labelInput.select();
+            }
+          });
+
           fieldPreview.appendChild(textareaEl);
           break;
         case 'singleselect':
