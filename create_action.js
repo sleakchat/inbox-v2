@@ -73,8 +73,7 @@
     ],
     picqer: [
       { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-picqer-url.com' },
-      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
-      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
+      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' }
     ],
     monta: [
       { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
