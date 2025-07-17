@@ -32,7 +32,7 @@
 input,
 textarea,
 [data-selectable] * {
-  user-select: text;
+  user-select: text !important;
 }
 
 [not-selectable] * {
