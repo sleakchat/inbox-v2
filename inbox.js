@@ -406,22 +406,22 @@
     const urlParams = new URLSearchParams(window.location.search);
     const chatIdFromUrl = urlParams.get('chat');
 
-    if (v.chats.length > 0) {
-      if (chatIdFromUrl && v.chats.some(chat => chat.id === chatIdFromUrl)) {
-        // Use chat ID from URL if it exists in the chats list
-        window.switchActiveChat(chatIdFromUrl);
-      } else {
+    if (chatIdFromUrl && v.chats.some(chat => chat.id === chatIdFromUrl)) {
+      // Use chat ID from URL if it exists in the chats list
+      window.switchActiveChat(chatIdFromUrl);
+    } else {
+      if (v.chats.length > 0) {
         // Fall back to first chat in the list
         window.switchActiveChat(v.chats[0].id);
+      } else {
+        window.switchActiveChat(null);
       }
-
-      // // if livechat is false, disable input
-      // if (v.chats.find(chat => chat.id === v.active_chat).livechat == false) {
-      //   document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
-      // }
-    } else {
-      window.switchActiveChat(null);
     }
+
+    // // if livechat is false, disable input
+    // if (v.chats.find(chat => chat.id === v.active_chat).livechat == false) {
+    //   document.querySelector('[w-el="admin-ui-chat-input"]').setAttribute('readonly', true);
+    // }
   })();
 
   window.changeSidebarTabs = async function () {
