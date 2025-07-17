@@ -25,18 +25,24 @@
   }
 }
 
-/* body {
+body {
   user-select: none;
-} */
+}
 
 input,
 textarea,
+[data-selectable],
 [data-selectable] * {
   user-select: text !important;
 }
 
+[not-selectable],
 [not-selectable] * {
-  user-select: none !important;
+  user-select: none;
+}
+
+html body [data-selectable] * {
+  user-select: text !important;
 }
 
 ::selection {
