@@ -453,6 +453,28 @@
       }
     });
   };
+
+  // Global function to initialize tooltips for dynamically added elements
+  window.initTooltip = function (trigger) {
+    if (!tooltipMap.has(trigger)) {
+      const tooltip = createTooltipElement(trigger);
+      const container = document.getElementById('tooltip-container');
+      container.appendChild(tooltip);
+      tooltipMap.set(trigger, tooltip);
+
+      trigger.addEventListener('mouseenter', () => {
+        currentHoveredTrigger = trigger;
+        if (isElementVisible(trigger)) {
+          updateTooltipPosition(trigger, tooltip);
+        }
+      });
+
+      trigger.addEventListener('mouseleave', () => {
+        currentHoveredTrigger = null;
+        hideTooltip(trigger, tooltip);
+      });
+    }
+  };
 })();
 
 // (function wizedDebug() {
