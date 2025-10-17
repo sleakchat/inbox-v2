@@ -59,8 +59,8 @@
       { name: 'consumer_secret', label: 'Consumer Secret', type: 'password', required: true, placeholder: 'cs_xxxxxxxxxxxxxxxxxxxx' }
     ],
     lightspeed: [
-      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
-      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
+      { name: 'username', label: 'API Key', type: 'text', required: true, placeholder: 'your-username' },
+      { name: 'password', label: 'API Secret', type: 'password', required: true, placeholder: 'your-api-secret' }
     ],
     magento: [
       { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-store.com' },
@@ -68,12 +68,12 @@
     ],
     myparcel: [{ name: 'api_token', label: 'API Token', type: 'password', required: true, placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }],
     sendcloud: [
-      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
-      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
+      { name: 'username', label: 'Public Key', type: 'text', required: true, placeholder: 'your-public-key' },
+      { name: 'password', label: 'Secret Key', type: 'password', required: true, placeholder: 'your-secret-key' }
     ],
     picqer: [
       { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-picqer-url.com' },
-      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' }
+      { name: 'username', label: 'API Key', type: 'text', required: true, placeholder: 'your-api-key' }
     ],
     monta: [
       { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
@@ -81,8 +81,8 @@
     ],
     shopware: [
       { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-shopware-url.com' },
-      { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'your-username' },
-      { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'your-password' }
+      { name: 'username', label: 'Access Key ID', type: 'text', required: true, placeholder: 'your-access-key-id' },
+      { name: 'password', label: 'Secret Access Key', type: 'password', required: true, placeholder: 'your-secret-access-key' }
     ]
     // Add shopware or other CMS if needed
   };
