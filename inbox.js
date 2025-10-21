@@ -406,7 +406,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const chatIdFromUrl = urlParams.get('chat');
 
-    if (chatIdFromUrl && v.chats.some(chat => chat.id === chatIdFromUrl)) {
+    if (chatIdFromUrl) {
       // Use chat ID from URL if it exists in the chats list
       window.switchActiveChat(chatIdFromUrl);
     } else {
