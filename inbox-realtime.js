@@ -8,6 +8,133 @@
   await Wized.requests.waitFor('get_chatbots');
 
   let chime = new Audio('https://sygpwnluwwetrkmwilea.supabase.co/storage/v1/object/public/app/assets/sleak-chime.mp3');
+  let notificationsEnabled = false;
+  let notificationsSupported = false;
+  let notificationIcon = 'https://db.sleak.chat/storage/v1/object/public/app/assets/Logo%20webclip.png';
+
+  // Check if browser supports notifications
+  function checkNotificationSupport() {
+    return 'Notification' in window;
+  }
+
+  // Request notification permission if not already granted
+  function requestNotificationPermission() {
+    notificationsSupported = checkNotificationSupport();
+    console.log('Notifications supported:', notificationsSupported);
+
+    if (notificationsSupported) {
+      console.log('Current permission state:', Notification.permission);
+      notificationsEnabled = Notification.permission === 'granted';
+    }
+  }
+
+  // Function to request notifications from Webflow button
+  window.requestNotificationsIfNeeded = function () {
+    // Check if notifications are supported
+    if (!('Notification' in window)) {
+      console.log('Notifications not supported in this browser');
+      return false;
+    }
+
+    // Check current permission state
+    const currentPermission = Notification.permission;
+    console.log('Current notification permission:', currentPermission);
+
+    // Only request if not already granted or denied
+    if (currentPermission === 'default') {
+      console.log('Requesting notification permission...');
+
+      // Try to detect Arc browser (this is a heuristic, not foolproof)
+      const isArc = /Arc/.test(navigator.userAgent) || (window.navigator.userAgentData && window.navigator.userAgentData.brands.some(brand => brand.brand === 'Arc'));
+
+      if (isArc) {
+        // For Arc browser, try to show a test notification first
+        console.log('Arc browser detected, trying alternative approach');
+        try {
+          // Create a temporary notification to trigger the permission dialog
+          const testNotification = new Notification('Test Notification', {
+            body: 'This is a test notification to request permission',
+            icon: notificationIcon,
+            requireInteraction: false
+          });
+
+          // Close it immediately
+          setTimeout(() => testNotification.close(), 100);
+
+          // Check if it worked
+          setTimeout(() => {
+            notificationsEnabled = Notification.permission === 'granted';
+            console.log('Permission after Arc workaround:', Notification.permission);
+          }, 500);
+        } catch (e) {
+          // If that fails, fall back to the standard approach
+          console.log('Arc workaround failed, trying standard approach:', e);
+          Notification.requestPermission().then(permission => {
+            console.log('Permission after request:', permission);
+            notificationsEnabled = permission === 'granted';
+            return permission === 'granted';
+          });
+        }
+      } else {
+        // Standard approach for other browsers
+        Notification.requestPermission().then(permission => {
+          console.log('Permission after request:', permission);
+          notificationsEnabled = permission === 'granted';
+          return permission === 'granted';
+        });
+      }
+    } else if (currentPermission === 'granted') {
+      console.log('Notification permission already granted');
+      notificationsEnabled = true;
+      return true;
+    } else if (currentPermission === 'denied') {
+      console.log('Notification permission previously denied');
+      notificationsEnabled = false;
+      return false;
+    }
+  };
+
+  // Show a notification
+  function showNotification(title, body, chatId = null) {
+    console.log('Show notification check:', {
+      notificationsSupported,
+      notificationsEnabled,
+      notificationsCheckbox: i['checkbox-inbox-notifications'],
+      visibilityState: document.visibilityState
+    });
+
+    if (notificationsSupported && notificationsEnabled && i['checkbox-inbox-notifications'] == true && document.visibilityState !== 'visible') {
+      try {
+        const notification = new Notification(title, {
+          body: body,
+          icon: notificationIcon,
+          tag: chatId || 'sleak-notification', // Group notifications by chat ID
+          requireInteraction: false // Auto-close after a while
+        });
+
+        // Add click handler to navigate to the chat
+        notification.onclick = function () {
+          // Focus this window
+          window.focus();
+
+          // If a chat ID was provided, switch to that chat
+          if (chatId) {
+            window.switchActiveChat(chatId);
+          }
+
+          // Close the notification
+          this.close();
+        };
+
+        console.log('Notification shown successfully');
+      } catch (error) {
+        console.error('Error showing notification:', error);
+      }
+    }
+  }
+
+  // Initialize notification permission
+  requestNotificationPermission();
 
   (async function realtimeInit() {
     const { version, client } = await Wized.requests.getClient('supabase');
@@ -95,10 +222,21 @@
           }
         });
 
-        // chime
+        // chime and notification
         if (payload.new.message_type === 'default_user') {
           if (i['checkbox-inbox-notifications'] == true) {
             chime.play().catch(error => console.error('Error playing chime:', error));
+
+            // Show notification for new message only if it's a livechat
+            const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
+
+            // Only show notification if this is a livechat
+            if (chat?.livechat === true) {
+              const chatName = chat?.name || chat?.enduser_email || chat?.enduser_name;
+              const messageContent = payload.new.content || `Nieuw bericht: "${payload.new.body}"`;
+
+              showNotification(`${messageContent}`, messageContent, payload.new.visitor_id);
+            }
           }
         }
       } else {
