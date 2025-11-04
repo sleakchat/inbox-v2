@@ -232,10 +232,11 @@
 
             // Only show notification if this is a livechat
             if (chat?.livechat === true) {
-              const chatName = chat?.name || chat?.enduser_email || chat?.enduser_name;
-              const messageContent = payload.new.content || `Nieuw bericht: "${payload.new.body}"`;
+              // Get the message content, use body if content is not available
+              const messageContent = payload.new.content || payload.new.body || '';
 
-              showNotification(`${messageContent}`, messageContent, payload.new.visitor_id);
+              // Simplified title and show only the message as description
+              showNotification('Nieuw bericht in Sleak', `"${messageContent}"`, payload.new.visitor_id);
             }
           }
         }
@@ -300,6 +301,15 @@
 
     async function handleChatUpdate(payload) {
       if (payload.new.placement == 'admin') return;
+
+      // Check for human handoff request (agent_requested changed from false to true)
+      if (payload.old.agent_requested === false && payload.new.agent_requested === true) {
+        // Show notification for human handoff request
+        const endUserEmail = payload.new.enduser_email || '';
+        const notificationBody = endUserEmail ? `Email: ${endUserEmail}` : 'No email provided';
+
+        showNotification('Nieuwe human handoff in Sleak', notificationBody, payload.new.id);
+      }
 
       const updatedChat = v.allchats.find(chat => chat.id === payload.new.id);
       // console.log('💬 updatedChat:', payload);

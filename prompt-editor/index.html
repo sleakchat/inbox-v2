@@ -11,13 +11,13 @@
         max-width: 800px;
         margin: 0 auto;
       }
-      #editorjs {
+      /* #editorjs {
         border: 1px solid #ddd;
         border-radius: 6px;
         padding: 20px;
         margin-bottom: 20px;
         min-height: 200px;
-      }
+      } */
       button {
         background: #4a86e8;
         color: white;
@@ -33,14 +33,17 @@
         overflow: auto;
         margin-top: 20px;
       }
+      .ce-toolbox .cdx-search-field {
+        display: none;
+      }
     </style>
 
-    <!-- Only load Editor.js core -->
+    <!-- Load Editor.js core and List plugin -->
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
   </head>
   <body>
-    <h1>Minimal Editor.js</h1>
-
     <!-- Editor container -->
     <div id="editorjs"></div>
 
@@ -51,10 +54,26 @@
     <pre id="output"></pre>
 
     <script>
-      // Initialize Editor.js with just the core functionality
+      // Initialize Editor.js with minimal configuration
       const editor = new EditorJS({
         holder: 'editorjs',
-        // No tools specified, only default paragraph tool will be available
+        tools: {
+          header: {
+            class: Header,
+            inlineToolbar: true
+          },
+          list: {
+            class: EditorjsList,
+            inlineToolbar: true,
+            config: {
+              defaultStyle: 'unordered'
+            },
+            toolbox: {
+              title: 'List',
+              icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><line x1="9" x2="19" y1="7" y2="7" stroke="currentColor" stroke-linecap="round" stroke-width="2"></line><line x1="9" x2="19" y1="12" y2="12" stroke="currentColor" stroke-linecap="round" stroke-width="2"></line><line x1="9" x2="19" y1="17" y2="17" stroke="currentColor" stroke-linecap="round" stroke-width="2"></line><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5.00001 17H4.99002"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5.00001 12H4.99002"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5.00001 7H4.99002"></path></svg>'
+            }
+          }
+        },
         data: {
           blocks: [
             {
@@ -64,6 +83,60 @@
               }
             }
           ]
+        }
+      });
+
+      // Handle input events directly on the editor's DOM
+      document.getElementById('editorjs').addEventListener('input', async e => {
+        const block = e.target.closest('.ce-block');
+        if (!block) return;
+
+        // Get the actual contenteditable element
+        const contentEditable = e.target.closest('[contenteditable="true"]');
+        if (!contentEditable) return;
+
+        const content = contentEditable.textContent || '';
+        console.log('content = ', content);
+        console.log('content length = ', content.length);
+        console.log(
+          'content chars = ',
+          [...content].map(c => c.charCodeAt(0))
+        );
+
+        // Check for hyphen followed by any kind of space
+        if (content.length === 2 && content.charCodeAt(0) === 45 && (content.charCodeAt(1) === 32 || content.charCodeAt(1) === 160)) {
+          console.log('converting to list');
+
+          try {
+            const blockId = block.dataset.id;
+            if (!blockId) {
+              console.error('No block ID found');
+              return;
+            }
+
+            await editor.blocks.convert(blockId, 'list');
+
+            // Get the latest data to find the new block ID
+            const savedData = await editor.save();
+            const newBlockId = savedData.blocks[savedData.blocks.length - 1].id;
+
+            await editor.blocks.update(newBlockId, {
+              items: ['']
+            });
+
+            // Focus the new list item's contenteditable element
+            setTimeout(() => {
+              const newBlock = document.querySelector(`[data-id="${newBlockId}"]`);
+              if (newBlock) {
+                const listItemContent = newBlock.querySelector('.cdx-list__item-content');
+                if (listItemContent) {
+                  listItemContent.focus();
+                }
+              }
+            }, 10);
+          } catch (err) {
+            console.error('Error converting to list:', err);
+          }
         }
       });
 
