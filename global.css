@@ -257,6 +257,9 @@ textarea {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+.scrollable {
+  overflow-y: auto;
+}
 
 .popup-underlay {
   display: none;
