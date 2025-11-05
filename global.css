@@ -238,13 +238,27 @@ textarea {
 }
 
 /* hide scrollbars */
+
+/* 
 .scrollable {
-  -ms-overflow-style: none; /* internet explorer, edge */
-  scrollbar-width: none; /* firefox */
-  overflow-y: scroll; /* allow scroll */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overflow-y: auto;
 }
 .scrollable::-webkit-scrollbar {
-  display: none; /* chrome, safari, and opera */
+  display: none;
+} */
+
+/* global: hide horizontal scrollbar + space */
+*::-webkit-scrollbar:horizontal {
+  height: 0;
+}
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollable {
+  overflow-y: auto;
 }
 
 .popup-underlay {
