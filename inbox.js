@@ -452,7 +452,7 @@
   // Send a system message to the chat with custom message_type_data
   async function sendSystemMessage(chat_id, message_type, message_type_data, author_member_id = null) {
     await supabase.from('messages').insert({
-      visitor_id: chat_id,
+      chat_id: chat_id,
       author_type: 'system',
       message_type: message_type,
       message_type_data: message_type_data,

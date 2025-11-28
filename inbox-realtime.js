@@ -205,15 +205,15 @@
 
     async function handleMessageInsert(payload) {
       // console.log('💬 Postgres changes message:', payload);
-      // console.log('💬💬💬 v.active_chat_object.visitor_id:', v.active_chat_object.id);
+      // console.log('💬💬💬 v.active_chat_object.chat_id:', v.active_chat_object.id);
 
-      const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
+      const chat = v.allchats.find(chat => chat.id === payload.new.chat_id);
       if (chat) {
         // console.log('🥶🥶🥶 Chat exists in v.allchats:', chat);
 
         // Update messages in all other arrays if they exist
         ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
-          const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.visitor_id);
+          const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.chat_id);
           if (chatInArray) {
             if (!chatInArray.messages) {
               chatInArray.messages = [];
@@ -228,7 +228,7 @@
             chime.play().catch(error => console.error('Error playing chime:', error));
 
             // Show notification for new message only if it's a livechat
-            const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
+            const chat = v.allchats.find(chat => chat.id === payload.new.chat_id);
 
             // Only show notification if this is a livechat
             if (chat?.livechat === true) {
@@ -236,16 +236,16 @@
               const messageContent = payload.new.content || payload.new.body || '';
 
               // Simplified title and show only the message as description
-              showNotification('Nieuw bericht in Sleak', `"${messageContent}"`, payload.new.visitor_id);
+              showNotification('Nieuw bericht in Sleak', `"${messageContent}"`, payload.new.chat_id);
             }
           }
         }
       } else {
-        // console.log('🥶🥶🥶 No chat found for message with visitor_id:', payload.new.visitor_id);
+        // console.log('🥶🥶🥶 No chat found for message with chat_id:', payload.new.chat_id);
       }
 
       // 📥 add to active chat object
-      if (payload.new.visitor_id == v.active_chat_object?.id) {
+      if (payload.new.chat_id == v.active_chat_object?.id) {
         // message entrance animations
 
         pushMessage(payload);
@@ -257,11 +257,11 @@
     }
 
     async function handleMessageUpdate(payload) {
-      const chat = v.allchats.find(chat => chat.id === payload.new.visitor_id);
+      const chat = v.allchats.find(chat => chat.id === payload.new.chat_id);
       if (chat) {
         // Update messages in all other arrays if they exist
         ['updatedChats', 'loadmorechats', 'newchats', 'rawchats', 'chats'].forEach(chatArrayName => {
-          const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.visitor_id);
+          const chatInArray = v[chatArrayName].find(chat => chat.id === payload.new.chat_id);
           if (chatInArray && chatInArray.messages) {
             const messageToUpdate = chatInArray.messages.find(msg => msg.id === payload.new.id);
             if (messageToUpdate) {
@@ -272,7 +272,7 @@
       }
 
       // Update message in active chat object if this is the current chat
-      if (payload.new.visitor_id == v.active_chat_object?.id) {
+      if (payload.new.chat_id == v.active_chat_object?.id) {
         const messageToUpdate = v.active_chat_object.messages?.find(msg => msg.id === payload.new.id);
         if (messageToUpdate) {
           Object.assign(messageToUpdate, payload.new);
@@ -376,7 +376,7 @@
 
             async function fetchMessages(chatId) {
               try {
-                const { data, error } = await supaClient.from('messages').select('*').eq('visitor_id', chatId).order('created_at', { ascending: true }).limit(50);
+                const { data, error } = await supaClient.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true }).limit(50);
 
                 if (error) throw error;
                 return data || [];
@@ -473,7 +473,7 @@
       // console.log('Initializing main channel, attempt:', retryCount + 1);
 
       adminUiChannel = supaClient.channel(`organization_id:${v.activeOrganization}`, { config: { private: true } });
-      // adminUiChannel = supaClient.channel(`visitor_id:b2796c2b-ecc7-47bc-9bd2-4cfa4046f751`, { config: { private: true } });
+      // adminUiChannel = supaClient.channel(`chat_id:b2796c2b-ecc7-47bc-9bd2-4cfa4046f751`, { config: { private: true } });
       (async function initializeBroadcastChannel() {
         await supaClient.realtime.setAuth();
         adminUiChannel.on('broadcast', { event: '*' }, payload => {
