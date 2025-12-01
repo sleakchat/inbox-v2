@@ -453,6 +453,7 @@
   async function sendSystemMessage(chat_id, message_type, message_type_data, author_member_id = null) {
     await supabase.from('messages').insert({
       chat_id: chat_id,
+      visitor_id: v.active_chat_object.visitor_id,
       author_type: 'system',
       message_type: message_type,
       message_type_data: message_type_data,
@@ -552,7 +553,9 @@
         await supabase.from('operators').update({ status: 'active', handoff_type: null }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       } else {
         // insert new operator if not already in the chat
-        await supabase.from('operators').insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active', organization_id: v.activeOrganization }]);
+        await supabase
+          .from('operators')
+          .insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active', organization_id: v.activeOrganizatio, visitor_id: v.active_chat_object.visitor_id }]);
       }
 
       if (chatState.open == false) {
@@ -638,7 +641,7 @@
       } else {
         // console.log('operator doesnt exist, inserting new operator');
         // Insert new operator
-        await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited', organization_id: v.activeOrganization }]);
+        await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited', organization_id: v.activeOrganization, visitor_id: v.active_chat_object.visitor_id }]);
         // console.log(`Operator ${user_id} invited to chat ${chat_id}`);
       }
     }
