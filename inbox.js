@@ -555,7 +555,7 @@
         // insert new operator if not already in the chat
         await supabase
           .from('operators')
-          .insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active', organization_id: v.activeOrganizatio, visitor_id: v.active_chat_object.visitor_id }]);
+          .insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active', organization_id: v.activeOrganization, visitor_id: chatState.visitor_id }]);
       }
 
       if (chatState.open == false) {
@@ -630,7 +630,7 @@
 
   (async function defineLivechatAssignment() {
     // Invite or update operator
-    async function inviteOperator(chat_id, user_id, member_id) {
+    async function inviteOperator(chat_id, user_id, member_id, visitor_id) {
       // Check if operator already exists
       const { data: existing } = await supabase.from('operators').select('*').eq('chat_id', chat_id).eq('user_id', user_id).maybeSingle();
 
@@ -641,7 +641,7 @@
       } else {
         // console.log('operator doesnt exist, inserting new operator');
         // Insert new operator
-        await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited', organization_id: v.activeOrganization, visitor_id: v.active_chat_object.visitor_id }]);
+        await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited', organization_id: v.activeOrganization, visitor_id }]);
         // console.log(`Operator ${user_id} invited to chat ${chat_id}`);
       }
     }
@@ -683,7 +683,7 @@
       await removeActiveOperators(chat_id, user_id, true);
 
       // Invite or update the operator
-      await inviteOperator(chat_id, user_id, member_id);
+      await inviteOperator(chat_id, user_id, member_id, chatState.visitor_id);
 
       await sendSystemMessage(chat_id, 'agent_requested', { type: 'assign_manually', assigned_to: user_id, assigned_by: currentUser });
     };
