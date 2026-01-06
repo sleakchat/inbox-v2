@@ -645,62 +645,62 @@
       } //right now doing nothing on hidden.  Another option is to set a time to close the subscription after x minutes
     };
 
-    // (async function initializeIsTypingChannel() {
-    //   let isTypingChannel;
-    //   await new Promise(res => setTimeout(res, 1000));
-    //   // ⚠️ maybe just add an await for a request or global variable here
-    //   let currentChat = v.active_chat_object.id;
-    //   let inputEventListener = false;
-    //   function initializeLiveChatChannel(supaClient) {
-    //     isTypingChannel = supaClient.channel('isTyping_' + currentChat);
-    //     // console.log("first log", isTypingChannel);
-    //     isTypingChannel.subscribe(status => {
-    //       // if (status !== "SUBSCRIBED") {
-    //       //   console.log("not subscribed");
-    //       // } else {
-    //       //   console.log("Subscribed");
-    //       // }
-    //       function sendIsTyping() {
-    //         isTypingChannel.send({
-    //           type: 'broadcast',
-    //           event: 'isTypingAdmin'
-    //           // payload: { message: "Subscribed to isTypingChannel" },
-    //         });
-    //       }
-    //       // input event listener
-    //       const input = document.querySelector("[w-el='admin-ui-chat-input']");
-    //       let isTypingFlag = false;
-    //       if (inputEventListener == false) {
-    //         input.addEventListener('input', () => {
-    //           if (isTypingFlag == false) {
-    //             // console.log('input event');
-    //             sendIsTyping();
-    //             isTypingFlag = true;
-    //             setTimeout(() => {
-    //               isTypingFlag = false;
-    //             }, 5000);
-    //           }
-    //         });
-    //       }
-    //       inputEventListener = true;
-    //     });
-    //   }
-    //   function closeLiveChatChannel() {
-    //     isTypingChannel.unsubscribe();
-    //     isTypingChannel = null;
-    //   }
-    //   // operatorChanged event listeners
-    //   window.addEventListener('joinLivechat', event => {
-    //     initializeLiveChatChannel(supaClient);
-    //   });
-    //   window.addEventListener('leaveLivechat', event => {
-    //     if (isTypingChannel) {
-    //       closeLiveChatChannel(supaClient);
-    //     }
-    //   });
-    //   if (v.active_chat?.livechat == true) {
-    //     initializeLiveChatChannel(supaClient);
-    //   }
-    // })();
+    (async function initializeIsTypingChannel() {
+      let isTypingChannel;
+      await new Promise(res => setTimeout(res, 1000));
+      // ⚠️ maybe just add an await for a request or global variable here
+      let currentChat = v.active_chat_object.id;
+      let inputEventListener = false;
+      function initializeLiveChatChannel(supaClient) {
+        isTypingChannel = supaClient.channel('isTyping_' + currentChat);
+        console.log('📶 first log', isTypingChannel);
+        isTypingChannel.subscribe(status => {
+          if (status !== 'SUBSCRIBED') {
+            console.log('📶 not subscribed');
+          } else {
+            console.log('📶 Subscribed');
+          }
+          function sendIsTyping() {
+            isTypingChannel.send({
+              type: 'broadcast',
+              event: 'isTypingAdmin',
+              payload: { message: 'Subscribed to isTypingChannel' }
+            });
+          }
+          // input event listener
+          const input = document.querySelector("[w-el='admin-ui-chat-input']");
+          let isTypingFlag = false;
+          if (inputEventListener == false) {
+            input.addEventListener('input', () => {
+              if (isTypingFlag == false) {
+                console.log('📶input event');
+                sendIsTyping();
+                isTypingFlag = true;
+                setTimeout(() => {
+                  isTypingFlag = false;
+                }, 5000);
+              }
+            });
+          }
+          inputEventListener = true;
+        });
+      }
+      function closeLiveChatChannel() {
+        isTypingChannel.unsubscribe();
+        isTypingChannel = null;
+      }
+      // operatorChanged event listeners
+      window.addEventListener('joinLivechat', event => {
+        initializeLiveChatChannel(supaClient);
+      });
+      window.addEventListener('leaveLivechat', event => {
+        if (isTypingChannel) {
+          closeLiveChatChannel(supaClient);
+        }
+      });
+      if (v.active_chat?.livechat == true) {
+        initializeLiveChatChannel(supaClient);
+      }
+    })();
   })();
 })();
