@@ -649,6 +649,7 @@
       let isTypingChannel;
       await new Promise(res => setTimeout(res, 1000));
       // ⚠️ maybe just add an await for a request or global variable here
+      console.log('📶 current chat object', v.active_chat_object);
       let currentChat = v.active_chat_object.id;
       let inputEventListener = false;
       function initializeLiveChatChannel(supaClient) {
