@@ -641,65 +641,65 @@
     let isTypingChannel;
     let inputEventListener = false;
 
-    // Wized.reactivity.watch(
-    //   () => Wized.data.v.active_chat_object,
-    //   (newChat, oldChat) => {
-    //     // No active chat - cleanup if needed
-    //     if (!newChat || !newChat.id) {
-    //       if (isTypingChannel) {
-    //         console.log('📶 No active chat - unsubscribing from isTyping channel');
-    //         isTypingChannel.unsubscribe();
-    //         isTypingChannel = null;
-    //       }
-    //       return;
-    //     }
+    Wized.reactivity.watch(
+      () => Wized.data.v.active_chat_object,
+      (newChat, oldChat) => {
+        // No active chat - cleanup if needed
+        if (!newChat || !newChat.id) {
+          if (isTypingChannel) {
+            console.log('📶 No active chat - unsubscribing from isTyping channel');
+            isTypingChannel.unsubscribe();
+            isTypingChannel = null;
+          }
+          return;
+        }
 
-    //     const oldLivechat = oldChat?.livechat === true;
-    //     const newLivechat = newChat.livechat === true;
+        const oldLivechat = oldChat?.livechat === true;
+        const newLivechat = newChat.livechat === true;
 
-    //     // Subscribe: livechat went from false/null to true
-    //     if (!oldLivechat && newLivechat) {
-    //       console.log('📶 Livechat enabled - subscribing to isTyping channel');
+        // Subscribe: livechat went from false/null to true
+        if (!oldLivechat && newLivechat) {
+          console.log('📶 Livechat enabled - subscribing to isTyping channel');
 
-    //       if (isTypingChannel) isTypingChannel.unsubscribe();
+          if (isTypingChannel) isTypingChannel.unsubscribe();
 
-    //       isTypingChannel = supaClient.channel('isTyping_' + newChat.id);
-    //       isTypingChannel.subscribe(status => {
-    //         if (status === 'SUBSCRIBED') {
-    //           console.log('📶 Successfully subscribed to isTyping channel');
+          isTypingChannel = supaClient.channel('isTyping_' + newChat.id);
+          isTypingChannel.subscribe(status => {
+            if (status === 'SUBSCRIBED') {
+              console.log('📶 Successfully subscribed to isTyping channel');
 
-    //           // Setup input listener once
-    //           if (!inputEventListener) {
-    //             const input = document.querySelector("[w-el='admin-ui-chat-input']");
-    //             let isTypingFlag = false;
+              // Setup input listener once
+              if (!inputEventListener) {
+                const input = document.querySelector("[w-el='admin-ui-chat-input']");
+                let isTypingFlag = false;
 
-    //             input.addEventListener('input', () => {
-    //               if (!isTypingFlag && isTypingChannel) {
-    //                 console.log('📶 Sending isTyping broadcast');
-    //                 isTypingChannel.send({
-    //                   type: 'broadcast',
-    //                   event: 'isTypingAdmin',
-    //                   payload: { message: 'typing' }
-    //                 });
-    //                 isTypingFlag = true;
-    //                 setTimeout(() => (isTypingFlag = false), 5000);
-    //               }
-    //             });
-    //             inputEventListener = true;
-    //           }
-    //         }
-    //       });
-    //     }
+                input.addEventListener('input', () => {
+                  if (!isTypingFlag && isTypingChannel) {
+                    console.log('📶 Sending isTyping broadcast');
+                    isTypingChannel.send({
+                      type: 'broadcast',
+                      event: 'isTypingAdmin',
+                      payload: { message: 'typing' }
+                    });
+                    isTypingFlag = true;
+                    setTimeout(() => (isTypingFlag = false), 5000);
+                  }
+                });
+                inputEventListener = true;
+              }
+            }
+          });
+        }
 
-    //     // Unsubscribe: livechat went from true to false
-    //     if (oldLivechat && !newLivechat) {
-    //       console.log('📶 Livechat disabled - unsubscribing from isTyping channel');
-    //       if (isTypingChannel) {
-    //         isTypingChannel.unsubscribe();
-    //         isTypingChannel = null;
-    //       }
-    //     }
-    //   }
-    // );
-  });
+        // Unsubscribe: livechat went from true to false
+        if (oldLivechat && !newLivechat) {
+          console.log('📶 Livechat disabled - unsubscribing from isTyping channel');
+          if (isTypingChannel) {
+            isTypingChannel.unsubscribe();
+            isTypingChannel = null;
+          }
+        }
+      }
+    );
+  })();
 })();
