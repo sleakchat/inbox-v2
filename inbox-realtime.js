@@ -644,15 +644,8 @@
     Wized.reactivity.watch(
       () => Wized.data.v.active_chat_object,
       (newChat, oldChat) => {
+        console.log('📶 active_chat_object changed:', newChat);
         // No active chat - cleanup if needed
-        if (!newChat || !newChat.id) {
-          if (isTypingChannel) {
-            console.log('📶 No active chat - unsubscribing from isTyping channel');
-            isTypingChannel.unsubscribe();
-            isTypingChannel = null;
-          }
-          return;
-        }
 
         const oldLivechat = oldChat?.livechat === true;
         const newLivechat = newChat.livechat === true;
