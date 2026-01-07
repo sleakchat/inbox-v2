@@ -140,12 +140,11 @@
     const { version, client } = await Wized.requests.getClient('supabase');
     let supaClient = client;
 
+    // Auth tokens expire after 1 hour - reconnect with fresh token
     const { data } = supaClient.auth.onAuthStateChange((event, session) => {
-      // console.log('auth event =', JSON.stringify({ event, time: new Date().toLocaleTimeString() }, null, 2));
       if (event === 'TOKEN_REFRESHED') {
-        // console.log('TOKEN_REFRESHED event - initializing main channel in 10 seconds');
+        console.log('🔄 TOKEN_REFRESHED - reconnecting main channel in 5s');
         setTimeout(() => {
-          // console.log('Initializing main channel');
           adminUiChannel.unsubscribe();
           initializeMainChannel();
         }, 5000);
@@ -470,14 +469,17 @@
     function initializeMainChannel() {
       reconnecting = true;
       const maxRetries = 5;
-      // console.log('Initializing main channel, attempt:', retryCount + 1);
+      console.log('🔌 Initializing main channel, attempt:', retryCount + 1);
 
+      // Create private channel for this organization
       adminUiChannel = supaClient.channel(`organization_id:${v.activeOrganization}`, { config: { private: true } });
-      // adminUiChannel = supaClient.channel(`chat_id:b2796c2b-ecc7-47bc-9bd2-4cfa4046f751`, { config: { private: true } });
+
+      // Setup broadcast listener for realtime updates
       (async function initializeBroadcastChannel() {
         await supaClient.realtime.setAuth();
+
+        // Listen to all broadcast events and route to handlers
         adminUiChannel.on('broadcast', { event: '*' }, payload => {
-          // console.log('🔊🔊🔊 Broadcast message:', payload);
           const { table, eventType } = payload.payload;
 
           // console.log('🔍 Payload structure:', {
@@ -585,38 +587,33 @@
       //     }
       //   );
 
+      // Subscribe and handle connection status changes
       adminUiChannel.subscribe((status, err) => {
-        // console.log('Realtime channel status changed = ', status);
-        const timestamp = new Date().toLocaleTimeString();
-        // console.log('realtime event timestamp = ', timestamp);
-        // console.log('reconnecting = ', reconnecting);
+        console.log('📡 Realtime channel status:', status);
 
-        // if (Wized.data.r.get_user_data.data[0].organizations[0].id == '616d0a37-03ac-47ea-91fc-c9eba9f331fc') chime.play();
+        if (status == 'CHANNEL_ERROR') console.log('❌ Channel error:', err);
 
-        if (status == 'CHANNEL_ERROR') console.log('Error:', err);
-
+        // Handle non-subscribed states with retry logic
         if (status !== 'SUBSCRIBED') {
           if (!reconnecting) {
             restartRequired = true;
             if (retryCount > maxRetries) {
-              // console.log('Reached maximum retry attempts for main channel.');
+              console.log('⚠️ Max retry attempts reached');
               return;
             } else {
               retryCount += 1;
-              // console.log('reconnecting');
               if (status !== 'CLOSED') {
                 unsubscribeRequired = true;
-                // console.log('status is not closed, Unsubscribing from main channel');
                 adminUiChannel.unsubscribe();
               } else {
-                // console.log('status is closed, Unsubscribing from main channel');
                 initializeMainChannel();
               }
             }
           }
         } else {
-          retryCount = 0; // reset count on successful connection
-          // console.log('Subscribed - resetting retryCount, retryCount = ', retryCount);
+          // Successfully subscribed - reset all flags
+          console.log('✅ Subscribed to main channel');
+          retryCount = 0;
           restartRequired = false;
           unsubscribeRequired = false;
           reconnecting = false;
@@ -626,87 +623,83 @@
 
     initializeMainChannel();
 
+    // Reconnect channel when tab becomes visible again
     document.onvisibilitychange = () => {
-      // console.log('visibility change', document.visibilityState);
       if (document.visibilityState === 'visible' && !reconnecting) {
-        // if (document.visibilityState === 'visible' && !reconnecting && restartRequired) { <- this is the original line
         if (unsubscribeRequired) {
-          // console.log('unsubscribing / required');
+          console.log('👁️ Tab visible - reconnecting channel');
           adminUiChannel.unsubscribe();
           unsubscribeRequired = false;
           initializeMainChannel();
-        } else {
-          // console.log('not unsubscribing / not required ');
         }
 
         retryCount = 0;
         restartRequired = false;
-      } else {
-      } //right now doing nothing on hidden.  Another option is to set a time to close the subscription after x minutes
+      }
     };
 
     let isTypingChannel;
     let inputEventListener = false;
 
-    Wized.reactivity.watch(
-      () => Wized.data.v.active_chat_object,
-      (newChat, oldChat) => {
-        // No active chat - cleanup if needed
-        if (!newChat || !newChat.id) {
-          if (isTypingChannel) {
-            console.log('📶 No active chat - unsubscribing from isTyping channel');
-            isTypingChannel.unsubscribe();
-            isTypingChannel = null;
-          }
-          return;
-        }
+    // Wized.reactivity.watch(
+    //   () => Wized.data.v.active_chat_object,
+    //   (newChat, oldChat) => {
+    //     // No active chat - cleanup if needed
+    //     if (!newChat || !newChat.id) {
+    //       if (isTypingChannel) {
+    //         console.log('📶 No active chat - unsubscribing from isTyping channel');
+    //         isTypingChannel.unsubscribe();
+    //         isTypingChannel = null;
+    //       }
+    //       return;
+    //     }
 
-        const oldLivechat = oldChat?.livechat === true;
-        const newLivechat = newChat.livechat === true;
+    //     const oldLivechat = oldChat?.livechat === true;
+    //     const newLivechat = newChat.livechat === true;
 
-        // Subscribe: livechat went from false/null to true
-        if (!oldLivechat && newLivechat) {
-          console.log('📶 Livechat enabled - subscribing to isTyping channel');
+    //     // Subscribe: livechat went from false/null to true
+    //     if (!oldLivechat && newLivechat) {
+    //       console.log('📶 Livechat enabled - subscribing to isTyping channel');
 
-          if (isTypingChannel) isTypingChannel.unsubscribe();
+    //       if (isTypingChannel) isTypingChannel.unsubscribe();
 
-          isTypingChannel = supaClient.channel('isTyping_' + newChat.id);
-          isTypingChannel.subscribe(status => {
-            if (status === 'SUBSCRIBED') {
-              console.log('📶 Successfully subscribed to isTyping channel');
+    //       isTypingChannel = supaClient.channel('isTyping_' + newChat.id);
+    //       isTypingChannel.subscribe(status => {
+    //         if (status === 'SUBSCRIBED') {
+    //           console.log('📶 Successfully subscribed to isTyping channel');
 
-              // Setup input listener once
-              if (!inputEventListener) {
-                const input = document.querySelector("[w-el='admin-ui-chat-input']");
-                let isTypingFlag = false;
+    //           // Setup input listener once
+    //           if (!inputEventListener) {
+    //             const input = document.querySelector("[w-el='admin-ui-chat-input']");
+    //             let isTypingFlag = false;
 
-                input.addEventListener('input', () => {
-                  if (!isTypingFlag && isTypingChannel) {
-                    console.log('📶 Sending isTyping broadcast');
-                    isTypingChannel.send({
-                      type: 'broadcast',
-                      event: 'isTypingAdmin',
-                      payload: { message: 'typing' }
-                    });
-                    isTypingFlag = true;
-                    setTimeout(() => (isTypingFlag = false), 5000);
-                  }
-                });
-                inputEventListener = true;
-              }
-            }
-          });
-        }
+    //             input.addEventListener('input', () => {
+    //               if (!isTypingFlag && isTypingChannel) {
+    //                 console.log('📶 Sending isTyping broadcast');
+    //                 isTypingChannel.send({
+    //                   type: 'broadcast',
+    //                   event: 'isTypingAdmin',
+    //                   payload: { message: 'typing' }
+    //                 });
+    //                 isTypingFlag = true;
+    //                 setTimeout(() => (isTypingFlag = false), 5000);
+    //               }
+    //             });
+    //             inputEventListener = true;
+    //           }
+    //         }
+    //       });
+    //     }
 
-        // Unsubscribe: livechat went from true to false
-        if (oldLivechat && !newLivechat) {
-          console.log('📶 Livechat disabled - unsubscribing from isTyping channel');
-          if (isTypingChannel) {
-            isTypingChannel.unsubscribe();
-            isTypingChannel = null;
-          }
-        }
-      }
-    );
+    //     // Unsubscribe: livechat went from true to false
+    //     if (oldLivechat && !newLivechat) {
+    //       console.log('📶 Livechat disabled - unsubscribing from isTyping channel');
+    //       if (isTypingChannel) {
+    //         isTypingChannel.unsubscribe();
+    //         isTypingChannel = null;
+    //       }
+    //     }
+    //   }
+    // );
   });
 })();
