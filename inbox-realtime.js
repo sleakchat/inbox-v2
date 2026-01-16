@@ -640,6 +640,7 @@
 
     let isTypingChannel;
     let inputEventListener = false;
+    let userTypingTimeout;
 
     Wized.reactivity.watch(
       () => Wized.data.v.active_chat_object,
@@ -655,6 +656,8 @@
           console.log('📶 Unsubscribing from isTyping channel');
           isTypingChannel.unsubscribe();
           isTypingChannel = null;
+          v.userIsTyping = false;
+          if (userTypingTimeout) clearTimeout(userTypingTimeout);
         }
 
         // Subscribe if livechat is enabled (chat changed or livechat enabled)
@@ -663,9 +666,23 @@
 
           isTypingChannel = supaClient.channel('isTyping_' + newChat.id);
           
-          // Listen for all broadcast events
-          isTypingChannel.on('broadcast', { event: '*' }, payload => {
-            console.log('📶 Received broadcast:', payload);
+          // Listen for user typing events
+          isTypingChannel.on('broadcast', { event: 'startTypingUser' }, payload => {
+            console.log('📶 User started typing');
+            v.userIsTyping = true;
+            
+            // Fallback timeout - reset typing after 15s
+            if (userTypingTimeout) clearTimeout(userTypingTimeout);
+            userTypingTimeout = setTimeout(() => {
+              console.log('📶 User typing timeout - resetting');
+              v.userIsTyping = false;
+            }, 15000);
+          });
+
+          isTypingChannel.on('broadcast', { event: 'stopTypingUser' }, payload => {
+            console.log('📶 User stopped typing');
+            v.userIsTyping = false;
+            if (userTypingTimeout) clearTimeout(userTypingTimeout);
           });
 
           isTypingChannel.subscribe(status => {
