@@ -662,6 +662,12 @@
           console.log('📶 Subscribing to isTyping channel for chat:', newChat.id);
 
           isTypingChannel = supaClient.channel('isTyping_' + newChat.id);
+          
+          // Listen for all broadcast events
+          isTypingChannel.on('broadcast', { event: '*' }, payload => {
+            console.log('📶 Received broadcast:', payload);
+          });
+
           isTypingChannel.subscribe(status => {
             if (status === 'SUBSCRIBED') {
               console.log('📶 Subscribed to isTyping channel');
