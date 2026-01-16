@@ -645,21 +645,26 @@
       () => Wized.data.v.active_chat_object,
       (newChat, oldChat) => {
         console.log('📶 active_chat_object changed:', newChat);
-        // No active chat - cleanup if needed
 
         const oldLivechat = oldChat?.livechat === true;
-        const newLivechat = newChat.livechat === true;
+        const newLivechat = newChat?.livechat === true;
+        const chatChanged = oldChat?.id !== newChat?.id;
 
-        // Subscribe: livechat went from false/null to true
-        if (!oldLivechat && newLivechat) {
-          console.log('📶 Livechat enabled - subscribing to isTyping channel');
+        // Unsubscribe if chat changed or livechat disabled
+        if (isTypingChannel && (chatChanged || (oldLivechat && !newLivechat))) {
+          console.log('📶 Unsubscribing from isTyping channel');
+          isTypingChannel.unsubscribe();
+          isTypingChannel = null;
+        }
 
-          if (isTypingChannel) isTypingChannel.unsubscribe();
+        // Subscribe if livechat is enabled (chat changed or livechat enabled)
+        if (newLivechat && newChat?.id) {
+          console.log('📶 Subscribing to isTyping channel for chat:', newChat.id);
 
           isTypingChannel = supaClient.channel('isTyping_' + newChat.id);
           isTypingChannel.subscribe(status => {
             if (status === 'SUBSCRIBED') {
-              console.log('📶 Successfully subscribed to isTyping channel');
+              console.log('📶 Subscribed to isTyping channel');
 
               // Setup input listener once
               if (!inputEventListener) {
@@ -682,15 +687,6 @@
               }
             }
           });
-        }
-
-        // Unsubscribe: livechat went from true to false
-        if (oldLivechat && !newLivechat) {
-          console.log('📶 Livechat disabled - unsubscribing from isTyping channel');
-          if (isTypingChannel) {
-            isTypingChannel.unsubscribe();
-            isTypingChannel = null;
-          }
         }
       }
     );
