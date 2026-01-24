@@ -301,6 +301,48 @@
     Wized.requests.execute('get_chats');
   }
 
+  (async function visitorLazyLoad() {
+    const fetchedVisitorIds = new Set();
+    
+    v.visitors = v.visitors || {};
+
+    async function fetchVisitors(visitorIds) {
+      if (visitorIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('visitors')
+        .select('*')
+        .in('id', visitorIds);
+
+      if (error) {
+        console.error('Error fetching visitors:', error);
+        return;
+      }
+
+      if (data) {
+        data.forEach(visitor => {
+          v.visitors[visitor.id] = visitor;
+          fetchedVisitorIds.add(visitor.id);
+        });
+      }
+    }
+
+    Wized.reactivity.watch(
+      () => Wized.data.v.chats,
+      async (newChats) => {
+        if (!newChats || newChats.length === 0) return;
+
+        const newVisitorIds = newChats
+          .map(chat => chat.visitor_id)
+          .filter(visitorId => visitorId && !fetchedVisitorIds.has(visitorId));
+
+        if (newVisitorIds.length > 0) {
+          await fetchVisitors([...new Set(newVisitorIds)]);
+        }
+      }
+    );
+  })();
+
   (function internalNotesInit() {
     const bannerParent = document.querySelector('[w-el="send-note-banner-parent"]');
     const banner = document.querySelector('[w-el="send-note-banner"]');
