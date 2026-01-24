@@ -304,7 +304,7 @@
   (async function visitorLazyLoad() {
     const fetchedVisitorIds = new Set();
     
-    v.visitors = v.visitors || {};
+    v.visitors = v.visitors || [];
 
     async function fetchVisitors(visitorIds) {
       if (visitorIds.length === 0) return;
@@ -320,10 +320,8 @@
       }
 
       if (data) {
-        data.forEach(visitor => {
-          v.visitors[visitor.id] = visitor;
-          fetchedVisitorIds.add(visitor.id);
-        });
+        v.visitors.push(...data);
+        data.forEach(visitor => fetchedVisitorIds.add(visitor.id));
       }
     }
 
