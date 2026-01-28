@@ -301,6 +301,46 @@
     Wized.requests.execute('get_chats');
   }
 
+  (async function visitorLazyLoad() {
+    const fetchedVisitorIds = new Set();
+    
+    v.visitors = v.visitors || [];
+
+    async function fetchVisitors(visitorIds) {
+      if (visitorIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('visitors')
+        .select('*')
+        .in('id', visitorIds);
+
+      if (error) {
+        console.error('Error fetching visitors:', error);
+        return;
+      }
+
+      if (data) {
+        v.visitors.push(...data);
+        data.forEach(visitor => fetchedVisitorIds.add(visitor.id));
+      }
+    }
+
+    Wized.reactivity.watch(
+      () => Wized.data.v.chats,
+      async (newChats) => {
+        if (!newChats || newChats.length === 0) return;
+
+        const newVisitorIds = newChats
+          .map(chat => chat.visitor_id)
+          .filter(visitorId => visitorId && !fetchedVisitorIds.has(visitorId));
+
+        if (newVisitorIds.length > 0) {
+          await fetchVisitors([...new Set(newVisitorIds)]);
+        }
+      }
+    );
+  })();
+
   (function internalNotesInit() {
     const bannerParent = document.querySelector('[w-el="send-note-banner-parent"]');
     const banner = document.querySelector('[w-el="send-note-banner"]');
@@ -452,7 +492,8 @@
   // Send a system message to the chat with custom message_type_data
   async function sendSystemMessage(chat_id, message_type, message_type_data, author_member_id = null) {
     await supabase.from('messages').insert({
-      visitor_id: chat_id,
+      chat_id: chat_id,
+      visitor_id: v.active_chat_object.visitor_id,
       author_type: 'system',
       message_type: message_type,
       message_type_data: message_type_data,
@@ -552,7 +593,9 @@
         await supabase.from('operators').update({ status: 'active', handoff_type: null }).eq('chat_id', chatState.id).eq('member_id', currentMember.id);
       } else {
         // insert new operator if not already in the chat
-        await supabase.from('operators').insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active', organization_id: v.activeOrganization }]);
+        await supabase
+          .from('operators')
+          .insert([{ chat_id: chatState.id, member_id: currentMember.id, user_id: user_id, status: 'active', organization_id: v.activeOrganization, visitor_id: chatState.visitor_id }]);
       }
 
       if (chatState.open == false) {
@@ -627,7 +670,7 @@
 
   (async function defineLivechatAssignment() {
     // Invite or update operator
-    async function inviteOperator(chat_id, user_id, member_id) {
+    async function inviteOperator(chat_id, user_id, member_id, visitor_id) {
       // Check if operator already exists
       const { data: existing } = await supabase.from('operators').select('*').eq('chat_id', chat_id).eq('user_id', user_id).maybeSingle();
 
@@ -638,7 +681,7 @@
       } else {
         // console.log('operator doesnt exist, inserting new operator');
         // Insert new operator
-        await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited', organization_id: v.activeOrganization }]);
+        await supabase.from('operators').insert([{ chat_id, member_id, user_id, status: 'invited', organization_id: v.activeOrganization, visitor_id }]);
         // console.log(`Operator ${user_id} invited to chat ${chat_id}`);
       }
     }
@@ -680,7 +723,7 @@
       await removeActiveOperators(chat_id, user_id, true);
 
       // Invite or update the operator
-      await inviteOperator(chat_id, user_id, member_id);
+      await inviteOperator(chat_id, user_id, member_id, chatState.visitor_id);
 
       await sendSystemMessage(chat_id, 'agent_requested', { type: 'assign_manually', assigned_to: user_id, assigned_by: currentUser });
     };
