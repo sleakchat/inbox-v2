@@ -9,11 +9,12 @@
     woocommerce: 'Woocommerce orders',
     lightspeed: 'Lightspeed orders',
     magento: 'Magento orders',
-    myparcel: 'MyParcel orders',
-    sendcloud: 'SendCloud orders',
-    picqer: 'Picqer orders',
-    monta: 'Monta orders',
+    myparcel: 'MyParcel shipments',
+    sendcloud: 'SendCloud shipments',
+    picqer: 'Picqer shipments',
     shopware: 'Shopware orders',
+    goedgepickt: 'Goedgepickt shipments',
+    monta: 'Monta shipments',
     // Actions
     'custom-action': 'Custom action',
     'order-status': 'Order status',
@@ -83,8 +84,10 @@
       { name: 'base_url', label: 'Base URL', type: 'text', required: true, placeholder: 'https://your-shopware-url.com' },
       { name: 'username', label: 'Access Key ID', type: 'text', required: true, placeholder: 'your-access-key-id' },
       { name: 'password', label: 'Secret Access Key', type: 'password', required: true, placeholder: 'your-secret-access-key' }
+    ],
+    goedgepickt: [
+      { name: 'api_key', label: 'API Key', type: 'password', required: true, placeholder: 'your-api-key' }
     ]
-    // Add shopware or other CMS if needed
   };
 
   function cleanupDynamicAuthInputs(wrapperElementName) {
