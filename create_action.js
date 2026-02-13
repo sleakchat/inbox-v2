@@ -97,16 +97,20 @@
   }
 
   window.renderAuthInputsForTemplate = function (templateKey, element) {
+    console.log('renderAuthInputsForTemplate called:', { templateKey, element });
     cleanupDynamicAuthInputs(element);
     const wrapper = document.querySelector(`[w-el="${element}"]`);
     const config = authConfig[templateKey];
     const template = document.querySelector(`[w-el=order-status-form-dynamic-template]`);
+    console.log('Found:', { config: !!config, wrapper: !!wrapper, template: !!template });
     if (template) {
       const inputInTemplate = template.querySelector('.auth-form-input');
     }
     if (!config || !wrapper || !template) {
+      console.log('Early return - missing required elements');
       return;
     }
+    console.log(`Rendering ${config.length} auth fields for ${templateKey}`);
     config.forEach(field => {
       // Use the already-found template
       const clone = template.cloneNode(true);
@@ -144,13 +148,15 @@
   };
 
   window.setAuthInputsForTemplate = function (templateKey, dynamicInputs) {
-    // Always clean up the edit container before inserting new inputs
+    console.log('setAuthInputsForTemplate called with:', { templateKey, dynamicInputs });
     cleanupDynamicAuthInputs('create-template-form-inputs-wrapper-edit');
     renderAuthInputsForTemplate(templateKey, 'create-template-form-inputs-wrapper-edit');
     Object.keys(dynamicInputs).forEach(key => {
       const input = document.querySelector(`[name="${key}"]`);
+      console.log(`Looking for input [name="${key}"]`, input ? 'found' : 'NOT FOUND');
       if (input) {
         const value = dynamicInputs[key];
+        console.log(`Setting ${key} = ${value}`);
         input.value = value;
       }
     });
