@@ -13,7 +13,7 @@
     sendcloud: 'SendCloud shipments',
     picqer: 'Picqer shipments',
     shopware: 'Shopware orders',
-    goedgepickt: 'Goedgepickt shipments',
+    goedgepickt: 'GoedGepickt shipments',
     monta: 'Monta shipments',
     // Actions
     'custom-action': 'Custom action',
@@ -85,9 +85,7 @@
       { name: 'username', label: 'Access Key ID', type: 'text', required: true, placeholder: 'your-access-key-id' },
       { name: 'password', label: 'Secret Access Key', type: 'password', required: true, placeholder: 'your-secret-access-key' }
     ],
-    goedgepickt: [
-      { name: 'api_key', label: 'API Key', type: 'password', required: true, placeholder: 'your-api-key' }
-    ]
+    goedgepickt: [{ name: 'api_key', label: 'API Key', type: 'password', required: true, placeholder: 'your-api-key' }]
   };
 
   function cleanupDynamicAuthInputs(wrapperElementName) {
