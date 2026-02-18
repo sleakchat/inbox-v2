@@ -90,28 +90,28 @@
 
   function cleanupDynamicAuthInputs(wrapperElementName) {
     const wrapper = document.querySelector(`[w-el="${wrapperElementName}"]`);
-    console.log('cleanupDynamicAuthInputs:', wrapperElementName, wrapper ? 'found' : 'NOT FOUND');
+    // console.log('cleanupDynamicAuthInputs:', wrapperElementName, wrapper ? 'found' : 'NOT FOUND');
     if (!wrapper) return;
-    const dynamicElements = wrapper.querySelectorAll('[data-dynamic-auth="true"]');
-    console.log(`Removing ${dynamicElements.length} dynamic auth inputs`);
-    dynamicElements.forEach(el => el.remove());
+    // const dynamicElements = wrapper.querySelectorAll('[data-dynamic-auth="true"]');
+    // console.log(`Removing ${dynamicElements.length} dynamic auth inputs`);
+    // dynamicElements.forEach(el => el.remove());
   }
 
   window.renderAuthInputsForTemplate = function (templateKey, element) {
-    console.log('renderAuthInputsForTemplate called:', { templateKey, element });
+    // console.log('renderAuthInputsForTemplate called:', { templateKey, element });
     cleanupDynamicAuthInputs(element);
     const wrapper = document.querySelector(`[w-el="${element}"]`);
     const config = authConfig[templateKey];
     const template = document.querySelector(`[w-el=order-status-form-dynamic-template]`);
-    console.log('Found:', { config: !!config, wrapper: !!wrapper, template: !!template });
+    // console.log('Found:', { config: !!config, wrapper: !!wrapper, template: !!template });
     if (template) {
       const inputInTemplate = template.querySelector('.auth-form-input');
     }
     if (!config || !wrapper || !template) {
-      console.log('Early return - missing required elements');
+      // console.log('Early return - missing required elements');
       return;
     }
-    console.log(`Rendering ${config.length} auth fields for ${templateKey}`);
+    // console.log(`Rendering ${config.length} auth fields for ${templateKey}`);
     config.forEach(field => {
       // Use the already-found template
       const clone = template.cloneNode(true);
@@ -149,16 +149,16 @@
   };
 
   window.setAuthInputsForTemplate = function (templateKey, dynamicInputs) {
-    console.log('setAuthInputsForTemplate called with:', { templateKey, dynamicInputs });
+    // console.log('setAuthInputsForTemplate called with:', { templateKey, dynamicInputs });
     // Always clean up the edit container before inserting new inputs
     cleanupDynamicAuthInputs('create-template-form-inputs-wrapper-edit');
     renderAuthInputsForTemplate(templateKey, 'create-template-form-inputs-wrapper-edit');
     Object.keys(dynamicInputs).forEach(key => {
       const input = document.querySelector(`[name="${key}"]`);
-      console.log(`Looking for input [name="${key}"]`, input ? 'found' : 'NOT FOUND');
+      // console.log(`Looking for input [name="${key}"]`, input ? 'found' : 'NOT FOUND');
       if (input) {
         const value = dynamicInputs[key];
-        console.log(`Setting ${key} = ${value}`);
+        // console.log(`Setting ${key} = ${value}`);
         input.value = value;
       }
     });
@@ -192,7 +192,7 @@
   buttonInitial.addEventListener(
     'click',
     function (event) {
-      console.log('click');
+      // console.log('click');
       actionContainerInitial.style.display = 'none';
 
       actionsContainers.forEach(container => {
@@ -206,7 +206,7 @@
       }
       // Set the action name based on selected action's display name
       Wized.data.i.create_action_name = displayNames[Wized.data.v.selectedAction] || Wized.data.v.selectedAction;
-      console.log('Wized.data.i.create_action_name', Wized.data.i.create_action_name);
+      // console.log('Wized.data.i.create_action_name', Wized.data.i.create_action_name);
       document.querySelector(`[actions-container="${Wized.data.v.selectedAction}"]`).style.display = 'flex';
     },
     -false
