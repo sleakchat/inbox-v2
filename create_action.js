@@ -90,15 +90,15 @@
 
   function cleanupDynamicAuthInputs(wrapperElementName) {
     const wrapper = document.querySelector(`[w-el="${wrapperElementName}"]`);
-    // console.log('cleanupDynamicAuthInputs:', wrapperElementName, wrapper ? 'found' : 'NOT FOUND');
+    console.log('[cleanup] wrapper:', wrapperElementName, wrapper ? 'found' : 'NOT FOUND');
     if (!wrapper) return;
-    // const dynamicElements = wrapper.querySelectorAll('[data-dynamic-auth="true"]');
-    // console.log(`Removing ${dynamicElements.length} dynamic auth inputs`);
-    // dynamicElements.forEach(el => el.remove());
+    const toRemove = wrapper.querySelectorAll('[data-dynamic-auth="true"]');
+    console.log('[cleanup] removing', toRemove.length, 'dynamic inputs');
+    toRemove.forEach(el => el.remove());
   }
 
   window.renderAuthInputsForTemplate = function (templateKey, element) {
-    // console.log('renderAuthInputsForTemplate called:', { templateKey, element });
+    console.log('[renderAuth] called:', { templateKey, element });
     cleanupDynamicAuthInputs(element);
     const wrapper = document.querySelector(`[w-el="${element}"]`);
     const config = authConfig[templateKey];
