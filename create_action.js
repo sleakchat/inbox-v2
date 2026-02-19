@@ -94,7 +94,7 @@
     if (!wrapper) return;
     // const dynamicElements = wrapper.querySelectorAll('[data-dynamic-auth="true"]');
     // console.log(`Removing ${dynamicElements.length} dynamic auth inputs`);
-    // dynamicElements.forEach(el => el.remove());
+    dynamicElements.forEach(el => el.remove());
   }
 
   window.renderAuthInputsForTemplate = function (templateKey, element) {
