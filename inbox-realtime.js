@@ -470,7 +470,7 @@
     function initializeMainChannel() {
       reconnecting = true;
       const maxRetries = 5;
-      console.log('🔌 Initializing main channel, attempt:', retryCount + 1);
+      // console.log('🔌 Initializing main channel, attempt:', retryCount + 1);
 
       // Create private channel for this organization
       adminUiChannel = supaClient.channel(`organization_id:${v.activeOrganization}`, { config: { private: true } });
@@ -591,7 +591,7 @@
 
       // Subscribe and handle connection status changes
       adminUiChannel.subscribe((status, err) => {
-        console.log('📡 Realtime channel status:', status);
+        // console.log('📡 Realtime channel status:', status);
 
         if (status == 'CHANNEL_ERROR') console.log('❌ Channel error:', err);
 
@@ -614,7 +614,7 @@
           }
         } else {
           // Successfully subscribed - reset all flags
-          console.log('✅ Subscribed to main channel');
+          // console.log('✅ Subscribed to main channel');
           retryCount = 0;
           restartRequired = false;
           unsubscribeRequired = false;
@@ -647,7 +647,7 @@
     Wized.reactivity.watch(
       () => Wized.data.v.active_chat_object,
       (newChat, oldChat) => {
-        console.log('📶 active_chat_object changed:', newChat);
+        // console.log('📶 active_chat_object changed:', newChat);
 
         const oldLivechat = oldChat?.livechat === true;
         const newLivechat = newChat?.livechat === true;
@@ -655,7 +655,7 @@
 
         // Unsubscribe if chat changed or livechat disabled
         if (isTypingChannel && (chatChanged || (oldLivechat && !newLivechat))) {
-          console.log('📶 Unsubscribing from isTyping channel');
+          // console.log('📶 Unsubscribing from isTyping channel');
           isTypingChannel.unsubscribe();
           isTypingChannel = null;
           v.userIsTyping = false;
@@ -664,32 +664,32 @@
 
         // Subscribe if livechat is enabled (chat changed or livechat enabled)
         if (newLivechat && newChat?.id) {
-          console.log('📶 Subscribing to isTyping channel for chat:', newChat.id);
+          // console.log('📶 Subscribing to isTyping channel for chat:', newChat.id);
 
           isTypingChannel = supaClient.channel('isTyping_' + newChat.id);
-          
+
           // Listen for user typing events
           isTypingChannel.on('broadcast', { event: 'startTypingUser' }, payload => {
-            console.log('📶 User started typing');
+            // console.log('📶 User started typing');
             v.userIsTyping = true;
-            
+
             // Fallback timeout - reset typing after 15s
             if (userTypingTimeout) clearTimeout(userTypingTimeout);
             userTypingTimeout = setTimeout(() => {
-              console.log('📶 User typing timeout - resetting');
+              // console.log('📶 User typing timeout - resetting');
               v.userIsTyping = false;
             }, 15000);
           });
 
           isTypingChannel.on('broadcast', { event: 'stopTypingUser' }, payload => {
-            console.log('📶 User stopped typing');
+            // console.log('📶 User stopped typing');
             v.userIsTyping = false;
             if (userTypingTimeout) clearTimeout(userTypingTimeout);
           });
 
           isTypingChannel.subscribe(status => {
             if (status === 'SUBSCRIBED') {
-              console.log('📶 Subscribed to isTyping channel');
+              // console.log('📶 Subscribed to isTyping channel');
 
               // Setup input listener once
               if (!inputEventListener) {
@@ -698,7 +698,7 @@
 
                 input.addEventListener('input', () => {
                   if (!isTypingFlag && isTypingChannel) {
-                    console.log('📶 Sending isTyping broadcast');
+                    // console.log('📶 Sending isTyping broadcast');
                     isTypingChannel.send({
                       type: 'broadcast',
                       event: 'isTypingAdmin',
