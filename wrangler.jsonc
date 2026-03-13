@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "inbox-v2",
+  "compatibility_date": "2025-09-27",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "product-recommedations"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

@@ -21,3 +21,10 @@ changetabs.js
 navtabs.js
 realtime_example.js
 multi-select-reusablefunction.js
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
